@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardCheck, CalendarCheck, User, Car } from 'lucide-react';
+import { ClipboardCheck, CalendarCheck, User, Car, QrCode } from 'lucide-react';
 
 export default function TechnicianBottomNav() {
   const pathname = usePathname();
@@ -11,6 +11,7 @@ export default function TechnicianBottomNav() {
     { href: '/technician/dashboard', icon: ClipboardCheck, label: 'مهامي' },
     { href: '/technician/attendance', icon: CalendarCheck, label: 'الحضور' },
     { href: '/technician/vehicles', icon: Car, label: 'المركبات' },
+    { href: '/technician/scanner', icon: QrCode, label: 'مسح' },
     { href: '/technician/profile', icon: User, label: 'حسابي' },
   ];
 
