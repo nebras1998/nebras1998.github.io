@@ -22,22 +22,23 @@ export default function ScannerPage() {
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         async (decodedText) => {
-          // تم التعرف على الرمز
           setScanning(false);
           await scanner.stop();
           scanner.clear();
+          
           if (decodedText.includes('/dashboard/samples/')) {
             const sampleId = decodedText.split('/dashboard/samples/').pop();
             if (sampleId) {
-              router.push(`/technician/samples/${sampleId}`);
+              // استخدام window.location لتحميل كامل للصفحة والحفاظ على الجلسة
+              window.location.href = `/technician/samples/${sampleId}`;
             }
           } else {
             setError('الباركود غير صالح. حاول مرة أخرى.');
-            setScanning(true);
-            startScanner(); // إعادة التشغيل
+            // إعادة تشغيل الماسح
+            setTimeout(() => startScanner(), 500);
           }
         },
-        () => {} // تجاهل أخطاء المسح
+        () => {} // تجاهل أخطاء المسح المؤقتة
       );
     } catch (err) {
       setError('فشل تشغيل الكاميرا. تأكد من السماح بالوصول.');
@@ -59,7 +60,7 @@ export default function ScannerPage() {
   return (
     <div className="min-h-screen bg-black pb-20" dir="rtl">
       <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
-        <button onClick={() => router.back()} className="text-white">
+        <button onClick={() => router.push('/technician/dashboard')} className="text-white">
           <ArrowRight size={24} />
         </button>
         <h1 className="text-lg font-bold">مسح الباركود</h1>
