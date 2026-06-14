@@ -9,7 +9,7 @@ interface AuthState {
   role: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginTechnician: (email: string, password: string) => Promise<void>; // جديدة
+  loginTechnician: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
 }
@@ -20,20 +20,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   role: null,
   loading: true,
 
-  // دالة تسجيل الدخول للوحة الإدارة (كما هي)
+  // تسجيل دخول المدير/موظف المختبر
   login: async (email, password) => {
+    // حذف أي جلسة سابقة بصمت
     try { await account.deleteSession('current'); } catch {}
     await account.createEmailPasswordSession(email, password);
     const user = await account.get();
-    // لا نبحث عن موظف هنا حتى لا نسبب مشاكل
     set({ user, employee: null, role: null });
   },
 
-  // دالة تسجيل الدخول للفنيين (جديدة)
+  // تسجيل دخول الفنيين
   loginTechnician: async (email, password) => {
-    // 1. حذف أي جلسة سابقة
+    // 1. حذف أي جلسة سابقة بصمت (حل جذري لمشكلة "session is active")
     try { await account.deleteSession('current'); } catch {}
-    
+
     // 2. إنشاء جلسة جديدة
     await account.createEmailPasswordSession(email, password);
     const user = await account.get();
@@ -44,20 +44,25 @@ export const useAuthStore = create<AuthState>((set) => ({
         Query.equal('email', email),
         Query.limit(1),
       ]);
+
       if (empRes.documents.length > 0) {
         const emp = empRes.documents[0];
-        if (emp.role !== 'فني') {
-          // إذا لم يكن فنيًا، نرفض الدخول
+
+        // التأكد من أن الموظف هو فني (أو مدير يمكنه استخدام تطبيق الفنيين)
+        if (emp.role !== 'فني' && emp.role !== 'مدير') {
+          // إذا لم يكن فنيًا ولا مديرًا، نرفض الدخول
           await account.deleteSession('current');
-          throw new Error('هذا الحساب ليس للفنيين. استخدم لوحة الإدارة.');
+          throw new Error('هذا الحساب غير مصرح له باستخدام تطبيق الفنيين. تواصل مع المدير.');
         }
-        set({ user, employee: emp, role: 'فني' });
+
+        set({ user, employee: emp, role: emp.role });
       } else {
+        // لا يوجد موظف بهذا البريد
         await account.deleteSession('current');
-        throw new Error('الموظف غير موجود في قاعدة البيانات.');
+        throw new Error('لا يوجد موظف بهذا البريد الإلكتروني. تواصل مع المدير.');
       }
     } catch (err: any) {
-      // إذا فشل جلب الموظف، نحذف الجلسة ونرمي الخطأ
+      // إذا فشل جلب بيانات الموظف، نحذف الجلسة ونرمي الخطأ
       try { await account.deleteSession('current'); } catch {}
       throw err;
     }
@@ -71,7 +76,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkSession: async () => {
     try {
       const user = await account.get();
-      // لا نجلب الموظف تلقائيًا هنا للحفاظ على استقرار لوحة الإدارة
       set({ user, loading: false });
     } catch {
       set({ user: null, employee: null, role: null, loading: false });
