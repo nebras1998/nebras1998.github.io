@@ -25,16 +25,20 @@ export default function ScannerPage() {
           setScanning(false);
           await scanner.stop();
           scanner.clear();
-          
+
+          // استخراج sampleId من الرابط
+          let sampleId = '';
           if (decodedText.includes('/dashboard/samples/')) {
-            const sampleId = decodedText.split('/dashboard/samples/').pop();
-            if (sampleId) {
-              // استخدام window.location لتحميل كامل للصفحة والحفاظ على الجلسة
-              window.location.href = `/technician/samples/${sampleId}`;
-            }
+            sampleId = decodedText.split('/dashboard/samples/').pop() || '';
+          } else if (decodedText.includes('/technician/samples/')) {
+            sampleId = decodedText.split('/technician/samples/').pop() || '';
+          }
+
+          if (sampleId) {
+            // ✅ تحويل دائم إلى مسار الفنيين
+            window.location.href = `/technician/samples/${sampleId}`;
           } else {
-            setError('الباركود غير صالح. حاول مرة أخرى.');
-            // إعادة تشغيل الماسح
+            setError('الباركود غير صالح. تأكد من مسح باركود عينة.');
             setTimeout(() => startScanner(), 500);
           }
         },
@@ -48,7 +52,6 @@ export default function ScannerPage() {
 
   useEffect(() => {
     startScanner();
-
     return () => {
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});

@@ -97,7 +97,7 @@ export default function SampleDetailPage() {
 
   // ------------------- المستخدم غير مسجل دخول ← شاشة الاختيار -------------------
   if (!user) {
-    const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4" dir="rtl">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center space-y-6">
@@ -107,13 +107,13 @@ export default function SampleDetailPage() {
 
           <div className="space-y-3">
             <button
-              onClick={() => router.push(`/login?redirect=${encodeURIComponent(pageUrl)}`)}
+              onClick={() => router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`)}
               className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 flex items-center justify-center gap-2"
             >
               <Building size={20} /> دخول المختبر (الإدارة)
             </button>
             <button
-              onClick={() => router.push(`/technician/login?redirect=${encodeURIComponent(pageUrl)}`)}
+              onClick={() => router.push(`/technician/login?redirect=${encodeURIComponent(currentUrl)}`)}
               className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 flex items-center justify-center gap-2"
             >
               <User size={20} /> دخول الفنيين
@@ -129,56 +129,62 @@ export default function SampleDetailPage() {
 
   const pageUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard/samples/${sampleId}` : '';
 
-  return (
-    <DashboardLayout>
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">تفاصيل العينة</h1>
+  // تحديد إذا كان المستخدم فنيًا أم مديرًا لتخصيص الواجهة قليلاً
+  const isTechnician = user?.labels?.includes('technician'); // أو حسب منطق دور المستخدم لديك
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><span className="text-gray-500">رقم العينة:</span> {sample.sampleNumber}</div>
-          <div><span className="text-gray-500">النوع:</span> {sample.type}</div>
-          <div><span className="text-gray-500">المشروع:</span> {projectName || '-'}</div>
-          <div><span className="text-gray-500">العميل:</span> {clientName || '-'}</div>
-          <div><span className="text-gray-500">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
-          <div><span className="text-gray-500">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
-          <div><span className="text-gray-500">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
-          <div><span className="text-gray-500">الحالة:</span> {sample.status}</div>
-          <div><span className="text-gray-500">فني الأخذ:</span> {samplerName || '-'}</div>
-          <div><span className="text-gray-500">فني التحضير:</span> {preparerName || '-'}</div>
-          <div><span className="text-gray-500">فني الإحضار:</span> {transporterName || '-'}</div>
-        </div>
+  const content = (
+    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+      <h1 className="text-2xl font-bold mb-6">تفاصيل العينة</h1>
 
-        {/* قسم QR Code */}
-        <div className="mt-8 border-t pt-6 text-center">
-          <h2 className="font-bold mb-2 flex items-center justify-center gap-2">
-            <QrCode size={20} /> رمز الاستجابة السريعة (QR)
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            امسح الباركود للوصول إلى تفاصيل العينة (يتطلب تسجيل الدخول)
-          </p>
-
-          {pageUrl && (
-            <div className="inline-block bg-white p-4 border rounded-xl">
-              <QRCodeSVG
-                id="sample-qr"
-                value={pageUrl}
-                size={220}
-                level="H"
-                includeMargin
-              />
-            </div>
-          )}
-
-          <p className="text-xs text-gray-400 mt-2 break-all">{pageUrl}</p>
-
-          <button
-            onClick={downloadQR}
-            className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:bg-blue-700"
-          >
-            <Download size={16} /> تحميل صورة الباركود
-          </button>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><span className="text-gray-500">رقم العينة:</span> {sample.sampleNumber}</div>
+        <div><span className="text-gray-500">النوع:</span> {sample.type}</div>
+        <div><span className="text-gray-500">المشروع:</span> {projectName || '-'}</div>
+        <div><span className="text-gray-500">العميل:</span> {clientName || '-'}</div>
+        <div><span className="text-gray-500">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
+        <div><span className="text-gray-500">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
+        <div><span className="text-gray-500">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
+        <div><span className="text-gray-500">الحالة:</span> {sample.status}</div>
+        <div><span className="text-gray-500">فني الأخذ:</span> {samplerName || '-'}</div>
+        <div><span className="text-gray-500">فني التحضير:</span> {preparerName || '-'}</div>
+        <div><span className="text-gray-500">فني الإحضار:</span> {transporterName || '-'}</div>
       </div>
-    </DashboardLayout>
+
+      {/* قسم QR Code */}
+      <div className="mt-8 border-t pt-6 text-center">
+        <h2 className="font-bold mb-2 flex items-center justify-center gap-2">
+          <QrCode size={20} /> رمز الاستجابة السريعة (QR)
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          امسح الباركود للوصول إلى تفاصيل العينة (يتطلب تسجيل الدخول)
+        </p>
+
+        {pageUrl && (
+          <div className="inline-block bg-white p-4 border rounded-xl">
+            <QRCodeSVG
+              id="sample-qr"
+              value={pageUrl}
+              size={220}
+              level="H"
+              includeMargin
+            />
+          </div>
+        )}
+
+        <p className="text-xs text-gray-400 mt-2 break-all">{pageUrl}</p>
+
+        <button
+          onClick={downloadQR}
+          className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:bg-blue-700"
+        >
+          <Download size={16} /> تحميل صورة الباركود
+        </button>
+      </div>
+    </div>
   );
+
+  // إذا كان المستخدم مديرًا/موظفًا، نلف المحتوى بـ DashboardLayout
+  // أما إذا كان فنيًا، قد نكتفي بعرض المحتوى بدون الشريط الجانبي (حسب التصميم)
+  // هنا نستخدم DashboardLayout للجميع، لكن يمكن تخصيصه
+  return <DashboardLayout>{content}</DashboardLayout>;
 }
