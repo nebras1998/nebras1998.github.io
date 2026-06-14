@@ -16,8 +16,10 @@ export default function TechnicianSampleDetail() {
   const [projectName, setProjectName] = useState('');
   const [clientName, setClientName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!sampleId) return;
     const fetchSample = async () => {
       try {
         const s = await databases.getDocument(DATABASE_ID, SAMPLES_COLLECTION_ID, sampleId);
@@ -31,6 +33,7 @@ export default function TechnicianSampleDetail() {
           }
         }
       } catch (err: any) {
+        setError('فشل تحميل بيانات العينة');
         toast.error('فشل تحميل بيانات العينة');
       } finally {
         setLoading(false);
@@ -40,12 +43,22 @@ export default function TechnicianSampleDetail() {
   }, [sampleId]);
 
   if (loading) return <div className="p-4 text-center">جارٍ التحميل...</div>;
-  if (!sample) return <div className="p-4 text-center text-red-500">العينة غير موجودة</div>;
+  if (error) return (
+    <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
+      <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
+        <button onClick={() => router.push('/technician/dashboard')} className="text-white"><ArrowRight size={24} /></button>
+        <h1 className="text-lg font-bold">خطأ</h1>
+      </header>
+      <main className="p-4 text-center text-red-500">{error}</main>
+      <TechnicianBottomNav />
+    </div>
+  );
+  if (!sample) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
       <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
-        <button onClick={() => router.back()} className="text-white">
+        <button onClick={() => router.push('/technician/dashboard')} className="text-white">
           <ArrowRight size={24} />
         </button>
         <h1 className="text-lg font-bold">تفاصيل العينة</h1>
@@ -57,7 +70,7 @@ export default function TechnicianSampleDetail() {
             <p className="text-2xl font-mono font-bold">{sample.sampleNumber}</p>
             <p className="text-gray-500">{sample.type}</p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div><span className="text-gray-500">المشروع:</span> {projectName || '-'}</div>
             <div><span className="text-gray-500">العميل:</span> {clientName || '-'}</div>

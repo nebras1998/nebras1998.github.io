@@ -10,60 +10,51 @@ export default function ScannerPage() {
   const router = useRouter();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [error, setError] = useState('');
-  const [scanning, setScanning] = useState(true);
+  const [scanning, setScanning] = useState(false);
 
-  useEffect(() => {
-    // تأكد من أن الكود يعمل في المتصفح فقط
-    if (typeof window === 'undefined') return;
-
-    const scanner = new Html5Qrcode('reader');
-    scannerRef.current = scanner;
-
-    const config = {
-      fps: 10,
-      qrbox: { width: 250, height: 250 },
-      aspectRatio: 1.0,
-    };
-
-    scanner
-      .start(
-        { facingMode: 'environment' }, // الكاميرا الخلفية
-        config,
-        (decodedText) => {
-          // تم التعرف على QR Code
+  const startScanner = async () => {
+    setError('');
+    setScanning(true);
+    try {
+      const scanner = new Html5Qrcode('reader');
+      scannerRef.current = scanner;
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          // تم التعرف على الرمز
           setScanning(false);
-          // افترض أن الرابط هو: /dashboard/samples/SAMPLE_ID
+          await scanner.stop();
+          scanner.clear();
           if (decodedText.includes('/dashboard/samples/')) {
             const sampleId = decodedText.split('/dashboard/samples/').pop();
             if (sampleId) {
-              // إيقاف الماسح والانتقال إلى صفحة العينة في تطبيق الفنيين
-              scanner.stop().then(() => {
-                router.push(`/technician/samples/${sampleId}`);
-              });
+              router.push(`/technician/samples/${sampleId}`);
             }
           } else {
-            setError('الباركود غير صالح. تأكد من مسح باركود عينة.');
-            // استمر في المسح بعد ثانيتين
-            setTimeout(() => setError(''), 2000);
+            setError('الباركود غير صالح. حاول مرة أخرى.');
+            setScanning(true);
+            startScanner(); // إعادة التشغيل
           }
         },
-        (errorMessage) => {
-          // أخطاء المسح (نتجاهلها)
-          console.log(errorMessage);
-        }
-      )
-      .catch((err) => {
-        setError('فشل تشغيل الكاميرا. تأكد من السماح بالوصول للكاميرا.');
-        setScanning(false);
-      });
+        () => {} // تجاهل أخطاء المسح
+      );
+    } catch (err) {
+      setError('فشل تشغيل الكاميرا. تأكد من السماح بالوصول.');
+      setScanning(false);
+    }
+  };
 
-    // تنظيف عند الخروج
+  useEffect(() => {
+    startScanner();
+
     return () => {
-      if (scannerRef.current && scanning) {
+      if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
+        scannerRef.current.clear();
       }
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black pb-20" dir="rtl">
@@ -75,7 +66,6 @@ export default function ScannerPage() {
       </header>
 
       <main className="flex flex-col items-center justify-center">
-        {/* حاوية الماسح */}
         <div id="reader" className="w-full max-w-md mx-auto mt-4 rounded-xl overflow-hidden" />
 
         {error && (
@@ -84,35 +74,9 @@ export default function ScannerPage() {
           </div>
         )}
 
-        {!scanning && !error && (
-          <p className="text-white mt-4">جاري الانتقال إلى العينة...</p>
-        )}
-
         {!scanning && error && (
           <button
-            onClick={() => {
-              setError('');
-              setScanning(true);
-              // إعادة التشغيل
-              if (scannerRef.current) {
-                scannerRef.current.start(
-                  { facingMode: 'environment' },
-                  { fps: 10, qrbox: { width: 250, height: 250 } },
-                  (decodedText) => {
-                    setScanning(false);
-                    if (decodedText.includes('/dashboard/samples/')) {
-                      const sampleId = decodedText.split('/dashboard/samples/').pop();
-                      if (sampleId) {
-                        scannerRef.current?.stop().then(() => {
-                          router.push(`/technician/samples/${sampleId}`);
-                        });
-                      }
-                    }
-                  },
-                  () => {}
-                );
-              }
-            }}
+            onClick={startScanner}
             className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2"
           >
             <Camera size={20} /> إعادة المحاولة
