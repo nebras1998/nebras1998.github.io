@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { Query } from '@/lib/services';
+import { getInvoice, updateInvoice } from '@/lib/services/invoices';
+import { getClient } from '@/lib/services/clients';
+import { listPayments, createPayment, deletePayment } from '@/lib/services/payments';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, INVOICES_COLLECTION_ID, PAYMENTS_COLLECTION_ID, CLIENTS_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Query } from 'appwrite';
+import type { Invoice, Payment, InvoiceItem } from '@/types';
+import Badge from '@/components/Badge';
+import Card from '@/components/Card';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
   const invoiceId = params.id as string;
 
-  const [invoice, setInvoice] = useState<any>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [clientName, setClientName] = useState('');
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [payAmount, setPayAmount] = useState('');
@@ -29,35 +33,33 @@ export default function InvoiceDetailPage() {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    try {
-      const inv = await databases.getDocument(DATABASE_ID, INVOICES_COLLECTION_ID, invoiceId);
-      setInvoice(inv);
-      if (inv.clientId) {
-        const client = await databases.getDocument(DATABASE_ID, CLIENTS_COLLECTION_ID, inv.clientId);
-        setClientName(client.name);
-      }
-      const pays = await databases.listDocuments(DATABASE_ID, PAYMENTS_COLLECTION_ID, [
-        Query.equal('invoiceId', invoiceId),
-        Query.orderAsc('paymentDate'),
-      ]);
-      setPayments(pays.documents);
-    } catch (err: any) {
-      toast.error('فشل تحميل الفاتورة');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    (async () => {
+      try {
+        const inv = await getInvoice(invoiceId);
+        setInvoice(inv);
+        if (inv.clientId) {
+          const client = await getClient(inv.clientId);
+          setClientName(client.name);
+        }
+        const pays = await listPayments([
+          Query.equal('invoiceId', invoiceId),
+          Query.orderAsc('paymentDate'),
+        ]);
+        setPayments(pays.documents as unknown as Payment[]);
+      } catch {
+        toast.error('فشل تحميل الفاتورة');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [invoiceId]);
 
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
   const remaining = invoice ? invoice.total - totalPaid : 0;
 
   const updateInvoiceAmounts = async (paid: number, rem: number) => {
-    await databases.updateDocument(DATABASE_ID, INVOICES_COLLECTION_ID, invoiceId, {
+    await updateInvoice(invoiceId, {
       paidAmount: paid,
       remainingAmount: rem,
       status: rem <= 0 ? 'مدفوعة' : 'صادرة',
@@ -69,22 +71,38 @@ export default function InvoiceDetailPage() {
     if (!payAmount || parseFloat(payAmount) <= 0) return;
     setAddingPayment(true);
     try {
-      await databases.createDocument(DATABASE_ID, PAYMENTS_COLLECTION_ID, 'unique()', {
+      await createPayment('unique()', {
         invoiceId,
         amount: parseFloat(payAmount),
         paymentDate: payDate,
-        method: payMethod,
+        method: payMethod as 'نقدي' | 'شيك' | 'تحويل بنكي' | 'بطاقة',
         notes: payNotes,
       });
       const newPaid = totalPaid + parseFloat(payAmount);
-      const newRemaining = invoice.total - newPaid;
+      const newRemaining = invoice!.total - newPaid;
       await updateInvoiceAmounts(newPaid, newRemaining);
       toast.success('تم تسجيل الدفعة');
       setPayAmount('');
       setPayNotes('');
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.message);
+      (async () => {
+        try {
+          const inv = await getInvoice(invoiceId);
+          setInvoice(inv);
+          if (inv.clientId) {
+            const client = await getClient(inv.clientId);
+            setClientName(client.name);
+          }
+          const pays = await listPayments([
+            Query.equal('invoiceId', invoiceId),
+            Query.orderAsc('paymentDate'),
+          ]);
+          setPayments(pays.documents as unknown as Payment[]);
+        } catch {
+          toast.error('فشل تحميل الفاتورة');
+        }
+      })();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'خطأ غير معروف');
     } finally {
       setAddingPayment(false);
     }
@@ -94,64 +112,80 @@ export default function InvoiceDetailPage() {
     try {
       const paymentToDelete = payments.find(p => p.$id === paymentId);
       if (!paymentToDelete) return;
-      await databases.deleteDocument(DATABASE_ID, PAYMENTS_COLLECTION_ID, paymentId);
+      await deletePayment(paymentId);
       const newPaid = totalPaid - paymentToDelete.amount;
-      const newRemaining = invoice.total - newPaid;
+      const newRemaining = invoice!.total - newPaid;
       await updateInvoiceAmounts(newPaid, newRemaining);
       toast.success('تم حذف الدفعة');
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.message);
+      setDeleteModal(false);
+      setDeleteTarget(null);
+      (async () => {
+        try {
+          const inv = await getInvoice(invoiceId);
+          setInvoice(inv);
+          if (inv.clientId) {
+            const client = await getClient(inv.clientId);
+            setClientName(client.name);
+          }
+          const pays = await listPayments([
+            Query.equal('invoiceId', invoiceId),
+            Query.orderAsc('paymentDate'),
+          ]);
+          setPayments(pays.documents as unknown as Payment[]);
+        } catch {
+          toast.error('فشل تحميل الفاتورة');
+        }
+      })();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'خطأ غير معروف');
     }
-    setDeleteModal(false);
-    setDeleteTarget(null);
   };
 
   if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!invoice) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-red-500">الفاتورة غير موجودة</p></DashboardLayout></AuthGuard>;
+  if (!invoice) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-danger">الفاتورة غير موجودة</p></DashboardLayout></AuthGuard>;
 
-  const items = invoice.items ? JSON.parse(invoice.items) : [];
+  const items: InvoiceItem[] = invoice.items
+    ? (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items)
+    : [];
 
   return (
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow">
+          <Card>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h1 className="text-2xl font-bold">فاتورة {invoice.invoiceNumber}</h1>
-                <p className="text-gray-500">العميل: {clientName}</p>
+                <p className="text-concrete-500">العميل: {clientName}</p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-white text-sm ${invoice.status === 'مدفوعة' ? 'bg-green-500' : invoice.status === 'ملغاة' ? 'bg-red-500' : 'bg-blue-500'}`}>
-                {invoice.status}
-              </span>
+              <Badge status={invoice.status} />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
-              <div><span className="text-gray-500">التاريخ:</span> {invoice.issueDate}</div>
-              <div><span className="text-gray-500">الاستحقاق:</span> {invoice.dueDate || '-'}</div>
-              <div><span className="text-gray-500">الإجمالي:</span> <strong>{invoice.total?.toFixed(2)} ₪</strong></div>
-              <div><span className="text-gray-500">المدفوع:</span> <strong className="text-green-600">{totalPaid.toFixed(2)} ₪</strong></div>
+              <div><span className="text-concrete-500">التاريخ:</span> {invoice.issueDate}</div>
+              <div><span className="text-concrete-500">الاستحقاق:</span> {invoice.dueDate || '-'}</div>
+              <div><span className="text-concrete-500">الإجمالي:</span> <strong>{invoice.total?.toFixed(2)} ₪</strong></div>
+              <div><span className="text-concrete-500">المدفوع:</span> <strong className="text-petrol">{totalPaid.toFixed(2)} ₪</strong></div>
             </div>
 
             <table className="w-full border-t">
-              <thead><tr className="border-b"><th className="p-2 text-right">الخدمة</th><th className="p-2 text-right">الكمية</th><th className="p-2 text-right">السعر</th><th className="p-2 text-right">الإجمالي</th></tr></thead>
+              <thead><tr className="border-b odd:bg-concrete-50"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الخدمة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الكمية</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السعر</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th></tr></thead>
               <tbody>
-                {items.map((item: any, idx: number) => (
-                  <tr key={idx} className="border-b"><td className="p-2">{item.serviceName}</td><td className="p-2">{item.quantity}</td><td className="p-2">{item.price} ₪</td><td className="p-2 font-bold">{item.total} ₪</td></tr>
+                {items.map((item: InvoiceItem, idx: number) => (
+                  <tr key={idx} className="border-b"><td className="p-3">{item.description}</td><td className="p-3">{item.quantity}</td><td className="p-3">{item.unitPrice} ₪</td><td className="p-3 font-bold">{item.total} ₪</td></tr>
                 ))}
               </tbody>
             </table>
             <div className="mt-4 text-left text-lg font-bold">الإجمالي: {invoice.total?.toFixed(2)} ₪</div>
-          </div>
+          </Card>
 
-          <div className="bg-white p-6 rounded-lg shadow">
+          <Card>
             <h2 className="text-xl font-bold mb-4">المدفوعات ({payments.length})</h2>
-            {payments.length === 0 ? <p className="text-gray-400">لا توجد دفعات بعد</p> : (
+            {payments.length === 0 ? <p className="text-concrete-500">لا توجد دفعات بعد</p> : (
               <ul className="divide-y mb-4">
                 {payments.map(p => (
                   <li key={p.$id} className="py-2 flex justify-between items-center">
                     <div><span className="font-bold">{p.amount.toFixed(2)} ₪</span> - {p.method} - {p.paymentDate}</div>
-                    <button onClick={() => { setDeleteTarget(p.$id); setDeleteModal(true); }} className="text-red-500"><Trash2 size={16} /></button>
+                    <button onClick={() => { setDeleteTarget(p.$id); setDeleteModal(true); }} className="text-danger"><Trash2 size={16} /></button>
                   </li>
                 ))}
               </ul>
@@ -172,11 +206,11 @@ export default function InvoiceDetailPage() {
                     <option>نقداً</option><option>شيك</option><option>تحويل بنكي</option>
                   </select>
                 </div>
-                <button type="submit" disabled={addingPayment} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"><Plus size={16} /> تسجيل دفعة</button>
+                <button type="submit" disabled={addingPayment} className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark disabled:opacity-50 flex items-center gap-1"><Plus size={16} /> تسجيل دفعة</button>
               </form>
             )}
-            {remaining > 0 && <p className="mt-2 text-sm text-gray-500">المتبقي: <strong className="text-red-500">{remaining.toFixed(2)} ₪</strong></p>}
-          </div>
+            {remaining > 0 && <p className="mt-2 text-sm text-concrete-500">المتبقي: <strong className="text-danger">{remaining.toFixed(2)} ₪</strong></p>}
+          </Card>
         </div>
 
         <ConfirmModal isOpen={deleteModal} onClose={() => setDeleteModal(false)} onConfirm={() => deleteTarget && handleDeletePayment(deleteTarget)} title="حذف دفعة" message="هل أنت متأكد من حذف هذه الدفعة؟" confirmText="حذف" cancelText="إلغاء" />

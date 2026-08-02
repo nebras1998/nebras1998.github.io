@@ -13,10 +13,10 @@ export default function FinancePage() {
             href="/dashboard/finance/services"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <List size={32} className="text-blue-600" />
+            <List size={32} className="text-petrol" />
             <div>
               <h2 className="text-xl font-bold">الخدمات والأسعار</h2>
-              <p className="text-gray-500">إدارة قائمة الخدمات وتسعيرها</p>
+              <p className="text-concrete-500">إدارة قائمة الخدمات وتسعيرها</p>
             </div>
           </Link>
 
@@ -24,10 +24,10 @@ export default function FinancePage() {
             href="/dashboard/finance/invoices"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <FileText size={32} className="text-green-600" />
+            <FileText size={32} className="text-petrol" />
             <div>
               <h2 className="text-xl font-bold">الفواتير</h2>
-              <p className="text-gray-500">إصدار الفواتير ومتابعتها</p>
+              <p className="text-concrete-500">إصدار الفواتير ومتابعتها</p>
             </div>
           </Link>
 
@@ -35,10 +35,10 @@ export default function FinancePage() {
             href="/dashboard/finance/payments"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <CreditCard size={32} className="text-orange-600" />
+            <CreditCard size={32} className="text-warning" />
             <div>
               <h2 className="text-xl font-bold">المدفوعات</h2>
-              <p className="text-gray-500">تسجيل المدفوعات واستعراضها</p>
+              <p className="text-concrete-500">تسجيل المدفوعات واستعراضها</p>
             </div>
           </Link>
 
@@ -46,10 +46,10 @@ export default function FinancePage() {
             href="/dashboard/finance/expenses"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <Receipt size={32} className="text-red-600" />
+            <Receipt size={32} className="text-danger" />
             <div>
               <h2 className="text-xl font-bold">المصروفات</h2>
-              <p className="text-gray-500">إدارة المصروفات والنفقات</p>
+              <p className="text-concrete-500">إدارة المصروفات والنفقات</p>
             </div>
           </Link>
         </div>

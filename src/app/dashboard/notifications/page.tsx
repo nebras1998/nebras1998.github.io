@@ -1,47 +1,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { databases } from '@/lib/appwrite';
-import { Query } from 'appwrite';
+import type { Notification } from '@/types';
+import { listNotifications, updateNotification } from '@/lib/services/notifications';
+import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, NOTIFICATIONS_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 import { Bell, Check } from 'lucide-react';
 
 export default function NotificationsPage() {
-  const [notifs, setNotifs] = useState<any[]>([]);
+  const [notifs, setNotifs] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchNotifs = async () => {
-    try {
-      const res = await databases.listDocuments(DATABASE_ID, NOTIFICATIONS_COLLECTION_ID, [
-        Query.orderDesc('$createdAt'),
-        Query.limit(100),
-      ]);
-      setNotifs(res.documents);
-    } catch (err) {
-      toast.error('فشل تحميل التنبيهات');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchNotifs(); }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await listNotifications([
+          Query.orderDesc('$createdAt'),
+          Query.limit(100),
+        ]);
+        setNotifs(res.documents);
+      } catch {
+        toast.error('فشل تحميل التنبيهات');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const markAllRead = async () => {
     for (const n of notifs) {
       if (!n.isRead) {
-        await databases.updateDocument(DATABASE_ID, NOTIFICATIONS_COLLECTION_ID, n.$id, { isRead: true });
+        await updateNotification(n.$id, { isRead: true });
       }
     }
-    fetchNotifs();
+    setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
     toast.success('تم تعليم الكل كمقروء');
   };
 
   const toggleRead = async (id: string, current: boolean) => {
-    await databases.updateDocument(DATABASE_ID, NOTIFICATIONS_COLLECTION_ID, id, { isRead: !current });
-    fetchNotifs();
+    await updateNotification(id, { isRead: !current });
+    setNotifs(prev => prev.map(n => n.$id === id ? { ...n, isRead: !current } : n));
   };
 
   return (
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Bell size={24} /> التنبيهات
             </h1>
-            <button onClick={markAllRead} className="text-blue-600 hover:underline flex items-center gap-1">
+            <button onClick={markAllRead} className="text-petrol hover:underline flex items-center gap-1">
               <Check size={16} /> تعليم الكل مقروء
             </button>
           </div>
@@ -60,19 +60,19 @@ export default function NotificationsPage() {
           {loading ? <p>جارٍ التحميل...</p> : (
             <div className="space-y-2">
               {notifs.length === 0 ? (
-                <p className="text-center text-gray-500">لا توجد تنبيهات</p>
+                <p className="text-center text-concrete-500">لا توجد تنبيهات</p>
               ) : (
                 notifs.map(n => (
                   <div
                     key={n.$id}
-                    className={`p-4 rounded-lg border cursor-pointer ${n.isRead ? 'bg-white' : 'bg-blue-50 border-blue-200'}`}
+                    className={`p-4 rounded-lg border cursor-pointer ${n.isRead ? 'bg-concrete-0 border-concrete-200' : 'bg-petrol-soft border-petrol'}`}
                     onClick={() => toggleRead(n.$id, n.isRead)}
                   >
                     <div className="flex justify-between">
                       <p className="font-medium">{n.message}</p>
-                      {n.isRead ? <Check size={16} className="text-green-500" /> : <span className="w-2 h-2 rounded-full bg-blue-600 mt-2" />}
+                      {n.isRead ? <Check size={16} className="text-petrol" /> : <span className="w-2 h-2 rounded-full bg-petrol mt-2" />}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-concrete-500 mt-1">
                       {n.employeeName} - {new Date(n.$createdAt).toLocaleString('ar-EG')}
                     </p>
                   </div>

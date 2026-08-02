@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { getEquipment, updateEquipment } from '@/lib/services/equipment';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, EQUIPMENT_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function EditEquipmentPage() {
@@ -30,14 +29,14 @@ export default function EditEquipmentPage() {
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
-        const eq = await databases.getDocument(DATABASE_ID, EQUIPMENT_COLLECTION_ID, equipmentId);
+        const eq = await getEquipment(equipmentId);
         setFormData({
           name: eq.name, model: eq.model || '', serialNumber: eq.serialNumber || '',
           purchaseDate: eq.purchaseDate || '', calibrationDate: eq.calibrationDate || '',
           nextCalibrationDate: eq.nextCalibrationDate || '', maintenanceDate: eq.maintenanceDate || '',
           status: eq.status, notes: eq.notes || '',
         });
-      } catch (err: any) { toast.error('خطأ في جلب البيانات: ' + err.message); }
+      } catch (err: unknown) { toast.error('خطأ في جلب البيانات: ' + (err instanceof Error ? err.message : String(err))); }
       finally { setLoading(false); }
     };
     fetchEquipment();
@@ -51,10 +50,10 @@ export default function EditEquipmentPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, EQUIPMENT_COLLECTION_ID, equipmentId, formData);
+      await updateEquipment(equipmentId, formData);
       toast.success('تم تحديث الجهاز بنجاح');
       router.push('/dashboard/equipment');
-    } catch (err: any) { toast.error('خطأ في التحديث: ' + err.message); setSaving(false); }
+    } catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }
   };
 
   if (loading) return <AuthGuard><DashboardLayout><div className="text-center p-10">جارٍ تحميل بيانات الجهاز...</div></DashboardLayout></AuthGuard>;
@@ -82,7 +81,7 @@ export default function EditEquipmentPage() {
             <option value="يعمل">يعمل</option><option value="قيد الصيانة">قيد الصيانة</option><option value="متوقف">متوقف</option><option value="خارج الخدمة">خارج الخدمة</option>
           </select></div>
           <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={saving} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+          <button type="submit" disabled={saving} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
         </form>
       </div>
     </DashboardLayout></AuthGuard>

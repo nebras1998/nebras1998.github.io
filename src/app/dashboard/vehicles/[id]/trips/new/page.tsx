@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, EMPLOYEES_COLLECTION_ID, VEHICLES_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
+import type { Employee } from '@/types';
+import { getVehicle } from '@/lib/services/vehicles';
+import { createVehicleTrip } from '@/lib/services/vehicle-trips';
+import { listEmployees } from '@/lib/services/employees';
+import { Query } from '@/lib/services';
 
 export default function NewTripPage() {
   const router = useRouter();
   const params = useParams();
   const vehicleId = params.id as string;
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [form, setForm] = useState({
     vehicleId: vehicleId,
@@ -31,8 +33,8 @@ export default function NewTripPage() {
     const fetchData = async () => {
       try {
         const [empRes, vehicleDoc] = await Promise.all([
-          databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [Query.equal('status', 'يعمل'), Query.limit(200)]),
-          databases.getDocument(DATABASE_ID, VEHICLES_COLLECTION_ID, vehicleId),
+          listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]),
+          getVehicle(vehicleId),
         ]);
         setEmployees(empRes.documents);
         setVehiclePlate(vehicleDoc.plateNumber);
@@ -50,13 +52,13 @@ export default function NewTripPage() {
     if (!form.driverId) { toast.error('اختر السائق'); return; }
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, 'unique()', {
+      await createVehicleTrip('unique()', {
         ...form,
         startMileage: parseInt(form.startMileage) || 0,
       });
       toast.success('تم بدء الرحلة');
       router.push(`/dashboard/vehicles/${vehicleId}`);
-    } catch (err: any) { toast.error('خطأ: ' + err.message); setLoading(false); }
+    } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); setLoading(false); }
   };
 
   return (
@@ -74,7 +76,7 @@ export default function NewTripPage() {
             <div><label className="block mb-1">الغرض</label><input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" /></div>
           </div>
           <div><label className="block mb-1">قراءة العداد (الانطلاق)</label><input type="number" name="startMileage" value={form.startMileage} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50">{loading ? 'جارٍ البدء...' : 'بدء الرحلة'}</button>
+          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{loading ? 'جارٍ البدء...' : 'بدء الرحلة'}</button>
         </form>
       </div>
     </DashboardLayout></AuthGuard>

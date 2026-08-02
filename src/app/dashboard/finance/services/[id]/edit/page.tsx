@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { getService, updateService } from '@/lib/services/services-catalog';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, SERVICES_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 const COMMON_CATEGORIES = [
@@ -32,7 +31,7 @@ export default function EditServicePage() {
   useEffect(() => {
     (async () => {
       try {
-        const doc = await databases.getDocument(DATABASE_ID, SERVICES_COLLECTION_ID, id);
+        const doc = await getService(id);
         setForm({
           name: doc.name,
           category: doc.category || '',
@@ -40,7 +39,7 @@ export default function EditServicePage() {
           unit: doc.unit || '',
           price: String(doc.price),
         });
-      } catch (err: any) { toast.error(err.message); }
+      } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'خطأ غير معروف'); }
       finally { setLoading(false); }
     })();
   }, [id]);
@@ -53,13 +52,13 @@ export default function EditServicePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, SERVICES_COLLECTION_ID, id, {
+      await updateService(id, {
         ...form,
         price: parseFloat(form.price) || 0,
       });
       toast.success('تم تحديث الخدمة');
       router.push('/dashboard/finance/services');
-    } catch (err: any) { toast.error(err.message); setSaving(false); }
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'خطأ غير معروف'); setSaving(false); }
   };
 
   if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
@@ -83,7 +82,7 @@ export default function EditServicePage() {
               <div><label className="block mb-1">الوحدة</label><input name="unit" value={form.unit} onChange={handleChange} className="w-full border p-2 rounded" /></div>
               <div><label className="block mb-1">السعر (₪) *</label><input name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
             </div>
-            <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
           </form>
         </div>
       </DashboardLayout>

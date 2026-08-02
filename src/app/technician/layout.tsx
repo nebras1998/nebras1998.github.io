@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import SessionManager from "@/components/SessionManager";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "تطبيق الفني - مختبرات الشمال الإنشائية",
@@ -15,7 +16,7 @@ export default function TechnicianLayout({ children }: { children: React.ReactNo
   return (
     <>
       <SessionManager timeoutMinutes={30} warningMinutes={5} logoutRedirect="/technician/login" />
-      {children}
+      <ErrorBoundary>{children}</ErrorBoundary>
     </>
   );
 }

@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { createService } from '@/lib/services/services-catalog';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, SERVICES_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 const COMMON_CATEGORIES = [
@@ -39,14 +38,14 @@ export default function NewServicePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, SERVICES_COLLECTION_ID, 'unique()', {
+      await createService('unique()', {
         ...form,
         price: parseFloat(form.price) || 0,
       });
       toast.success('تم إضافة الخدمة');
       router.push('/dashboard/finance/services');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -67,7 +66,7 @@ export default function NewServicePage() {
                 <option value="">اختر الفئة</option>
                 {COMMON_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-              <p className="text-xs text-gray-500 mt-1">يمكنك كتابة فئة جديدة مباشرة</p>
+              <p className="text-xs text-concrete-500 mt-1">يمكنك كتابة فئة جديدة مباشرة</p>
             </div>
             <div>
               <label className="block mb-1">الوصف</label>
@@ -83,7 +82,7 @@ export default function NewServicePage() {
                 <input name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required className="w-full border p-2 rounded" />
               </div>
             </div>
-            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {loading ? 'جارٍ الحفظ...' : 'حفظ الخدمة'}
             </button>
           </form>

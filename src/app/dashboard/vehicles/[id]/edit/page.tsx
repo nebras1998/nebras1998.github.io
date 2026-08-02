@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, VEHICLES_COLLECTION_ID } from '@/lib/constants';
+import { getVehicle, updateVehicle } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
 
 export default function EditVehiclePage() {
@@ -29,7 +28,7 @@ export default function EditVehiclePage() {
   useEffect(() => {
     const fetchVehicle = async () => {
       try {
-        const vehicle = await databases.getDocument(DATABASE_ID, VEHICLES_COLLECTION_ID, vehicleId);
+        const vehicle = await getVehicle(vehicleId);
         setForm({
           plateNumber: vehicle.plateNumber,
           brand: vehicle.brand || '',
@@ -40,7 +39,7 @@ export default function EditVehiclePage() {
           status: vehicle.status,
           notes: vehicle.notes || '',
         });
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل بيانات المركبة');
       } finally {
         setLoading(false);
@@ -57,11 +56,11 @@ export default function EditVehiclePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, VEHICLES_COLLECTION_ID, vehicleId, form);
+      await updateVehicle(vehicleId, form);
       toast.success('تم تحديث المركبة');
       router.push('/dashboard/vehicles');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -88,7 +87,7 @@ export default function EditVehiclePage() {
               <div><label className="block mb-1">الحالة *</label><select name="status" value={form.status} onChange={handleChange} required className="w-full border p-2 rounded"><option value="جاهزة">جاهزة</option><option value="قيد الصيانة">قيد الصيانة</option><option value="خارج الخدمة">خارج الخدمة</option></select></div>
             </div>
             <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-            <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
           </form>
         </div>
       </DashboardLayout>

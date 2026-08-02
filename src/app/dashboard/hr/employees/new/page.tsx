@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases, storage } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, EMPLOYEES_COLLECTION_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
 import { toast } from 'sonner';
-import { Query, ID } from 'appwrite';
+import { listEmployees, createEmployee } from '@/lib/services/employees';
+import { createFile } from '@/lib/services/files';
+import { Query } from '@/lib/services';
 import { Upload, X } from 'lucide-react';
 
 export default function NewEmployeePage() {
@@ -30,57 +30,40 @@ export default function NewEmployeePage() {
   const [generatedNumber, setGeneratedNumber] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // دالة توليد رقم موظف فريد
-  const generateEmployeeNumber = async () => {
-    const currentYear = new Date().getFullYear();
-    const prefix = `EMP-${currentYear}-`;
-
-    // 1. جلب آخر رقم مستخدم
-    let nextNumber = 1;
-    try {
-      const response = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [
-        Query.startsWith('employeeNumber', prefix),
-        Query.orderDesc('employeeNumber'),
-        Query.limit(1),
-      ]);
-      if (response.documents.length > 0) {
-        const lastNumber = response.documents[0].employeeNumber.split('-').pop();
-        if (lastNumber) {
-          nextNumber = parseInt(lastNumber, 10) + 1;
-        }
-      }
-    } catch {
-      // إذا فشل الجلب، نبدأ من 1
-    }
-
-    // 2. حلقة التحقق من عدم التكرار
-    let isUnique = false;
-    let newNumber = '';
-    while (!isUnique) {
-      const padded = String(nextNumber).padStart(3, '0');
-      newNumber = `${prefix}${padded}`;
+  useEffect(() => {
+    const doGenerate = async () => {
+      const currentYear = new Date().getFullYear();
+      const prefix = `EMP-${currentYear}-`;
+      let nextNumber = 1;
       try {
-        const check = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [
-          Query.equal('employeeNumber', newNumber),
+        const response = await listEmployees([
+          Query.startsWith('employeeNumber', prefix),
+          Query.orderDesc('employeeNumber'),
           Query.limit(1),
         ]);
-        if (check.documents.length === 0) {
-          isUnique = true;
-        } else {
-          nextNumber++;
+        if (response.documents.length > 0) {
+          const lastNumber = response.documents[0].employeeNumber.split('-').pop();
+          if (lastNumber) nextNumber = parseInt(lastNumber, 10) + 1;
         }
-      } catch {
-        // في حال فشل التحقق، نعتبر الرقم فريداً ونتابع
-        isUnique = true;
+      } catch {}
+
+      let isUnique = false;
+      let newNumber = '';
+      while (!isUnique) {
+        const padded = String(nextNumber).padStart(3, '0');
+        newNumber = `${prefix}${padded}`;
+        try {
+          const check = await listEmployees([
+            Query.equal('employeeNumber', newNumber),
+            Query.limit(1),
+          ]);
+          if (check.documents.length === 0) isUnique = true;
+          else nextNumber++;
+        } catch { isUnique = true; }
       }
-    }
-
-    setGeneratedNumber(newNumber);
-  };
-
-  // توليد رقم الموظف عند تحميل الصفحة
-  useEffect(() => {
-    generateEmployeeNumber();
+      setGeneratedNumber(newNumber);
+    };
+    doGenerate();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -104,13 +87,13 @@ export default function NewEmployeePage() {
     const uploadedIds: string[] = [];
     try {
       for (const file of selectedFiles) {
-        const result = await storage.createFile(REPORTS_BUCKET_ID, ID.unique(), file);
+        const result = await createFile(file);
         uploadedIds.push(result.$id);
       }
       toast.success('تم رفع المستندات بنجاح');
       return uploadedIds;
-    } catch (err: any) {
-      toast.error('فشل رفع بعض المستندات: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('فشل رفع بعض المستندات: ' + (err instanceof Error ? err.message : String(err)));
       return uploadedIds;
     } finally {
       setUploading(false);
@@ -122,16 +105,39 @@ export default function NewEmployeePage() {
     setLoading(true);
     try {
       const documentIds = await uploadFiles();
-      const employeeData = {
-        ...form,
-        employeeNumber: generatedNumber,
-        documentIds: JSON.stringify(documentIds),
-      };
-      await databases.createDocument(DATABASE_ID, EMPLOYEES_COLLECTION_ID, 'unique()', employeeData);
-      toast.success('تم إضافة الموظف بنجاح');
-      router.push('/dashboard/hr/employees');
-    } catch (err: any) {
-      toast.error('خطأ في إضافة الموظف: ' + err.message);
+      let isSuccess = false;
+      let nextNumberStr = generatedNumber;
+      let attempts = 0;
+      while (!isSuccess && attempts < 10) {
+        try {
+          const employeeData = {
+            ...form,
+            employeeNumber: nextNumberStr,
+            documentIds: JSON.stringify(documentIds),
+          };
+          await createEmployee(nextNumberStr, employeeData);
+          isSuccess = true;
+        } catch (err: unknown) {
+          const appwriteErr = err as { code?: number };
+          if (appwriteErr.code === 409) {
+            attempts++;
+            const currentYear = new Date().getFullYear();
+            const prefix = `EMP-${currentYear}-`;
+            const lastNum = parseInt(nextNumberStr.split('-').pop() || '0', 10);
+            nextNumberStr = `${prefix}${String(lastNum + 1).padStart(3, '0')}`;
+          } else {
+            throw err;
+          }
+        }
+      }
+      if (isSuccess) {
+        toast.success('تم إضافة الموظف بنجاح');
+        router.push('/dashboard/hr/employees');
+      } else {
+        throw new Error('تعذر توليد رقم موظف فريد بعد عدة محاولات.');
+      }
+    } catch (err: unknown) {
+      toast.error('خطأ في إضافة الموظف: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -148,9 +154,9 @@ export default function NewEmployeePage() {
               <input
                 value={generatedNumber}
                 readOnly
-                className="w-full border p-2 rounded bg-gray-100 font-mono"
+                className="w-full border p-2 rounded bg-concrete-100 font-mono"
               />
-              <p className="text-sm text-gray-500 mt-1">يتم توليده تلقائياً</p>
+              <p className="text-sm text-concrete-500 mt-1">يتم توليده تلقائياً</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,7 +223,7 @@ export default function NewEmployeePage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-gray-200 px-3 py-1 rounded flex items-center gap-1 hover:bg-gray-300"
+                  className="bg-concrete-200 px-3 py-1 rounded flex items-center gap-1 hover:bg-concrete-200"
                 >
                   <Upload size={16} /> اختر ملفات
                 </button>
@@ -229,25 +235,25 @@ export default function NewEmployeePage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <span className="text-sm text-gray-500">{selectedFiles.length} ملفات محددة</span>
+                <span className="text-sm text-concrete-500">{selectedFiles.length} ملفات محددة</span>
               </div>
               {selectedFiles.length > 0 && (
                 <ul className="space-y-1">
                   {selectedFiles.map((file, index) => (
-                    <li key={index} className="flex justify-between items-center text-sm bg-gray-50 p-1 rounded">
+                    <li key={index} className="flex justify-between items-center text-sm bg-concrete-50 p-1 rounded">
                       <span>{file.name}</span>
-                      <button type="button" onClick={() => removeFile(index)} className="text-red-500"><X size={14} /></button>
+                      <button type="button" onClick={() => removeFile(index)} className="text-danger"><X size={14} /></button>
                     </li>
                   ))}
                 </ul>
               )}
-              {uploading && <p className="text-sm text-blue-600 mt-1">جارٍ رفع الملفات...</p>}
+              {uploading && <p className="text-sm text-petrol mt-1">جارٍ رفع الملفات...</p>}
             </div>
 
             <button
               type="submit"
               disabled={loading || uploading}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50"
             >
               {loading ? 'جارٍ الحفظ...' : 'حفظ الموظف'}
             </button>

@@ -1,35 +1,58 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-  const sessionCookie = request.cookies.get(
-    `a_session_${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`
-  );
+const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
 
-  // ✅ السماح بمرور صفحة تفاصيل العينة بدون مصادقة (لإظهار شاشة الاختيار)
-  if (pathname.startsWith('/dashboard/samples')) {
+async function validateSession(sessionCookie: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${APPWRITE_ENDPOINT}/account`, {
+      headers: {
+        Cookie: sessionCookie,
+        'X-Appwrite-Project': process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!,
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Allow login pages through unconditionally to prevent redirect loops
+  if (pathname === '/login' || pathname === '/technician/login') {
     return NextResponse.next();
   }
 
-  // السماح بمرور مسارات الفنيين
-  if (pathname.startsWith('/technician')) {
-    return NextResponse.next();
+  const allCookies = request.cookies.getAll();
+  const sessionCookie = allCookies
+    .filter(c => c.name.startsWith('a_session_'))
+    .map(c => `${c.name}=${c.value}`)
+    .join('; ');
+
+  if (!sessionCookie) {
+    const loginUrl = pathname.startsWith('/technician')
+      ? new URL('/technician/login', request.url)
+      : new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // السماح بمرور صفحة تسجيل الدخول
-  if (pathname === '/login') {
-    return NextResponse.next();
-  }
-
-  // أي مسار آخر في dashboard يتطلب جلسة
-  if (pathname.startsWith('/dashboard') && !sessionCookie) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const isValid = await validateSession(sessionCookie);
+  if (!isValid) {
+    const loginUrl = pathname.startsWith('/technician')
+      ? new URL('/technician/login', request.url)
+      : new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/technician/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/technician/:path*',
+  ],
 };

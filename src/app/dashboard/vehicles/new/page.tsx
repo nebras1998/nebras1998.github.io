@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, VEHICLES_COLLECTION_ID } from '@/lib/constants';
+import { createVehicle } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
 
 export default function NewVehiclePage() {
@@ -30,11 +29,11 @@ export default function NewVehiclePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, VEHICLES_COLLECTION_ID, 'unique()', form);
+      await createVehicle('unique()', form);
       toast.success('تم إضافة المركبة');
       router.push('/dashboard/vehicles');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -58,7 +57,7 @@ export default function NewVehiclePage() {
             <div><label className="block mb-1">الحالة *</label><select name="status" value={form.status} onChange={handleChange} required className="w-full border p-2 rounded"><option value="جاهزة">جاهزة</option><option value="قيد الصيانة">قيد الصيانة</option><option value="خارج الخدمة">خارج الخدمة</option></select></div>
           </div>
           <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{loading ? 'جارٍ الحفظ...' : 'حفظ المركبة'}</button>
+          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{loading ? 'جارٍ الحفظ...' : 'حفظ المركبة'}</button>
         </form>
       </div>
     </DashboardLayout></AuthGuard>

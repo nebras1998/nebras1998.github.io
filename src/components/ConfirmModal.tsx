@@ -52,32 +52,32 @@ export default function ConfirmModal({
     >
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
         {/* رأس النافذة */}
-        <div className="flex items-center justify-between p-4 border-b bg-red-50">
-          <div className="flex items-center gap-2 text-red-700">
+        <div className="flex items-center justify-between p-4 border-b bg-danger-bg">
+          <div className="flex items-center gap-2 text-danger">
             <AlertTriangle size={20} />
             <h3 className="font-bold text-lg">{title}</h3>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-concrete-500 hover:text-concrete-500">
             <X size={20} />
           </button>
         </div>
 
         {/* المحتوى */}
-        <div className="p-4 text-gray-700">{message}</div>
+        <div className="p-4 text-concrete-800">{message}</div>
 
         {/* الأزرار */}
-        <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+        <div className="flex justify-end gap-3 p-4 border-t bg-concrete-50">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+            className="px-4 py-2 rounded border border-concrete-200 text-concrete-800 hover:bg-concrete-100 disabled:opacity-50"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-1"
+            className="px-4 py-2 rounded bg-danger-solid text-white hover:bg-danger-solid disabled:opacity-50 flex items-center gap-1"
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

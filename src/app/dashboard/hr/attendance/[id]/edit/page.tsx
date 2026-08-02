@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, ATTENDANCE_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
+import { getAttendance, updateAttendance } from '@/lib/services/attendance';
 
 export default function EditAttendancePage() {
   const router = useRouter();
@@ -26,7 +25,7 @@ export default function EditAttendancePage() {
   useEffect(() => {
     const fetchRecord = async () => {
       try {
-        const record = await databases.getDocument(DATABASE_ID, ATTENDANCE_COLLECTION_ID, recordId);
+        const record = await getAttendance(recordId);
         setForm({
           date: record.date,
           checkIn: record.checkIn || '',
@@ -34,7 +33,7 @@ export default function EditAttendancePage() {
           status: record.status,
           notes: record.notes || '',
         });
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل بيانات السجل');
       } finally {
         setLoading(false);
@@ -51,11 +50,11 @@ export default function EditAttendancePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, ATTENDANCE_COLLECTION_ID, recordId, form);
+      await updateAttendance(recordId, form);
       toast.success('تم تحديث السجل');
       router.push('/dashboard/hr/attendance');
-    } catch (err: any) {
-      toast.error('خطأ في التحديث: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -95,7 +94,7 @@ export default function EditAttendancePage() {
               <label className="block mb-1">ملاحظات</label>
               <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}
             </button>
           </form>

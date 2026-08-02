@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, OVERTIME_COLLECTION_ID, EMPLOYEES_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
+import type { Employee } from '@/types';
+import { listEmployees } from '@/lib/services/employees';
+import { createOvertime } from '@/lib/services/overtime';
+import { Query } from '@/lib/services';
 
 export default function NewOvertimePage() {
   const router = useRouter();
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [form, setForm] = useState({
     employeeId: '',
     date: new Date().toISOString().split('T')[0],
@@ -27,9 +28,9 @@ export default function NewOvertimePage() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [Query.equal('status', 'يعمل'), Query.limit(200)]);
+        const res = await listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]);
         setEmployees(res.documents);
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل الموظفين');
       }
     };
@@ -67,11 +68,11 @@ export default function NewOvertimePage() {
     if (form.hours <= 0) { toast.error('يجب أن تكون الساعات أكبر من صفر'); return; }
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, OVERTIME_COLLECTION_ID, 'unique()', form);
+      await createOvertime('unique()', form);
       toast.success('تم تقديم طلب العمل الإضافي');
       router.push('/dashboard/hr/overtime');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -106,7 +107,7 @@ export default function NewOvertimePage() {
             <div>
               <label className="block mb-1">عدد الساعات *</label>
               <input type="number" step="0.5" min="0" name="hours" value={form.hours} onChange={handleChange} required className="w-full border p-2 rounded" />
-              <p className="text-sm text-gray-500 mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
+              <p className="text-sm text-concrete-500 mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
             </div>
             <div>
               <label className="block mb-1">سبب العمل الإضافي</label>
@@ -116,7 +117,7 @@ export default function NewOvertimePage() {
               <label className="block mb-1">ملاحظات</label>
               <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={loading} className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {loading ? 'جارٍ التقديم...' : 'تقديم الطلب'}
             </button>
           </form>

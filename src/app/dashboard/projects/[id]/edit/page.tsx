@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
-import { Query } from 'appwrite';
+import type { Client } from '@/types';
+import { getProject, listClients, updateProject } from '@/lib/services';
+import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, PROJECTS_COLLECTION_ID, CLIENTS_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function EditProjectPage() {
@@ -14,7 +14,7 @@ export default function EditProjectPage() {
   const params = useParams();
   const projectId = params.id as string;
 
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [formData, setFormData] = useState({
     projectNumber: '',
     name: '',
@@ -34,7 +34,7 @@ export default function EditProjectPage() {
     const fetchData = async () => {
       try {
         // جلب بيانات المشروع
-        const project = await databases.getDocument(DATABASE_ID, PROJECTS_COLLECTION_ID, projectId);
+        const project = await getProject(projectId);
         setFormData({
           projectNumber: project.projectNumber,
           name: project.name,
@@ -48,10 +48,10 @@ export default function EditProjectPage() {
         });
 
         // جلب قائمة العملاء للاختيار
-        const clientsRes = await databases.listDocuments(DATABASE_ID, CLIENTS_COLLECTION_ID, [Query.limit(100)]);
+        const clientsRes = await listClients([Query.limit(100)]);
         setClients(clientsRes.documents);
-      } catch (err: any) {
-        toast.error('خطأ في جلب البيانات: ' + err.message);
+      } catch (err: unknown) {
+        toast.error('خطأ في جلب البيانات: ' + (err instanceof Error ? err.message : String(err)));
       } finally {
         setLoading(false);
       }
@@ -67,11 +67,11 @@ export default function EditProjectPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, PROJECTS_COLLECTION_ID, projectId, formData);
+      await updateProject(projectId, formData);
       toast.success('تم تحديث المشروع بنجاح');
       router.push('/dashboard/projects');
-    } catch (err: any) {
-      toast.error('خطأ في تحديث المشروع: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ في تحديث المشروع: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -137,7 +137,7 @@ export default function EditProjectPage() {
               <label className="block mb-1">ملاحظات</label>
               <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={saving} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}
             </button>
           </form>

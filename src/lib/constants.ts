@@ -12,7 +12,9 @@ export const REPORTS_BUCKET_ID = '6a1fe409000799f85da1';
 export const EMPLOYEES_COLLECTION_ID = 'employees';
 export const ATTENDANCE_COLLECTION_ID = 'attendance';
 export const LEAVE_REQUESTS_COLLECTION_ID = 'leaverequests';
-export const OVERTIME_COLLECTION_ID = 'overtime';export const ROLES = {
+export const OVERTIME_COLLECTION_ID = 'overtime';
+
+export const ROLES = {
   TECHNICIAN: 'فني',
   MANAGER: 'مدير',
   ADMIN: 'إداري',
@@ -23,3 +25,4 @@ export const EXPENSES_COLLECTION_ID = 'expenses';
 export const SAMPLE_TYPES_COLLECTION_ID = 'sampletypes';
 export const STANDARD_TESTS_COLLECTION_ID = 'standardtests';
 export const NOTIFICATIONS_COLLECTION_ID = 'notifications';
+export const BOOKINGS_COLLECTION_ID = 'bookings';

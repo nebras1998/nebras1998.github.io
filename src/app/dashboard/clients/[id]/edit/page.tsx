@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { getClient, updateClient } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, CLIENTS_COLLECTION_ID } from '@/lib/constants';
 
 export default function EditClientPage() {
   const router = useRouter();
@@ -28,18 +27,18 @@ export default function EditClientPage() {
   useEffect(() => {
     const fetchClient = async () => {
       try {
-        const client = await databases.getDocument(DATABASE_ID, CLIENTS_COLLECTION_ID, clientId);
+        const client = await getClient(clientId);
         setFormData({
           name: client.name,
-          type: client.type,
+          type: client.type || 'مكتب هندسي',
           email: client.email || '',
-          phone: client.phone,
+          phone: client.phone || '',
           address: client.address || '',
           taxId: client.taxId || '',
           notes: client.notes || '',
         });
-      } catch (err: any) {
-        alert('خطأ في جلب بيانات العميل: ' + err.message);
+      } catch (err: unknown) {
+        alert('خطأ في جلب بيانات العميل: ' + (err instanceof Error ? err.message : String(err)));
       } finally {
         setLoading(false);
       }
@@ -55,10 +54,10 @@ export default function EditClientPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, CLIENTS_COLLECTION_ID, clientId, formData);
+      await updateClient(clientId, formData);
       router.push('/dashboard/clients');
-    } catch (err: any) {
-      alert('خطأ في تحديث العميل: ' + err.message);
+    } catch (err: unknown) {
+      alert('خطأ في تحديث العميل: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -105,7 +104,7 @@ export default function EditClientPage() {
               <label className="block mb-1">ملاحظات</label>
               <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={saving} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}
             </button>
           </form>

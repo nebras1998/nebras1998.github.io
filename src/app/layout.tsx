@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
-import { Toaster } from 'sonner'; // <-- استيراد Toaster
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Toaster } from 'sonner';
+
+const plexSans = IBM_Plex_Sans_Arabic({
+  variable: "--font-plex-sans-arabic",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "مختبر LIMS",
@@ -14,10 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body>
-        <Providers>{children}</Providers>
-        <Toaster richColors position="top-left" /> {/* <-- إضافة Toaster */}
+        <ErrorBoundary>
+          <Providers>{children}</Providers>
+        </ErrorBoundary>
+        <Toaster richColors position="top-left" />
       </body>
     </html>
   );

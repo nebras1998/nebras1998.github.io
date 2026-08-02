@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
-import { DATABASE_ID, VEHICLES_COLLECTION_ID, VEHICLE_TRIPS_COLLECTION_ID } from '@/lib/constants';
+import type { Vehicle } from '@/lib/services';
+import { listVehicles } from '@/lib/services/vehicles';
+import { createVehicleTrip } from '@/lib/services/vehicle-trips';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import { ArrowRight } from 'lucide-react';
@@ -13,7 +14,7 @@ import { createNotification } from '@/lib/notifications';
 export default function NewTripPage() {
   const router = useRouter();
   const { employee } = useAuthStore();
-  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [form, setForm] = useState({
     vehicleId: '',
     driverId: employee?.$id || '',
@@ -29,9 +30,9 @@ export default function NewTripPage() {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await databases.listDocuments(DATABASE_ID, VEHICLES_COLLECTION_ID, []);
+        const res = await listVehicles();
         setVehicles(res.documents);
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل المركبات');
       }
     };
@@ -47,13 +48,12 @@ export default function NewTripPage() {
     if (!form.vehicleId) { toast.error('اختر المركبة'); return; }
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, 'unique()', {
+      await createVehicleTrip('unique()', {
         ...form,
         startMileage: parseInt(form.startMileage) || 0,
         returnTime: '',
       });
 
-      // --- إنشاء تنبيه ---
       if (employee) {
         const vehicle = vehicles.find(v => v.$id === form.vehicleId);
         await createNotification({
@@ -63,19 +63,18 @@ export default function NewTripPage() {
           employeeName: employee.name,
         });
       }
-      // --- نهاية التنبيه ---
 
       toast.success('تم بدء الرحلة بنجاح');
       router.push('/technician/vehicles');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16" dir="rtl">
-      <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">
+      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white">
           <ArrowRight size={20} />
         </button>
@@ -96,7 +95,7 @@ export default function NewTripPage() {
 
           <div>
             <label className="block mb-1 font-bold">السائق (أنت)</label>
-            <input type="text" value={employee?.name || ''} disabled className="w-full border p-2 rounded bg-gray-100" />
+            <input type="text" value={employee?.name || ''} disabled className="w-full border p-2 rounded bg-concrete-100" />
           </div>
 
           <div>
@@ -120,7 +119,7 @@ export default function NewTripPage() {
             <input type="number" name="startMileage" value={form.startMileage} onChange={handleChange} className="w-full border p-2 rounded" placeholder="كم" />
           </div>
 
-          <button type="submit" disabled={loading} className="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-3 rounded-lg font-bold text-lg hover:bg-petrol-dark disabled:opacity-50">
             {loading ? 'جارٍ البدء...' : 'بدء الرحلة'}
           </button>
         </form>

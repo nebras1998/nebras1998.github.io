@@ -23,8 +23,8 @@ export default function TechnicianBottomNav() {
           onClick={() => router.push(item.href)}
           className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl min-w-[64px] ${
             pathname.startsWith(item.href)
-              ? 'text-green-600 bg-green-50'
-              : 'text-gray-500'
+              ? 'text-petrol bg-success-bg'
+              : 'text-concrete-500'
           }`}
         >
           <item.icon size={26} />

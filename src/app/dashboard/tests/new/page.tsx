@@ -2,30 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import type { Sample } from '@/types';
+import type { StandardTest } from '@/lib/services';
+import type { Employee } from '@/types';
+import { listSamples } from '@/lib/services/samples';
+import { listEmployees } from '@/lib/services/employees';
+import { createTest } from '@/lib/services/tests';
+import { listSampleTypes, listStandardTests, type SampleType } from '@/lib/services/sample-types';
+import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-  DATABASE_ID,
-  TESTS_COLLECTION_ID,
-  SAMPLES_COLLECTION_ID,
-  EMPLOYEES_COLLECTION_ID,
-  SAMPLE_TYPES_COLLECTION_ID,
-  STANDARD_TESTS_COLLECTION_ID,
-} from '@/lib/constants';
+
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
+
 import { Plus, X } from 'lucide-react';
 import { generateTestNumber } from '@/lib/helpers';
 
-const MULTI_RESULT_TESTS = ['مقاومة الضغط', 'مقاومة الضغط (7 أيام)', 'مقاومة الضغط (28 يوم)', 'مقاومة الضغط للقلب الخرساني'];
+const MULTI_RESULT_TESTS = ['مقاومة الضغط للقلب الخرساني']; // فحوصات متعددة المكعبات (بدون أعمار)
+const DUAL_AGE_TESTS = ['مقاومة الضغط']; // الفحص الذي له عمر 7 و 28 يوم
 
 export default function NewTestPage() {
   const router = useRouter();
-  const [samples, setSamples] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [standardTests, setStandardTests] = useState<any[]>([]);
-  const [selectedSample, setSelectedSample] = useState<any>(null);
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [standardTests, setStandardTests] = useState<StandardTest[]>([]);
+  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+
+  // --- بيانات الفحص الأساسية ---
   const [formData, setFormData] = useState({
     testNumber: '',
     testName: '',
@@ -39,131 +42,163 @@ export default function NewTestPage() {
     assignedTo: '',
     notes: '',
   });
+
+  // --- نتائج الأعمار (للخرسانة) ---
+  const [age7Results, setAge7Results] = useState<string[]>(['', '', '']);
+  const [age28Results, setAge28Results] = useState<string[]>(['', '', '']);
+  const [test7Date, setTest7Date] = useState('');
+  const [test28Date, setTest28Date] = useState('');
+
+  // --- نتائج متعددة (للقلب الخرساني) ---
   const [cubeResults, setCubeResults] = useState<string[]>(['', '', '']);
+
   const [loading, setLoading] = useState(false);
 
+  const isMultiResult = MULTI_RESULT_TESTS.includes(formData.testName);
+  const isDualAge = DUAL_AGE_TESTS.includes(formData.testName);
+
   useEffect(() => {
-    console.log('🔄 جلب العينات والموظفين...');
-    const fetchData = async () => {
+    (async () => {
       try {
         const [samplesRes, employeesRes] = await Promise.all([
-          databases.listDocuments(DATABASE_ID, SAMPLES_COLLECTION_ID, [Query.orderDesc('$createdAt'), Query.limit(200)]),
-          databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [Query.equal('status', 'يعمل'), Query.limit(200)]),
+          listSamples([Query.orderDesc('$createdAt'), Query.limit(200)]),
+          listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]),
         ]);
         setSamples(samplesRes.documents);
         setEmployees(employeesRes.documents);
-        console.log('✅ تم جلب البيانات');
-      } catch (err: any) {
-        console.error('❌ فشل جلب البيانات:', err);
-        toast.error('فشل تحميل البيانات');
-      }
-    };
-    fetchData();
+      } catch { toast.error('فشل تحميل البيانات'); }
+    })();
   }, []);
 
+  // عند اختيار عينة، نحدد المشروع/العميل ونقترح التواريخ
   useEffect(() => {
-    if (formData.sampleId) {
-      const sample = samples.find((s) => s.$id === formData.sampleId);
-      setSelectedSample(sample);
-      if (sample) {
-        setFormData((prev) => ({ ...prev, projectId: sample.projectId, clientId: sample.clientId, testName: '' }));
-        console.log('🔍 جلب نوع العينة للكود:', sample.type);
-        databases.listDocuments(DATABASE_ID, SAMPLE_TYPES_COLLECTION_ID, [Query.equal('name', sample.type), Query.limit(1)])
-          .then(async (res) => {
-            if (res.documents.length > 0) {
-              const typeDoc = res.documents[0];
-              const code = typeDoc.code || 'GEN';
-              console.log('📌 الكود المستخدم:', code);
-              try {
-                const newNumber = await generateTestNumber(code);
-                console.log('🔢 رقم الفحص الجديد:', newNumber);
-                setFormData((prev) => ({ ...prev, testNumber: newNumber }));
-              } catch (err) {
-                console.error('❌ فشل توليد رقم الفحص:', err);
-                toast.error('فشل توليد رقم الفحص');
-              }
-              // جلب الفحوصات القياسية
-              databases.listDocuments(DATABASE_ID, STANDARD_TESTS_COLLECTION_ID, [
-                Query.equal('sampleTypeId', typeDoc.$id),
-                Query.limit(50),
-              ]).then(testsRes => setStandardTests(testsRes.documents));
-            } else {
-              setStandardTests([]);
-            }
-          });
+    (async () => {
+      if (!formData.sampleId) {
+        setSelectedSample(null);
+        setStandardTests([]);
+        return;
       }
-    } else {
-      setSelectedSample(null);
-      setStandardTests([]);
-    }
+      const sample = samples.find((s) => s.$id === formData.sampleId);
+      setSelectedSample(sample ?? null);
+      if (!sample) return;
+      setFormData((prev) => ({ ...prev, projectId: sample.projectId ?? '', clientId: sample.clientId ?? '', testName: '' }));
+      if (sample.samplingDate) {
+        const d = new Date(sample.samplingDate);
+        const d7 = new Date(d); d7.setDate(d7.getDate() + 7);
+        const d28 = new Date(d); d28.setDate(d28.getDate() + 28);
+        setTest7Date(d7.toISOString().split('T')[0]);
+        setTest28Date(d28.toISOString().split('T')[0]);
+      }
+      const typeRes = await listSampleTypes([Query.equal('name', sample.type), Query.limit(1)]);
+      if (typeRes.documents.length > 0) {
+        const typeDoc = typeRes.documents[0] as SampleType;
+        const code = (typeDoc.code as string) || 'GEN';
+        const newNumber = await generateTestNumber(code);
+        setFormData((prev) => ({ ...prev, testNumber: newNumber }));
+        const testsRes = await listStandardTests([
+          Query.equal('sampleTypeId', typeDoc.$id as string),
+          Query.limit(50),
+        ]);
+        setStandardTests(testsRes.documents);
+      }
+    })();
   }, [formData.sampleId, samples]);
-
-  const isMultiResult = MULTI_RESULT_TESTS.includes(formData.testName);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleTestSelect = (test: any) => {
+  const handleTestSelect = (test: StandardTest) => {
     setFormData({ ...formData, testName: test.name, specification: test.specification || '', unit: test.unit || '' });
   };
 
-  const updateCubeResult = (index: number, value: string) => {
-    const newResults = [...cubeResults]; newResults[index] = value; setCubeResults(newResults);
+  // دوال مساعدة لنتائج المكعبات
+  const updateResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
+    setter((prev: string[]) => { const n = [...prev]; n[index] = value; return n; });
   };
-  const addCube = () => setCubeResults([...cubeResults, '']);
-  const removeCube = (index: number) => {
-    if (cubeResults.length <= 1) return;
-    setCubeResults(cubeResults.filter((_, i) => i !== index));
-  };
-  const calculateAverage = (values: string[]) => {
-    const nums = values.map(Number).filter(n => !isNaN(n));
-    if (nums.length === 0) return '';
-    return (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2);
+  const addResult = (setter: React.Dispatch<React.SetStateAction<string[]>>) => setter((prev: string[]) => [...prev, '']);
+  const removeResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => setter((prev: string[]) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
+  const calcAvg = (vals: string[]) => {
+    const nums = vals.map(Number).filter(n => !isNaN(n));
+    return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🚀 handleSubmit استدعيت');
     setLoading(true);
     try {
-      const payload: any = { ...formData, result: '' };
-      if (isMultiResult) {
-        const validResults = cubeResults.filter(r => r.trim() !== '');
-        if (validResults.length === 0) {
-          toast.error('أدخل نتيجة واحدة على الأقل');
-          setLoading(false);
-          return;
-        }
-        payload.results = JSON.stringify(validResults.map(Number));
-        payload.averageResult = parseFloat(calculateAverage(validResults) || '0');
+      const payload: Record<string, unknown> = { ...formData };
+
+      if (isDualAge) {
+        // فحص مقاومة الضغط
+        payload.result7Days = JSON.stringify(age7Results.map(Number));
+        payload.result28Days = JSON.stringify(age28Results.map(Number));
+        payload.average7Days = parseFloat(calcAvg(age7Results) || '0');
+        payload.average28Days = parseFloat(calcAvg(age28Results) || '0');
+        payload.test7Date = test7Date;
+        payload.test28Date = test28Date;
+        payload.result = '';
+      } else if (isMultiResult) {
+        // فحوصات متعددة المكعبات (القلب الخرساني)
+        const valid = cubeResults.filter(r => r.trim() !== '');
+        if (!valid.length) { toast.error('أدخل نتيجة واحدة على الأقل'); setLoading(false); return; }
+        payload.results = JSON.stringify(valid.map(Number));
+        payload.averageResult = parseFloat(calcAvg(valid) || '0');
+        payload.result = '';
       } else {
+        // فحوصات عادية
         payload.result = formData.result;
-        payload.results = '';
-        payload.averageResult = null;
       }
-      console.log('📦 البيانات المرسلة:', payload);
-      await databases.createDocument(DATABASE_ID, TESTS_COLLECTION_ID, 'unique()', payload);
-      console.log('✅ تم الحفظ');
-      toast.success('تم إضافة الفحص بنجاح');
-      router.push('/dashboard/tests');
-    } catch (err: any) {
-      console.error('❌ خطأ في الحفظ:', err);
-      toast.error('خطأ في إضافة الفحص: ' + err.message);
+
+      let isSuccess = false;
+      let nextNumberStr = formData.testNumber;
+      let attempts = 0;
+      while (!isSuccess && attempts < 10) {
+        try {
+          payload.testNumber = nextNumberStr;
+          await createTest(nextNumberStr, payload);
+          isSuccess = true;
+        } catch (err: unknown) {
+          if (err && typeof err === 'object' && 'code' in err && (err as Record<string, unknown>).code === 409) {
+            attempts++;
+            if (selectedSample) {
+              const res = await listSampleTypes([Query.equal('name', selectedSample.type), Query.limit(1)]);
+              if (res.documents.length > 0) {
+                const typeDoc = res.documents[0];
+                const code = typeDoc.code || 'GEN';
+                const lastNum = parseInt(nextNumberStr.split('-').pop() || '0', 10);
+                nextNumberStr = `TST-${new Date().getFullYear()}-${code}-${String(lastNum + 1).padStart(5, '0')}`;
+              } else {
+                throw err;
+              }
+            } else {
+              throw err;
+            }
+          } else {
+            throw err;
+          }
+        }
+      }
+      if (isSuccess) {
+        toast.success('تم إضافة الفحص بنجاح');
+        router.push('/dashboard/tests');
+      } else {
+        throw new Error('تعذر توليد رقم فحص فريد بعد عدة محاولات.');
+      }
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
 
-  const average = calculateAverage(cubeResults);
-
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+      <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
         <h1 className="text-2xl font-bold mb-6">إضافة فحص جديد</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block mb-1">رقم الفحص</label>
-            <input value={formData.testNumber} readOnly className="w-full border p-2 rounded bg-gray-100 font-mono" />
+            <input value={formData.testNumber} readOnly className="w-full border p-2 rounded bg-concrete-100 font-mono" />
           </div>
           <div>
             <label className="block mb-1">العينة *</label>
@@ -174,12 +209,12 @@ export default function NewTestPage() {
           </div>
 
           {standardTests.length > 0 && (
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="font-bold mb-2 text-green-800">الفحوصات القياسية</h3>
+            <div className="bg-success-bg p-4 rounded-lg">
+              <h3 className="font-bold mb-2 text-success">الفحوصات القياسية</h3>
               <div className="flex flex-wrap gap-2">
                 {standardTests.map((test) => (
                   <button type="button" key={test.$id} onClick={() => handleTestSelect(test)}
-                    className={`px-3 py-1 rounded border text-sm ${formData.testName === test.name ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-100'}`}>
+                    className={`px-3 py-1 rounded border text-sm ${formData.testName === test.name ? 'bg-petrol text-white' : 'bg-white hover:bg-concrete-100'}`}>
                     {test.name} {test.specification ? `(${test.specification})` : ''}
                   </button>
                 ))}
@@ -189,26 +224,84 @@ export default function NewTestPage() {
 
           <div><label className="block mb-1">اسم الفحص *</label><input name="testName" value={formData.testName} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
 
-          {isMultiResult ? (
-            <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+          {/* ========== فحص مقاومة الضغط (عمرين) ========== */}
+          {isDualAge && (
+            <div className="space-y-4">
+              {/* عمر 7 أيام */}
+              <div className="bg-petrol-soft p-4 rounded-lg">
+                <h3 className="font-bold text-petrol mb-2">نتائج عمر 7 أيام</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block mb-1 text-sm">تاريخ الفحص</label>
+                    <input type="date" value={test7Date} onChange={e => setTest7Date(e.target.value)} className="w-full border p-2 rounded" />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-sm">الوحدة</label>
+                    <input value={formData.unit || 'kg/cm2'} readOnly className="w-full border p-2 rounded bg-concrete-100" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {age7Results.map((val, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-sm w-16">مكعب {idx + 1}</span>
+                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge7Results, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
+                      {age7Results.length > 1 && <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger"><X size={16} /></button>}
+                    </div>
+                  ))}
+                </div>
+                <button type="button" onClick={() => addResult(setAge7Results)} className="mt-2 text-petrol text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
+                <div className="mt-2 font-bold text-success">المتوسط: {calcAvg(age7Results)}</div>
+              </div>
+
+              {/* عمر 28 يوم */}
+              <div className="bg-petrol-soft p-4 rounded-lg">
+                <h3 className="font-bold text-petrol mb-2">نتائج عمر 28 يوم</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block mb-1 text-sm">تاريخ الفحص</label>
+                    <input type="date" value={test28Date} onChange={e => setTest28Date(e.target.value)} className="w-full border p-2 rounded" />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-sm">الوحدة</label>
+                    <input value={formData.unit || 'kg/cm2'} readOnly className="w-full border p-2 rounded bg-concrete-100" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {age28Results.map((val, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-sm w-16">مكعب {idx + 1}</span>
+                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge28Results, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
+                      {age28Results.length > 1 && <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger"><X size={16} /></button>}
+                    </div>
+                  ))}
+                </div>
+                <button type="button" onClick={() => addResult(setAge28Results)} className="mt-2 text-petrol text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
+                <div className="mt-2 font-bold text-success">المتوسط: {calcAvg(age28Results)}</div>
+              </div>
+            </div>
+          )}
+
+          {/* ========== فحوصات متعددة المكعبات (القلب الخرساني) ========== */}
+          {isMultiResult && (
+            <div className="bg-petrol-soft p-4 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-blue-800">نتائج المكعبات</h3>
-                <button type="button" onClick={addCube} className="text-blue-600 hover:underline text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
+                <h3 className="font-bold text-petrol">نتائج المكعبات</h3>
+                <button type="button" onClick={() => addResult(setCubeResults)} className="text-petrol hover:underline text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
               </div>
               {cubeResults.map((val, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 w-20">مكعب {idx + 1}</span>
-                  <input type="number" step="0.01" value={val} onChange={e => updateCubeResult(idx, e.target.value)}
-                    className="flex-1 border p-2 rounded" placeholder="القيمة" />
+                  <span className="text-sm text-concrete-500 w-20">مكعب {idx + 1}</span>
+                  <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
                   <span className="text-sm">{formData.unit || 'kg/cm2'}</span>
-                  {cubeResults.length > 1 && (
-                    <button type="button" onClick={() => removeCube(idx)} className="text-red-500"><X size={16} /></button>
-                  )}
+                  {cubeResults.length > 1 && <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger"><X size={16} /></button>}
                 </div>
               ))}
-              {average && <div className="text-center font-bold text-green-700 mt-2">المتوسط: {average} {formData.unit || 'kg/cm2'}</div>}
+              <div className="font-bold text-success">المتوسط: {calcAvg(cubeResults)}</div>
             </div>
-          ) : (
+          )}
+
+          {/* ========== فحوصات عادية ========== */}
+          {!isDualAge && !isMultiResult && (
             <div className="grid grid-cols-2 gap-4">
               <div><label className="block mb-1">النتيجة</label><input name="result" value={formData.result} onChange={handleChange} className="w-full border p-2 rounded" /></div>
               <div><label className="block mb-1">الوحدة</label><input name="unit" value={formData.unit} onChange={handleChange} className="w-full border p-2 rounded" /></div>
@@ -230,9 +323,7 @@ export default function NewTestPage() {
             </select>
           </div>
           <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">
-            {loading ? 'جارٍ الحفظ...' : 'حفظ الفحص'}
-          </button>
+          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{loading ? 'جارٍ الحفظ...' : 'حفظ الفحص'}</button>
         </form>
       </div>
     </DashboardLayout></AuthGuard>

@@ -2,19 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, EXPENSES_COLLECTION_ID, VEHICLES_COLLECTION_ID } from '@/lib/constants';
+import type { Vehicle } from '@/lib/services/vehicles';
+import { Query } from '@/lib/services';
+import { getExpense, updateExpense } from '@/lib/services/expenses';
+import { listVehicles } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
 
 export default function EditExpensePage() {
   const router = useRouter();
   const params = useParams();
   const expenseId = params.id as string;
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [form, setForm] = useState<any>({});
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [form, setForm] = useState({
+    expenseNumber: '',
+    type: '',
+    amount: '',
+    date: '',
+    vehicleId: '',
+    vendor: '',
+    description: '',
+    paymentMethod: '',
+    notes: '',
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -22,13 +33,13 @@ export default function EditExpensePage() {
     const fetchData = async () => {
       try {
         const [exp, vehRes] = await Promise.all([
-          databases.getDocument(DATABASE_ID, EXPENSES_COLLECTION_ID, expenseId),
-          databases.listDocuments(DATABASE_ID, VEHICLES_COLLECTION_ID, [Query.limit(50)]),
+          getExpense(expenseId),
+          listVehicles([Query.limit(50)]),
         ]);
         setForm({
           expenseNumber: exp.expenseNumber,
           type: exp.type,
-          amount: exp.amount,
+          amount: String(exp.amount ?? ''),
           date: exp.date,
           vehicleId: exp.vehicleId || '',
           vendor: exp.vendor || '',
@@ -50,10 +61,10 @@ export default function EditExpensePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, EXPENSES_COLLECTION_ID, expenseId, { ...form, amount: parseFloat(form.amount) });
+      await updateExpense(expenseId, { ...form, amount: parseFloat(form.amount || '0') });
       toast.success('تم تحديث المصروف');
       router.push('/dashboard/finance/expenses');
-    } catch (err: any) { toast.error('خطأ: ' + err.message); setSaving(false); }
+    } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }
   };
 
   if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
@@ -63,7 +74,7 @@ export default function EditExpensePage() {
       <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
         <h1 className="text-2xl font-bold mb-6">تعديل المصروف</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block mb-1">رقم المصروف</label><input value={form.expenseNumber} disabled className="w-full border p-2 rounded bg-gray-100" /></div>
+          <div><label className="block mb-1">رقم المصروف</label><input value={form.expenseNumber} disabled className="w-full border p-2 rounded bg-concrete-100" /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className="block mb-1">النوع *</label><select name="type" value={form.type} onChange={handleChange} required className="w-full border p-2 rounded"><option value="سولار">سولار</option><option value="صيانة">صيانة</option><option value="شراء مواد">شراء مواد</option><option value="رواتب">رواتب</option><option value="إيجار">إيجار</option><option value="أخرى">أخرى</option></select></div>
             <div><label className="block mb-1">المبلغ *</label><input type="number" step="0.01" name="amount" value={form.amount} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
@@ -76,7 +87,7 @@ export default function EditExpensePage() {
           <div><label className="block mb-1">البائع / المحطة</label><input name="vendor" value={form.vendor} onChange={handleChange} className="w-full border p-2 rounded" /></div>
           <div><label className="block mb-1">الوصف</label><input name="description" value={form.description} onChange={handleChange} className="w-full border p-2 rounded" /></div>
           <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+          <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
         </form>
       </div>
     </DashboardLayout></AuthGuard>

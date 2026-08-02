@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { databases } from '@/lib/appwrite';
-import { DATABASE_ID, SAMPLE_TYPES_COLLECTION_ID, STANDARD_TESTS_COLLECTION_ID } from '@/lib/constants';
+import { createSampleType, createStandardTest } from '@/lib/services';
+import { ID } from 'appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Upload, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ID } from 'appwrite';
 
 export default function ImportDataPage() {
   const [loading, setLoading] = useState(false);
@@ -28,9 +27,7 @@ export default function ImportDataPage() {
       if (data.sampleTypes && Array.isArray(data.sampleTypes)) {
         for (const type of data.sampleTypes) {
           setResult(`إنشاء نوع عينة: ${type.name}...`);
-          const doc = await databases.createDocument(
-            DATABASE_ID,
-            SAMPLE_TYPES_COLLECTION_ID,
+          const doc = await createSampleType(
             ID.unique(),
             { name: type.name, category: type.category || '' }
           );
@@ -47,9 +44,7 @@ export default function ImportDataPage() {
             continue;
           }
           setResult(`إنشاء فحص: ${test.name}...`);
-          await databases.createDocument(
-            DATABASE_ID,
-            STANDARD_TESTS_COLLECTION_ID,
+          await createStandardTest(
             ID.unique(),
             {
               name: test.name,
@@ -63,8 +58,8 @@ export default function ImportDataPage() {
 
       setResult('');
       toast.success('تم استيراد جميع البيانات بنجاح');
-    } catch (err: any) {
-      toast.error('فشل الاستيراد: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('فشل الاستيراد: ' + (err instanceof Error ? err.message : String(err)));
       setResult('');
     } finally {
       setLoading(false);
@@ -75,9 +70,9 @@ export default function ImportDataPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-xl mx-auto bg-white p-8 rounded-xl shadow text-center">
-          <Upload size={48} className="mx-auto text-blue-500 mb-4" />
+          <Upload size={48} className="mx-auto text-petrol mb-4" />
           <h1 className="text-2xl font-bold mb-2">استيراد أنواع العينات والفحوصات</h1>
-          <p className="text-gray-500 mb-6">
+          <p className="text-concrete-500 mb-6">
             ارفع ملف JSON الذي يحتوي على أنواع العينات والفحوصات القياسية (sampleTypes و standardTests).
           </p>
 
@@ -90,25 +85,16 @@ export default function ImportDataPage() {
           />
 
           {result && (
-            <div className="flex items-center justify-center gap-2 text-blue-600 mb-4">
+            <div className="flex items-center justify-center gap-2 text-petrol mb-4">
               <Loader2 size={18} className="animate-spin" />
               <span>{result}</span>
             </div>
           )}
 
-          <AlertTriangle size={16} className="inline text-amber-500" /> تأكد من أخذ نسخة احتياطية قبل الاستيراد.
+          <AlertTriangle size={16} className="inline text-warning" /> تأكد من أخذ نسخة احتياطية قبل الاستيراد.
         </div>
       </DashboardLayout>
     </AuthGuard>
   );
 }
 
-// مكون صغير للتحميل (يمكنك إضافته في نفس الملف أو استيراده)
-function Loader2({ size, className }: any) {
-  return (
-    <svg className={`animate-spin ${className}`} width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
-}

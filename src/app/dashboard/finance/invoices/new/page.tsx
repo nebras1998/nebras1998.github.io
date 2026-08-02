@@ -2,19 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-  DATABASE_ID,
-  INVOICES_COLLECTION_ID,
-  CLIENTS_COLLECTION_ID,
-  PROJECTS_COLLECTION_ID,
-  STANDARD_TESTS_COLLECTION_ID,
-  SAMPLE_TYPES_COLLECTION_ID, // ✅ تمت الإضافة لجلب أنواع العينات
-} from '@/lib/constants';
+import type { Client } from '@/types';
+import type { Project } from '@/types';
+import type { StandardTest, SampleType } from '@/lib/services/sample-types';
+import { Query } from '@/lib/services';
+import { listClients } from '@/lib/services/clients';
+import { listProjects } from '@/lib/services/projects';
+import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
+import { listInvoices, createInvoice } from '@/lib/services/invoices';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
 import { Plus, X } from 'lucide-react';
 
 interface InvoiceItem {
@@ -29,10 +27,10 @@ interface InvoiceItem {
 
 export default function NewInvoicePage() {
   const router = useRouter();
-  const [clients, setClients] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [tests, setTests] = useState<any[]>([]);
-  const [typeMap, setTypeMap] = useState<Record<string, string>>({}); // ✅ ربط sampleTypeId -> اسم النوع
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tests, setTests] = useState<StandardTest[]>([]);
+  const [typeMap, setTypeMap] = useState<Record<string, string>>({});
 
   const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -46,7 +44,7 @@ export default function NewInvoicePage() {
     setItems([...items, { testId: '', testName: '', unit: '', specification: '', price: 0, quantity: 1, total: 0 }]);
   };
 
-  const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
+  const updateItem = (index: number, field: keyof InvoiceItem, value: string) => {
     const newItems = [...items];
     if (field === 'testId') {
       const test = tests.find(t => t.$id === value);
@@ -76,7 +74,7 @@ export default function NewInvoicePage() {
 
   const generateInvoiceNumber = async () => {
     try {
-      const res = await databases.listDocuments(DATABASE_ID, INVOICES_COLLECTION_ID, [
+      const res = await listInvoices([
         Query.orderDesc('$createdAt'),
         Query.limit(1),
       ]);
@@ -99,30 +97,28 @@ export default function NewInvoicePage() {
     (async () => {
       try {
         const [cliRes, projRes, testsRes, typesRes] = await Promise.all([
-          databases.listDocuments(DATABASE_ID, CLIENTS_COLLECTION_ID, [Query.limit(200)]),
-          databases.listDocuments(DATABASE_ID, PROJECTS_COLLECTION_ID, [Query.limit(200)]),
-          databases.listDocuments(DATABASE_ID, STANDARD_TESTS_COLLECTION_ID, [Query.limit(500)]),
-          databases.listDocuments(DATABASE_ID, SAMPLE_TYPES_COLLECTION_ID, [Query.limit(100)]), // ✅ جلب أنواع العينات
+          listClients([Query.limit(200)]),
+          listProjects([Query.limit(200)]),
+          listStandardTests([Query.limit(500)]),
+          listSampleTypes([Query.limit(100)]),
         ]);
         setClients(cliRes.documents);
         setProjects(projRes.documents);
         setTests(testsRes.documents);
 
-        // بناء خريطة من معرف النوع إلى اسمه
         const map: Record<string, string> = {};
-        typesRes.documents.forEach((type: any) => {
+        typesRes.documents.forEach((type: SampleType) => {
           map[type.$id] = type.name;
         });
         setTypeMap(map);
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل البيانات');
       }
     })();
   }, []);
 
-  // تجميع الفحوصات حسب نوع العينة لاستخدامها في optgroup
   const groupedTests = () => {
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, StandardTest[]> = {};
     tests.forEach(test => {
       const typeName = typeMap[test.sampleTypeId] || 'غير مصنف';
       if (!groups[typeName]) groups[typeName] = [];
@@ -139,26 +135,47 @@ export default function NewInvoicePage() {
     }
     setLoading(true);
     try {
-      const invoiceNumber = await generateInvoiceNumber();
-      await databases.createDocument(DATABASE_ID, INVOICES_COLLECTION_ID, 'unique()', {
-        invoiceNumber,
-        clientId,
-        projectId,
-        issueDate,
-        dueDate,
-        status: 'صادرة',
-        items: JSON.stringify(items),
-        subtotal,
-        tax,
-        total,
-        paidAmount: 0,
-        remainingAmount: total,
-        notes,
-      });
-      toast.success('تم إنشاء الفاتورة بنجاح');
-      router.push('/dashboard/finance/invoices');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+      let isSuccess = false;
+      let nextNumberStr = await generateInvoiceNumber();
+      let attempts = 0;
+      while (!isSuccess && attempts < 10) {
+        try {
+          await createInvoice(nextNumberStr, {
+            invoiceNumber: nextNumberStr,
+            clientId,
+            projectId,
+            issueDate,
+            dueDate,
+            status: 'صادرة',
+            items: JSON.stringify(items),
+            subtotal,
+            tax,
+            total,
+            paidAmount: 0,
+            remainingAmount: total,
+            notes,
+          });
+          isSuccess = true;
+    } catch (err: unknown) {
+      const appwriteErr = err as { code?: number; message?: string };
+      if (appwriteErr.code === 409) {
+            attempts++;
+            const year = new Date().getFullYear();
+            const lastNum = parseInt(nextNumberStr.split('-').pop() || '0', 10);
+            nextNumberStr = `INV-${year}-${String(lastNum + 1).padStart(4, '0')}`;
+          } else {
+            throw err;
+          }
+        }
+      }
+      if (isSuccess) {
+        toast.success('تم إنشاء الفاتورة بنجاح');
+        router.push('/dashboard/finance/invoices');
+      } else {
+        throw new Error('تعذر توليد رقم فاتورة فريد بعد عدة محاولات.');
+      }
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -197,28 +214,28 @@ export default function NewInvoicePage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h2 className="font-bold text-lg">البنود</h2>
-                <button type="button" onClick={addItem} className="bg-blue-600 text-white px-3 py-1 rounded flex items-center gap-1">
+                <button type="button" onClick={addItem} className="bg-petrol text-white px-3 py-1 rounded flex items-center gap-1">
                   <Plus size={16} /> إضافة بند
                 </button>
               </div>
               {items.length === 0 ? (
-                <p className="text-gray-400 text-sm">لا توجد بنود. اضغط "إضافة بند".</p>
+                <p className="text-concrete-500 text-sm">لا توجد بنود. اضغط &ldquo;إضافة بند&rdquo;.</p>
               ) : (
                 <div className="overflow-x-auto border rounded">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-50">
-                        <th className="p-2 text-right">الفحص (الخدمة)</th>
-                        <th className="p-2 text-right">الكمية</th>
-                        <th className="p-2 text-right">السعر</th>
-                        <th className="p-2 text-right">الإجمالي</th>
-                        <th className="p-2"></th>
+                      <tr className="bg-concrete-50">
+                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الفحص (الخدمة)</th>
+                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الكمية</th>
+                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السعر</th>
+                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th>
+                        <th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((item, idx) => (
                         <tr key={idx} className="border-t">
-                          <td className="p-2">
+                          <td className="p-3">
                             <select
                               value={item.testId}
                               onChange={e => updateItem(idx, 'testId', e.target.value)}
@@ -237,13 +254,13 @@ export default function NewInvoicePage() {
                               ))}
                             </select>
                           </td>
-                          <td className="p-2">
+                          <td className="p-3">
                             <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 border p-1 rounded" />
                           </td>
-                          <td className="p-2">{item.price.toFixed(2)} ₪</td>
-                          <td className="p-2 font-bold">{item.total.toFixed(2)} ₪</td>
-                          <td className="p-2">
-                            <button type="button" onClick={() => removeItem(idx)} className="text-red-500"><X size={16} /></button>
+                          <td className="p-3">{item.price.toFixed(2)} ₪</td>
+                          <td className="p-3 font-bold">{item.total.toFixed(2)} ₪</td>
+                          <td className="p-3">
+                            <button type="button" onClick={() => removeItem(idx)} className="text-danger"><X size={16} /></button>
                           </td>
                         </tr>
                       ))}
@@ -264,7 +281,7 @@ export default function NewInvoicePage() {
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full border p-2 rounded" />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {loading ? 'جارٍ الحفظ...' : 'إنشاء الفاتورة'}
             </button>
           </form>

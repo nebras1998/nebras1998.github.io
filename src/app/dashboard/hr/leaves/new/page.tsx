@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, LEAVE_REQUESTS_COLLECTION_ID, EMPLOYEES_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
+import type { Employee } from '@/types';
+import { listEmployees } from '@/lib/services/employees';
+import { createLeaveRequest } from '@/lib/services/leaves';
+import { Query } from '@/lib/services';
 
 export default function NewLeavePage() {
   const router = useRouter();
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [form, setForm] = useState({
     employeeId: '',
     startDate: '',
@@ -25,9 +26,9 @@ export default function NewLeavePage() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [Query.equal('status', 'يعمل'), Query.limit(200)]);
+        const res = await listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]);
         setEmployees(res.documents);
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل الموظفين');
       }
     };
@@ -43,11 +44,11 @@ export default function NewLeavePage() {
     if (!form.employeeId) { toast.error('اختر الموظف'); return; }
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, LEAVE_REQUESTS_COLLECTION_ID, 'unique()', form);
+      await createLeaveRequest('unique()', form);
       toast.success('تم تقديم طلب الإجازة');
       router.push('/dashboard/hr/leaves');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -88,7 +89,7 @@ export default function NewLeavePage() {
               <label className="block mb-1">السبب</label>
               <textarea name="reason" value={form.reason} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {loading ? 'جارٍ التقديم...' : 'تقديم الطلب'}
             </button>
           </form>

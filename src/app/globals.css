@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand — petrol */
+  --color-petrol: #0f4c5c;
+  --color-petrol-dark: #0a3b48;
+  --color-petrol-soft: #e7f1f4;
+
+  /* Neutrals — concrete */
+  --color-concrete-0: #ffffff;
+  --color-concrete-50: #f6f6f5;
+  --color-concrete-100: #efefed;
+  --color-concrete-200: #e1e1de;
+  --color-concrete-500: #64645e;
+  --color-concrete-800: #2c2c29;
+
+  /* Status — semantic tints (bg + dark text) */
+  --color-success-bg: #eaf3de;
+  --color-success: #173404;
+  --color-warning-bg: #fef3c7;
+  --color-warning: #92400e;
+  --color-warning-solid: #b45309;
+  --color-danger-bg: #fcebeb;
+  --color-danger: #791f1f;
+  --color-danger-solid: #dc2626;
+  --color-info-bg: #e6f1fb;
+  --color-info: #042c53;
+
+  /* Chart palette */
+  --color-chart-petrol: #0f4c5c;
+  --color-chart-amber: #e0a526;
+  --color-chart-green: #2e7d5b;
+  --color-chart-terracotta: #b4472c;
+  --color-chart-mauve: #7c5fa6;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-plex-sans-arabic);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-concrete-50);
+  color: var(--color-concrete-800);
+  font-family: var(--font-sans), Arial, sans-serif;
 }

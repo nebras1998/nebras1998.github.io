@@ -2,20 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import type { Client } from '@/types';
+import { listClients, createProject } from '@/lib/services';
+import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import {
-  DATABASE_ID,
-  PROJECTS_COLLECTION_ID,
-  CLIENTS_COLLECTION_ID,
-} from '@/lib/constants';
 import { toast } from 'sonner';
-import { Query } from 'appwrite';
+import { generateUniqueProjectNumber } from '@/lib/helpers';
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [formData, setFormData] = useState({
     projectNumber: '',
     name: '',
@@ -30,67 +27,33 @@ export default function NewProjectPage() {
   const [loading, setLoading] = useState(false);
   const [generatingNumber, setGeneratingNumber] = useState(true);
 
-  // دالة توليد رقم مشروع فريد
-  const generateProjectNumber = async () => {
-    const currentYear = new Date().getFullYear();
-    const prefix = `PRJ-${currentYear}-`;
-
-    // 1. جلب آخر رقم مستخدم
-    let nextNumber = 1;
-    try {
-      const response = await databases.listDocuments(DATABASE_ID, PROJECTS_COLLECTION_ID, [
-        Query.startsWith('projectNumber', prefix),
-        Query.orderDesc('projectNumber'),
-        Query.limit(1),
-      ]);
-      if (response.documents.length > 0) {
-        const lastNumber = response.documents[0].projectNumber.split('-').pop();
-        if (lastNumber) {
-          nextNumber = parseInt(lastNumber, 10) + 1;
-        }
-      }
-    } catch {
-      // إذا فشل الجلب، نبدأ من 1
-    }
-
-    // 2. حلقة التحقق من عدم التكرار
-    let isUnique = false;
-    let newNumber = '';
-    while (!isUnique) {
-      const padded = String(nextNumber).padStart(3, '0');
-      newNumber = `${prefix}${padded}`;
+  // توليد رقم المشروع تلقائياً باستخدام الدالة الموحدة
+  useEffect(() => {
+    const fetchNumber = async () => {
       try {
-        const check = await databases.listDocuments(DATABASE_ID, PROJECTS_COLLECTION_ID, [
-          Query.equal('projectNumber', newNumber),
-          Query.limit(1),
-        ]);
-        if (check.documents.length === 0) {
-          isUnique = true;
-        } else {
-          nextNumber++;
-        }
+        const newNumber = await generateUniqueProjectNumber();
+        setFormData(prev => ({ ...prev, projectNumber: newNumber }));
       } catch {
-        // في حال فشل التحقق، نعتبر الرقم فريداً ونتابع
-        isUnique = true;
+        // رقم افتراضي في حال الفشل
+        setFormData(prev => ({ ...prev, projectNumber: `PRJ-${new Date().getFullYear()}-001` }));
+      } finally {
+        setGeneratingNumber(false);
       }
-    }
+    };
+    fetchNumber();
+  }, []);
 
-    setFormData((prev) => ({ ...prev, projectNumber: newNumber }));
-    setGeneratingNumber(false);
-  };
-
-  // جلب العملاء وتوليد رقم المشروع
+  // جلب قائمة العملاء
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const response = await databases.listDocuments(DATABASE_ID, CLIENTS_COLLECTION_ID, [Query.limit(200)]);
+        const response = await listClients([Query.limit(200)]);
         setClients(response.documents);
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل قائمة العملاء');
       }
     };
     fetchClients();
-    generateProjectNumber();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -101,11 +64,34 @@ export default function NewProjectPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, PROJECTS_COLLECTION_ID, 'unique()', formData);
-      toast.success('تم إضافة المشروع بنجاح');
-      router.push('/dashboard/projects');
-    } catch (err: any) {
-      toast.error('خطأ في إضافة المشروع: ' + err.message);
+      let isSuccess = false;
+      let nextNumberStr = formData.projectNumber;
+      let attempts = 0;
+      while (!isSuccess && attempts < 10) {
+        try {
+          await createProject(nextNumberStr, { ...formData, projectNumber: nextNumberStr });
+          isSuccess = true;
+        } catch (err: unknown) {
+          const appwriteErr = err as { code?: number };
+          if (appwriteErr.code === 409) {
+            attempts++;
+            const currentYear = new Date().getFullYear();
+            const prefix = `PRJ-${currentYear}-`;
+            const lastNum = parseInt(nextNumberStr.split('-').pop() || '0', 10);
+            nextNumberStr = `${prefix}${String(lastNum + 1).padStart(3, '0')}`;
+          } else {
+            throw err;
+          }
+        }
+      }
+      if (isSuccess) {
+        toast.success('تم إضافة المشروع بنجاح');
+        router.push('/dashboard/projects');
+      } else {
+        throw new Error('تعذر توليد رقم مشروع فريد بعد عدة محاولات.');
+      }
+    } catch (err: unknown) {
+      toast.error('خطأ في إضافة المشروع: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -123,11 +109,11 @@ export default function NewProjectPage() {
                 value={formData.projectNumber}
                 onChange={handleChange}
                 required
-                className="w-full border p-2 rounded bg-gray-50"
+                className="w-full border p-2 rounded bg-concrete-50"
                 placeholder={generatingNumber ? 'جارٍ التوليد...' : 'رقم المشروع'}
                 readOnly={generatingNumber}
               />
-              <p className="text-sm text-gray-500 mt-1">يتم توليده تلقائياً (يمكنك تعديله يدوياً)</p>
+              <p className="text-sm text-concrete-500 mt-1">يتم توليده تلقائياً (يمكنك تعديله يدوياً)</p>
             </div>
             <div>
               <label className="block mb-1">اسم المشروع *</label>
@@ -137,9 +123,7 @@ export default function NewProjectPage() {
               <label className="block mb-1">العميل *</label>
               <select name="clientId" value={formData.clientId} onChange={handleChange} required className="w-full border p-2 rounded">
                 <option value="">اختر العميل</option>
-                {clients.map((client) => (
-                  <option key={client.$id} value={client.$id}>{client.name}</option>
-                ))}
+                {clients.map(client => <option key={client.$id} value={client.$id}>{client.name}</option>)}
               </select>
             </div>
             <div>
@@ -170,7 +154,7 @@ export default function NewProjectPage() {
               <label className="block mb-1">ملاحظات</label>
               <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
             </div>
-            <button type="submit" disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
               {loading ? 'جارٍ الحفظ...' : 'حفظ المشروع'}
             </button>
           </form>

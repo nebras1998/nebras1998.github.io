@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { createClient } from '@/lib/services/clients';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, CLIENTS_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function NewClientPage() {
@@ -29,11 +28,11 @@ export default function NewClientPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, CLIENTS_COLLECTION_ID, 'unique()', formData);
+      await createClient('unique()', formData);
       toast.success('تم إضافة العميل بنجاح');
       router.push('/dashboard/clients');
-    } catch (err: any) {
-      toast.error('خطأ في إضافة العميل: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ في إضافة العميل: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -122,7 +121,7 @@ export default function NewClientPage() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50"
             >
               {loading ? 'جارٍ الحفظ...' : 'حفظ العميل'}
             </button>

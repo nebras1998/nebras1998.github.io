@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID } from '@/lib/constants';
+import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
 
 export default function EditTripPage() {
@@ -13,14 +12,23 @@ export default function EditTripPage() {
   const params = useParams();
   const tripId = params.tripId as string;   // لاحظ اسم المتغير
   const vehicleId = params.id as string;    // من المسار [id]
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState({
+    departureTime: '',
+    returnTime: '',
+    destination: '',
+    purpose: '',
+    startMileage: '',
+    endMileage: '',
+    status: '',
+    notes: '',
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const trip = await databases.getDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, tripId);
+        const trip = await getVehicleTrip(tripId);
         setForm({
           departureTime: trip.departureTime,
           returnTime: trip.returnTime || '',
@@ -48,7 +56,7 @@ export default function EditTripPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         returnTime: form.returnTime || null,
         endMileage: parseInt(form.endMileage) || null,
         destination: form.destination,
@@ -56,11 +64,11 @@ export default function EditTripPage() {
         notes: form.notes,
         status: form.returnTime ? 'مكتملة' : 'قيد الرحلة',
       };
-      await databases.updateDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, tripId, updateData);
+      await updateVehicleTrip(tripId, updateData);
       toast.success('تم تحديث الرحلة');
       router.push(`/dashboard/vehicles/${vehicleId}`); // العودة إلى تفاصيل المركبة
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -75,7 +83,7 @@ export default function EditTripPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block mb-1">تاريخ ووقت الانطلاق</label>
-              <input type="datetime-local" name="departureTime" value={form.departureTime} disabled className="w-full border p-2 rounded bg-gray-100" />
+              <input type="datetime-local" name="departureTime" value={form.departureTime} disabled className="w-full border p-2 rounded bg-concrete-100" />
             </div>
             <div>
               <label className="block mb-1">تاريخ ووقت العودة</label>
@@ -86,11 +94,11 @@ export default function EditTripPage() {
               <div><label className="block mb-1">الغرض</label><input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block mb-1">عداد الانطلاق</label><input type="number" name="startMileage" value={form.startMileage} disabled className="w-full border p-2 rounded bg-gray-100" /></div>
+              <div><label className="block mb-1">عداد الانطلاق</label><input type="number" name="startMileage" value={form.startMileage} disabled className="w-full border p-2 rounded bg-concrete-100" /></div>
               <div><label className="block mb-1">عداد العودة</label><input type="number" name="endMileage" value={form.endMileage} onChange={handleChange} className="w-full border p-2 rounded" /></div>
             </div>
             <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-            <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
           </form>
         </div>
       </DashboardLayout>

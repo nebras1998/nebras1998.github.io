@@ -1,26 +1,53 @@
-'use client'; // هذا المكون يعمل في جهة المستخدم (المتصفح)
+'use client';
 
 import { useAuthStore } from '@/store/useAuthStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuthStore(); // نقرأ حالة المستخدم
-  const router = useRouter();               // للتوجيه إلى صفحة تسجيل الدخول
+  const { user, role, loading } = useAuthStore();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // إذا انتهى التحميل ولا يوجد مستخدم، اذهب إلى صفحة /login
-    if (!loading && !user) {
-      router.push('/login');
+    if (loading) return;
+
+    if (!user || !role) {
+      if (pathname.startsWith('/technician')) {
+        router.push('/technician/login');
+      } else {
+        router.push('/login');
+      }
+      return;
     }
-  }, [user, loading, router]);
 
-  // أثناء فحص الجلسة، نعرض رسالة تحميل
-  if (loading) return <div className="text-center p-10">جارٍ التحميل...</div>;
+    if (pathname.startsWith('/dashboard')) {
+      if (role !== 'مدير' && role !== 'إداري') {
+        router.push('/technician/dashboard');
+      }
+    } else if (pathname.startsWith('/technician')) {
+      if (role !== 'فني' && role !== 'مدير') {
+        router.push('/dashboard');
+      }
+    }
+  }, [user, role, loading, router, pathname]);
 
-  // إذا لم يوجد مستخدم، لا نعرض شيئًا (سيتم التوجيه قريبًا)
-  if (!user) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-concrete-50">
+        <p className="text-concrete-500">جارٍ التحميل...</p>
+      </div>
+    );
+  }
 
-  // المستخدم مسجل الدخول، نعرض المحتوى المحمي
+  if (!user || !role) return null;
+
+  if (pathname.startsWith('/dashboard') && role !== 'مدير' && role !== 'إداري') {
+    return null;
+  }
+  if (pathname.startsWith('/technician') && role !== 'فني' && role !== 'مدير') {
+    return null;
+  }
+
   return <>{children}</>;
 }

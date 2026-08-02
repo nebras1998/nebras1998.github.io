@@ -37,7 +37,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="p-2 rounded-lg border hover:bg-concrete-100 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <ChevronRight size={18} />
       </button>
@@ -51,8 +51,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             onClick={() => onPageChange(page)}
             className={`px-3 py-1 rounded-lg border ${
               currentPage === page
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'hover:bg-gray-100'
+                ? 'bg-petrol text-white border-petrol'
+                : 'hover:bg-concrete-100'
             }`}
           >
             {page}
@@ -63,7 +63,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg border hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="p-2 rounded-lg border hover:bg-concrete-100 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         <ChevronLeft size={18} />
       </button>

@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { createEquipment } from '@/lib/services/equipment';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { DATABASE_ID, EQUIPMENT_COLLECTION_ID } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function NewEquipmentPage() {
@@ -31,11 +30,11 @@ export default function NewEquipmentPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await databases.createDocument(DATABASE_ID, EQUIPMENT_COLLECTION_ID, 'unique()', formData);
+      await createEquipment('unique()', formData);
       toast.success('تم إضافة الجهاز بنجاح');
       router.push('/dashboard/equipment');
-    } catch (err: any) {
-      toast.error('خطأ في إضافة الجهاز: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ في إضافة الجهاز: ' + (err instanceof Error ? err.message : String(err)));
       setLoading(false);
     }
   };
@@ -92,7 +91,7 @@ export default function NewEquipmentPage() {
             <label className="block mb-1">ملاحظات</label>
             <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
           </div>
-          <button type="submit" disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+          <button type="submit" disabled={loading} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
             {loading ? 'جارٍ الحفظ...' : 'حفظ الجهاز'}
           </button>
         </form>

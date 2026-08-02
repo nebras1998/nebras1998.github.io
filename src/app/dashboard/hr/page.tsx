@@ -15,10 +15,10 @@ export default function HRPage() {
             href="/dashboard/hr/employees"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <Users size={32} className="text-blue-600" />
+            <Users size={32} className="text-petrol" />
             <div>
               <h2 className="text-xl font-bold">الموظفون</h2>
-              <p className="text-gray-500">إدارة بيانات الموظفين</p>
+              <p className="text-concrete-500">إدارة بيانات الموظفين</p>
             </div>
           </Link>
 
@@ -26,10 +26,10 @@ export default function HRPage() {
             href="/dashboard/hr/attendance"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <CalendarCheck size={32} className="text-green-600" />
+            <CalendarCheck size={32} className="text-petrol" />
             <div>
               <h2 className="text-xl font-bold">الحضور والانصراف</h2>
-              <p className="text-gray-500">تسجيل ومتابعة الحضور اليومي</p>
+              <p className="text-concrete-500">تسجيل ومتابعة الحضور اليومي</p>
             </div>
           </Link>
 
@@ -37,10 +37,10 @@ export default function HRPage() {
             href="/dashboard/hr/leaves"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <UserCheck size={32} className="text-orange-600" />
+            <UserCheck size={32} className="text-warning" />
             <div>
               <h2 className="text-xl font-bold">الإجازات</h2>
-              <p className="text-gray-500">إدارة طلبات الإجازة</p>
+              <p className="text-concrete-500">إدارة طلبات الإجازة</p>
             </div>
           </Link>
 
@@ -48,10 +48,10 @@ export default function HRPage() {
             href="/dashboard/hr/overtime"
             className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
           >
-            <Clock size={32} className="text-purple-600" />
+            <Clock size={32} className="text-petrol" />
             <div>
               <h2 className="text-xl font-bold">العمل الإضافي</h2>
-              <p className="text-gray-500">إدارة طلبات وساعات العمل الإضافي</p>
+              <p className="text-concrete-500">إدارة طلبات وساعات العمل الإضافي</p>
             </div>
           </Link>
         </div>

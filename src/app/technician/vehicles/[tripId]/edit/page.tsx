@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
-import { DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, VEHICLES_COLLECTION_ID } from '@/lib/constants';
+import { getVehicle } from '@/lib/services/vehicles';
+import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
 import { ArrowRight, Save } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
@@ -31,7 +31,7 @@ export default function EditTripPage() {
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const trip = await databases.getDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, tripId);
+        const trip = await getVehicleTrip(tripId);
         setForm({
           departureTime: trip.departureTime,
           returnTime: trip.returnTime || new Date().toISOString().slice(0, 16),
@@ -42,10 +42,10 @@ export default function EditTripPage() {
           notes: trip.notes || '',
         });
         if (trip.vehicleId) {
-          const vehicle = await databases.getDocument(DATABASE_ID, VEHICLES_COLLECTION_ID, trip.vehicleId);
+          const vehicle = await getVehicle(trip.vehicleId);
           setVehiclePlate(vehicle.plateNumber);
         }
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل الرحلة');
       } finally {
         setLoading(false);
@@ -62,7 +62,7 @@ export default function EditTripPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await databases.updateDocument(DATABASE_ID, VEHICLE_TRIPS_COLLECTION_ID, tripId, {
+      await updateVehicleTrip(tripId, {
         returnTime: form.returnTime,
         endMileage: parseInt(form.endMileage) || null,
         destination: form.destination,
@@ -85,8 +85,8 @@ export default function EditTripPage() {
 
       toast.success('تم إنهاء الرحلة بنجاح');
       router.push('/technician/vehicles');
-    } catch (err: any) {
-      toast.error('خطأ: ' + err.message);
+    } catch (err: unknown) {
+      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
     }
   };
@@ -94,8 +94,8 @@ export default function EditTripPage() {
   if (loading) return <div className="p-4 text-center">جارٍ التحميل...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16" dir="rtl">
-      <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">
+      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white">
           <ArrowRight size={20} />
         </button>
@@ -106,7 +106,7 @@ export default function EditTripPage() {
         <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-4">
           <div>
             <label className="block mb-1 font-bold">تاريخ ووقت الانطلاق</label>
-            <input type="datetime-local" value={form.departureTime} disabled className="w-full border p-2 rounded bg-gray-100" />
+            <input type="datetime-local" value={form.departureTime} disabled className="w-full border p-2 rounded bg-concrete-100" />
           </div>
 
           <div>
@@ -128,7 +128,7 @@ export default function EditTripPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 font-bold">عداد الانطلاق</label>
-              <input type="number" value={form.startMileage} disabled className="w-full border p-2 rounded bg-gray-100" />
+              <input type="number" value={form.startMileage} disabled className="w-full border p-2 rounded bg-concrete-100" />
             </div>
             <div>
               <label className="block mb-1 font-bold">عداد العودة *</label>
@@ -141,7 +141,7 @@ export default function EditTripPage() {
             <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" placeholder="أي ملاحظات إضافية..." />
           </div>
 
-          <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-3 rounded-lg font-bold text-lg hover:bg-petrol-dark disabled:opacity-50 flex items-center justify-center gap-2">
             <Save size={20} />
             {saving ? 'جارٍ الحفظ...' : 'إنهاء الرحلة'}
           </button>

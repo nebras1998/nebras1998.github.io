@@ -2,19 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuthStore } from '@/store/useAuthStore';
-import {
-  DATABASE_ID,
-  SAMPLES_COLLECTION_ID,
-  PROJECTS_COLLECTION_ID,
-  CLIENTS_COLLECTION_ID,
-  EMPLOYEES_COLLECTION_ID,
-} from '@/lib/constants';
+import type { Sample } from '@/types';
+import { getSample, getProject, getClient, getEmployee } from '@/lib/services';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, QrCode, Building, User } from 'lucide-react';
+import Badge from '@/components/Badge';
 
 export default function SampleDetailPage() {
   const params = useParams();
@@ -22,7 +17,7 @@ export default function SampleDetailPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuthStore();
 
-  const [sample, setSample] = useState<any>(null);
+  const [sample, setSample] = useState<Sample | null>(null);
   const [projectName, setProjectName] = useState('');
   const [clientName, setClientName] = useState('');
   const [samplerName, setSamplerName] = useState('');
@@ -34,30 +29,30 @@ export default function SampleDetailPage() {
     if (!sampleId) return;
     const fetchData = async () => {
       try {
-        const sampleDoc = await databases.getDocument(DATABASE_ID, SAMPLES_COLLECTION_ID, sampleId);
+        const sampleDoc = await getSample(sampleId);
         setSample(sampleDoc);
 
         if (sampleDoc.projectId) {
-          const project = await databases.getDocument(DATABASE_ID, PROJECTS_COLLECTION_ID, sampleDoc.projectId);
+          const project = await getProject(sampleDoc.projectId);
           setProjectName(project.name);
           if (project.clientId) {
-            const client = await databases.getDocument(DATABASE_ID, CLIENTS_COLLECTION_ID, project.clientId);
+            const client = await getClient(project.clientId);
             setClientName(client.name);
           }
         }
         if (sampleDoc.samplerId) {
-          const emp = await databases.getDocument(DATABASE_ID, EMPLOYEES_COLLECTION_ID, sampleDoc.samplerId);
+          const emp = await getEmployee(sampleDoc.samplerId);
           setSamplerName(emp.name);
         }
         if (sampleDoc.preparerId) {
-          const emp = await databases.getDocument(DATABASE_ID, EMPLOYEES_COLLECTION_ID, sampleDoc.preparerId);
+          const emp = await getEmployee(sampleDoc.preparerId);
           setPreparerName(emp.name);
         }
         if (sampleDoc.transporterId) {
-          const emp = await databases.getDocument(DATABASE_ID, EMPLOYEES_COLLECTION_ID, sampleDoc.transporterId);
+          const emp = await getEmployee(sampleDoc.transporterId);
           setTransporterName(emp.name);
         }
-      } catch (err: any) {
+      } catch {
         toast.error('فشل تحميل بيانات العينة');
       } finally {
         setLoading(false);
@@ -89,8 +84,8 @@ export default function SampleDetailPage() {
   // ------------------- حالة التحميل -------------------
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-gray-500">جارٍ التحميل...</p>
+      <div className="min-h-screen flex items-center justify-center bg-concrete-100">
+        <p className="text-concrete-500">جارٍ التحميل...</p>
       </div>
     );
   }
@@ -99,22 +94,22 @@ export default function SampleDetailPage() {
   if (!user) {
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-concrete-100 p-4" dir="rtl">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center space-y-6">
-          <QrCode size={48} className="mx-auto text-blue-600" />
+          <QrCode size={48} className="mx-auto text-petrol" />
           <h1 className="text-2xl font-bold">الوصول إلى العينة</h1>
-          <p className="text-gray-500">يجب تسجيل الدخول لعرض تفاصيل العينة. اختر نوع الحساب:</p>
+          <p className="text-concrete-500">يجب تسجيل الدخول لعرض تفاصيل العينة. اختر نوع الحساب:</p>
 
           <div className="space-y-3">
             <button
               onClick={() => router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`)}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+              className="w-full bg-petrol text-white py-3 rounded-xl font-bold text-lg hover:bg-petrol-dark flex items-center justify-center gap-2"
             >
               <Building size={20} /> دخول المختبر (الإدارة)
             </button>
             <button
               onClick={() => router.push(`/technician/login?redirect=${encodeURIComponent(currentUrl)}`)}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 flex items-center justify-center gap-2"
+              className="w-full bg-petrol text-white py-3 rounded-xl font-bold text-lg hover:bg-petrol-dark flex items-center justify-center gap-2"
             >
               <User size={20} /> دخول الفنيين
             </button>
@@ -137,17 +132,17 @@ export default function SampleDetailPage() {
       <h1 className="text-2xl font-bold mb-6">تفاصيل العينة</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><span className="text-gray-500">رقم العينة:</span> {sample.sampleNumber}</div>
-        <div><span className="text-gray-500">النوع:</span> {sample.type}</div>
-        <div><span className="text-gray-500">المشروع:</span> {projectName || '-'}</div>
-        <div><span className="text-gray-500">العميل:</span> {clientName || '-'}</div>
-        <div><span className="text-gray-500">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
-        <div><span className="text-gray-500">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
-        <div><span className="text-gray-500">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
-        <div><span className="text-gray-500">الحالة:</span> {sample.status}</div>
-        <div><span className="text-gray-500">فني الأخذ:</span> {samplerName || '-'}</div>
-        <div><span className="text-gray-500">فني التحضير:</span> {preparerName || '-'}</div>
-        <div><span className="text-gray-500">فني الإحضار:</span> {transporterName || '-'}</div>
+        <div><span className="text-concrete-500">رقم العينة:</span> {sample.sampleNumber}</div>
+        <div><span className="text-concrete-500">النوع:</span> {sample.type}</div>
+        <div><span className="text-concrete-500">المشروع:</span> {projectName || '-'}</div>
+        <div><span className="text-concrete-500">العميل:</span> {clientName || '-'}</div>
+        <div><span className="text-concrete-500">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
+        <div><span className="text-concrete-500">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
+        <div><span className="text-concrete-500">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
+        <div><span className="text-concrete-500">الحالة:</span> <Badge status={sample.status} /></div>
+        <div><span className="text-concrete-500">فني الأخذ:</span> {samplerName || '-'}</div>
+        <div><span className="text-concrete-500">فني التحضير:</span> {preparerName || '-'}</div>
+        <div><span className="text-concrete-500">فني الإحضار:</span> {transporterName || '-'}</div>
       </div>
 
       {/* قسم QR Code */}
@@ -155,7 +150,7 @@ export default function SampleDetailPage() {
         <h2 className="font-bold mb-2 flex items-center justify-center gap-2">
           <QrCode size={20} /> رمز الاستجابة السريعة (QR)
         </h2>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-concrete-500 mb-4">
           امسح الباركود للوصول إلى تفاصيل العينة (يتطلب تسجيل الدخول)
         </p>
 
@@ -171,11 +166,11 @@ export default function SampleDetailPage() {
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-2 break-all">{pageUrl}</p>
+        <p className="text-xs text-concrete-500 mt-2 break-all">{pageUrl}</p>
 
         <button
           onClick={downloadQR}
-          className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:bg-blue-700"
+          className="mt-4 bg-petrol text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:bg-petrol-dark"
         >
           <Download size={16} /> تحميل صورة الباركود
         </button>

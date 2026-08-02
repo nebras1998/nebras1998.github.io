@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { databases } from '@/lib/appwrite';
-import { DATABASE_ID, ATTENDANCE_COLLECTION_ID } from '@/lib/constants';
+import { listAttendance, createAttendance, updateAttendance, Query } from '@/lib/services';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, CalendarCheck } from 'lucide-react';
-import { Query } from 'appwrite';
+
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { createNotification } from '@/lib/notifications';
+import Card from '@/components/Card';
 
 export default function TechnicianAttendance() {
   const { employee } = useAuthStore();
@@ -25,7 +25,7 @@ export default function TechnicianAttendance() {
     if (!employee) return;
     const findTodayRecord = async () => {
       try {
-        const res = await databases.listDocuments(DATABASE_ID, ATTENDANCE_COLLECTION_ID, [
+        const res = await listAttendance([
           Query.equal('employeeId', employee.$id),
           Query.equal('date', today),
           Query.limit(1),
@@ -49,13 +49,13 @@ export default function TechnicianAttendance() {
     setLoading(true);
     try {
       if (existingRecordId) {
-        const updateData: any = {};
+        const updateData: Record<string, unknown> = {};
         if (mode === 'in') { updateData.checkIn = checkIn; updateData.status = 'حاضر'; }
-        else updateData.checkOut = checkOut;
-        await databases.updateDocument(DATABASE_ID, ATTENDANCE_COLLECTION_ID, existingRecordId, updateData);
+        else { updateData.checkOut = checkOut; }
+        await updateAttendance(existingRecordId, updateData);
         toast.success(mode === 'in' ? 'تم تحديث وقت الحضور' : 'تم تسجيل الانصراف');
       } else {
-        await databases.createDocument(DATABASE_ID, ATTENDANCE_COLLECTION_ID, 'unique()', {
+        await createAttendance('unique()', {
           employeeId: employee.$id, date: today,
           checkIn: mode === 'in' ? checkIn : '',
           checkOut: mode === 'out' ? checkOut : '',
@@ -71,25 +71,25 @@ export default function TechnicianAttendance() {
         });
       }
       router.push('/technician/dashboard');
-    } catch (err: any) { toast.error('خطأ: ' + err.message); setLoading(false); }
+    } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
-      <header className="bg-green-600 text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
+      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white"><ArrowRight size={24} /></button>
         <h1 className="text-lg font-bold">تسجيل الحضور</h1>
       </header>
       <main className="p-4">
-        <div className="bg-white p-6 rounded-2xl shadow">
+        <Card>
           <div className="text-center mb-6">
-            <CalendarCheck size={56} className="mx-auto text-green-600 mb-3" />
+            <CalendarCheck size={56} className="mx-auto text-petrol mb-3" />
             <p className="text-xl font-bold">{employee?.name}</p>
-            <p className="text-gray-500">{today}</p>
+            <p className="text-concrete-500">{today}</p>
           </div>
           <div className="flex gap-2 mb-6">
-            <button onClick={() => setMode('in')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'in' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>تسجيل حضور</button>
-            <button onClick={() => setMode('out')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'out' ? 'bg-orange-600 text-white' : 'bg-gray-200'}`}>تسجيل انصراف</button>
+            <button onClick={() => setMode('in')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'in' ? 'bg-petrol text-white' : 'bg-concrete-200'}`}>تسجيل حضور</button>
+            <button onClick={() => setMode('out')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'out' ? 'bg-warning-solid text-white' : 'bg-concrete-200'}`}>تسجيل انصراف</button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -99,11 +99,11 @@ export default function TechnicianAttendance() {
                 className="w-full border p-3.5 rounded-xl text-lg text-center" />
             </div>
             <button type="submit" disabled={loading}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 ${mode === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}`}>
+              className={`w-full text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 ${mode === 'in' ? 'bg-petrol hover:bg-petrol-dark' : 'bg-warning-solid hover:bg-warning-solid'}`}>
               {loading ? 'جارٍ التسجيل...' : mode === 'in' ? 'تسجيل حضور' : 'تسجيل انصراف'}
             </button>
           </form>
-        </div>
+        </Card>
       </main>
       <TechnicianBottomNav />
     </div>
