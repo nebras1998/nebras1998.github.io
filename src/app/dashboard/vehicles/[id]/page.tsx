@@ -12,9 +12,10 @@ import { listVehicleTrips } from '@/lib/services/vehicle-trips';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
 import Link from 'next/link';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, ArrowRight } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import EmptyData from '@/components/EmptyData';
 
 export default function VehicleDetailPage() {
   const params = useParams();
@@ -69,6 +70,13 @@ export default function VehicleDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
+          {/* مسار التنقل */}
+          <div className="flex items-center gap-2 text-sm text-concrete-500">
+            <Link href="/dashboard/vehicles" className="hover:underline">المركبات</Link>
+            <ArrowRight size={14} />
+            <span>{vehicle.plateNumber}</span>
+          </div>
+
           {/* بطاقة بيانات المركبة */}
           <Card>
             <div className="flex justify-between items-start mb-4">
@@ -100,7 +108,7 @@ export default function VehicleDetailPage() {
               </Link>
             </div>
             {trips.length === 0 ? (
-              <p className="text-concrete-500">لا توجد رحلات بعد</p>
+              <EmptyData title="لا توجد رحلات بعد" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">

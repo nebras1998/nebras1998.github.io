@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
 import { getVehicle } from '@/lib/services/vehicles';
@@ -63,22 +67,21 @@ export default function NewTripPage() {
 
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">بدء رحلة جديدة للمركبة {vehiclePlate}</h1>
+      <FormCard title="بدء رحلة جديدة للمركبة {vehiclePlate}" maxWidth="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block mb-1">تاريخ ووقت الانطلاق *</label><input type="datetime-local" name="departureTime" value={form.departureTime} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
+          <TextField label="تاريخ ووقت الانطلاق" name="departureTime" value={form.departureTime} onChange={handleChange} required type="datetime-local" />
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block mb-1">السائق *</label><select name="driverId" value={form.driverId} onChange={handleChange} required className="w-full border p-2 rounded"><option value="">اختر السائق</option>{employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}</select></div>
-            <div><label className="block mb-1">المرافق</label><select name="companionId" value={form.companionId} onChange={handleChange} className="w-full border p-2 rounded"><option value="">بدون مرافق</option>{employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}</select></div>
+            <SelectField label="السائق" name="driverId" value={form.driverId} onChange={handleChange} required><option value="">اختر السائق</option>{employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}</SelectField>
+            <SelectField label="المرافق" name="companionId" value={form.companionId} onChange={handleChange}><option value="">بدون مرافق</option>{employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}</SelectField>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block mb-1">الوجهة</label><input name="destination" value={form.destination} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-            <div><label className="block mb-1">الغرض</label><input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" /></div>
+            <TextField label="الوجهة" name="destination" value={form.destination} onChange={handleChange} />
+            <TextField label="الغرض" name="purpose" value={form.purpose} onChange={handleChange} />
           </div>
-          <div><label className="block mb-1">قراءة العداد (الانطلاق)</label><input type="number" name="startMileage" value={form.startMileage} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{loading ? 'جارٍ البدء...' : 'بدء الرحلة'}</button>
+          <TextField label="قراءة العداد (الانطلاق)" name="startMileage" value={form.startMileage} onChange={handleChange} type="number" />
+          <SubmitButton loading={loading} loadingText="جارٍ البدء...">بدء الرحلة</SubmitButton>
         </form>
-      </div>
+      </FormCard>
     </DashboardLayout></AuthGuard>
   );
 }

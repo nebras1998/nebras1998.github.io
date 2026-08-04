@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
 
@@ -78,29 +82,22 @@ export default function EditTripPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تعديل الرحلة</h1>
+        <FormCard title="تعديل الرحلة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">تاريخ ووقت الانطلاق</label>
-              <input type="datetime-local" name="departureTime" value={form.departureTime} disabled className="w-full border p-2 rounded bg-concrete-100" />
-            </div>
-            <div>
-              <label className="block mb-1">تاريخ ووقت العودة</label>
-              <input type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} className="w-full border p-2 rounded" />
+            <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} disabled inputClassName="bg-concrete-100" />
+            <TextField label="تاريخ ووقت العودة" type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} />
+            <div className="grid grid-cols-2 gap-4">
+              <TextField label="الوجهة" name="destination" value={form.destination} onChange={handleChange} />
+              <TextField label="الغرض" name="purpose" value={form.purpose} onChange={handleChange} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block mb-1">الوجهة</label><input name="destination" value={form.destination} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-              <div><label className="block mb-1">الغرض</label><input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" /></div>
+              <TextField label="عداد الانطلاق" type="number" name="startMileage" value={form.startMileage} disabled inputClassName="bg-concrete-100" />
+              <TextField label="عداد العودة" type="number" name="endMileage" value={form.endMileage} onChange={handleChange} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block mb-1">عداد الانطلاق</label><input type="number" name="startMileage" value={form.startMileage} disabled className="w-full border p-2 rounded bg-concrete-100" /></div>
-              <div><label className="block mb-1">عداد العودة</label><input type="number" name="endMileage" value={form.endMileage} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-            </div>
-            <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+            <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
+            <SubmitButton loading={saving}>حفظ التعديلات</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );
