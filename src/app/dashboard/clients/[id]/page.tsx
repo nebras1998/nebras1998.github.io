@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { Edit, ArrowRight, Building, FileText } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import StatCard from '@/components/StatCard';
+import EmptyData from '@/components/EmptyData';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -87,25 +89,16 @@ export default function ClientDetailPage() {
 
           {/* ملخص مالي */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow text-center">
-              <p className="text-concrete-500 text-sm">إجمالي الفواتير</p>
-              <p className="text-xl font-bold">{totalInvoices.toFixed(2)} ₪</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow text-center">
-              <p className="text-concrete-500 text-sm">المدفوع</p>
-              <p className="text-xl font-bold text-petrol">{totalPaid.toFixed(2)} ₪</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow text-center">
-              <p className="text-concrete-500 text-sm">المتبقي</p>
-              <p className="text-xl font-bold text-danger">{totalRemaining.toFixed(2)} ₪</p>
-            </div>
+            <StatCard title="إجمالي الفواتير" value={`${totalInvoices.toFixed(2)} ₪`} bgColor="bg-concrete-0" centered />
+            <StatCard title="المدفوع" value={`${totalPaid.toFixed(2)} ₪`} bgColor="bg-concrete-0" valueClass="text-petrol" centered />
+            <StatCard title="المتبقي" value={`${totalRemaining.toFixed(2)} ₪`} bgColor="bg-concrete-0" valueClass="text-danger" centered />
           </div>
 
           {/* جدول المشاريع */}
           <Card>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Building size={20} /> مشاريع العميل ({projects.length})</h2>
             {projects.length === 0 ? (
-              <p className="text-concrete-500">لا توجد مشاريع</p>
+              <EmptyData title="لا توجد مشاريع" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
@@ -131,7 +124,7 @@ export default function ClientDetailPage() {
           <Card>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><FileText size={20} /> الفواتير ({invoices.length})</h2>
             {invoices.length === 0 ? (
-              <p className="text-concrete-500">لا توجد فواتير</p>
+              <EmptyData title="لا توجد فواتير" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
