@@ -8,6 +8,9 @@ import { getSample } from '@/lib/services/samples';
 import { getFileViewUrl } from '@/lib/services/files';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import StatCard from '@/components/StatCard';
+import EmptyData from '@/components/EmptyData';
 
 import { toast } from 'sonner';
 import { FileDown, ArrowRight } from 'lucide-react';
@@ -68,14 +71,15 @@ export default function TestDetailPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow space-y-6">
-          <div className="flex items-center gap-2 text-sm text-concrete-500">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 text-sm text-concrete-500 mb-4">
             <Link href="/dashboard/tests" className="hover:underline">الفحوصات</Link>
             <ArrowRight size={14} />
             <span>تفاصيل الفحص</span>
           </div>
 
-          <h1 className="text-2xl font-bold">{test.testName}</h1>
+          <FormCard className="space-y-6">
+            <h1 className="text-2xl font-bold">{test.testName}</h1>
 
           <div className="grid grid-cols-2 gap-4">
             <div><span className="text-concrete-500">رقم الفحص:</span> {test.testNumber || '-'}</div>
@@ -106,9 +110,8 @@ export default function TestDetailPage() {
                     ))}
                   </div>
                   {test.average7Days && (
-                    <div className="mt-3 bg-success-bg p-3 rounded text-center">
-                      <p className="text-sm text-concrete-500">المتوسط</p>
-                      <p className="font-bold text-xl text-success">{test.average7Days} {test.unit || 'kg/cm2'}</p>
+                    <div className="mt-3">
+                      <StatCard centered title="المتوسط" value={`${test.average7Days} ${test.unit || 'kg/cm2'}`} bgColor="bg-success-bg" valueClass="text-success" />
                     </div>
                   )}
                 </div>
@@ -128,9 +131,8 @@ export default function TestDetailPage() {
                     ))}
                   </div>
                   {test.average28Days && (
-                    <div className="mt-3 bg-success-bg p-3 rounded text-center">
-                      <p className="text-sm text-concrete-500">المتوسط</p>
-                      <p className="font-bold text-xl text-success">{test.average28Days} {test.unit || 'kg/cm2'}</p>
+                    <div className="mt-3">
+                      <StatCard centered title="المتوسط" value={`${test.average28Days} ${test.unit || 'kg/cm2'}`} bgColor="bg-success-bg" valueClass="text-success" />
                     </div>
                   )}
                 </div>
@@ -152,9 +154,8 @@ export default function TestDetailPage() {
                 ))}
               </div>
               {test.averageResult && (
-                <div className="mt-3 bg-success-bg p-3 rounded text-center">
-                  <p className="text-sm text-concrete-500">المتوسط</p>
-                  <p className="font-bold text-xl text-success">{test.averageResult} {test.unit || 'kg/cm2'}</p>
+                <div className="mt-3">
+                  <StatCard centered title="المتوسط" value={`${test.averageResult} ${test.unit || 'kg/cm2'}`} bgColor="bg-success-bg" valueClass="text-success" />
                 </div>
               )}
             </div>
@@ -176,9 +177,10 @@ export default function TestDetailPage() {
                 <FileDown size={18} /> تحميل التقرير (PDF)
               </a>
             ) : (
-              <p className="text-concrete-500">لا يوجد تقرير مرفوع بعد.</p>
+              <EmptyData title="لا يوجد تقرير مرفوع بعد." />
             )}
           </div>
+          </FormCard>
         </div>
       </DashboardLayout>
     </AuthGuard>

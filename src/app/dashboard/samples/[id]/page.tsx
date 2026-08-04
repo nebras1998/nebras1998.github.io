@@ -9,9 +9,11 @@ import { getClient } from '@/lib/services/clients';
 import { getEmployee } from '@/lib/services/employees';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, QrCode } from 'lucide-react';
+import { Download, QrCode, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import Badge from '@/components/Badge';
 
 export default function SampleDetailPage() {
@@ -89,8 +91,13 @@ export default function SampleDetailPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تفاصيل العينة</h1>
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 text-sm text-concrete-500 mb-4">
+            <Link href="/dashboard/samples" className="hover:underline">العينات</Link>
+            <ArrowRight size={14} />
+            <span>تفاصيل العينة</span>
+          </div>
+          <FormCard title="تفاصيل العينة" maxWidth="max-w-2xl">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span className="text-concrete-500">رقم العينة:</span> {sample.sampleNumber}</div>
@@ -135,6 +142,7 @@ export default function SampleDetailPage() {
               <Download size={16} /> تحميل صورة الباركود
             </button>
           </div>
+          </FormCard>
         </div>
       </DashboardLayout>
     </AuthGuard>

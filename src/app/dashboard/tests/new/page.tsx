@@ -12,6 +12,11 @@ import { listSampleTypes, listStandardTests, type SampleType } from '@/lib/servi
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 
 import { toast } from 'sonner';
 
@@ -193,20 +198,13 @@ export default function NewTestPage() {
 
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">إضافة فحص جديد</h1>
+      <FormCard title="إضافة فحص جديد" maxWidth="max-w-3xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-1">رقم الفحص</label>
-            <input value={formData.testNumber} readOnly className="w-full border p-2 rounded bg-concrete-100 font-mono" />
-          </div>
-          <div>
-            <label className="block mb-1">العينة *</label>
-            <select name="sampleId" value={formData.sampleId} onChange={handleChange} required className="w-full border p-2 rounded">
-              <option value="">اختر العينة</option>
-              {samples.map((s) => (<option key={s.$id} value={s.$id}>{s.sampleNumber} ({s.type})</option>))}
-            </select>
-          </div>
+          <TextField label="رقم الفحص" value={formData.testNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
+          <SelectField label="العينة" name="sampleId" value={formData.sampleId} onChange={handleChange} required>
+            <option value="">اختر العينة</option>
+            {samples.map((s) => (<option key={s.$id} value={s.$id}>{s.sampleNumber} ({s.type})</option>))}
+          </SelectField>
 
           {standardTests.length > 0 && (
             <div className="bg-success-bg p-4 rounded-lg">
@@ -222,7 +220,7 @@ export default function NewTestPage() {
             </div>
           )}
 
-          <div><label className="block mb-1">اسم الفحص *</label><input name="testName" value={formData.testName} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
+          <TextField label="اسم الفحص" name="testName" value={formData.testName} onChange={handleChange} required />
 
           {/* ========== فحص مقاومة الضغط (عمرين) ========== */}
           {isDualAge && (
@@ -231,14 +229,8 @@ export default function NewTestPage() {
               <div className="bg-petrol-soft p-4 rounded-lg">
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 7 أيام</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <label className="block mb-1 text-sm">تاريخ الفحص</label>
-                    <input type="date" value={test7Date} onChange={e => setTest7Date(e.target.value)} className="w-full border p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="block mb-1 text-sm">الوحدة</label>
-                    <input value={formData.unit || 'kg/cm2'} readOnly className="w-full border p-2 rounded bg-concrete-100" />
-                  </div>
+                  <TextField type="date" id="age7-test-date" label="تاريخ الفحص" value={test7Date} onChange={e => setTest7Date(e.target.value)} />
+                  <TextField id="age7-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age7Results.map((val, idx) => (
@@ -257,14 +249,8 @@ export default function NewTestPage() {
               <div className="bg-petrol-soft p-4 rounded-lg">
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 28 يوم</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <label className="block mb-1 text-sm">تاريخ الفحص</label>
-                    <input type="date" value={test28Date} onChange={e => setTest28Date(e.target.value)} className="w-full border p-2 rounded" />
-                  </div>
-                  <div>
-                    <label className="block mb-1 text-sm">الوحدة</label>
-                    <input value={formData.unit || 'kg/cm2'} readOnly className="w-full border p-2 rounded bg-concrete-100" />
-                  </div>
+                  <TextField type="date" id="age28-test-date" label="تاريخ الفحص" value={test28Date} onChange={e => setTest28Date(e.target.value)} />
+                  <TextField id="age28-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age28Results.map((val, idx) => (
@@ -303,29 +289,23 @@ export default function NewTestPage() {
           {/* ========== فحوصات عادية ========== */}
           {!isDualAge && !isMultiResult && (
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block mb-1">النتيجة</label><input name="result" value={formData.result} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-              <div><label className="block mb-1">الوحدة</label><input name="unit" value={formData.unit} onChange={handleChange} className="w-full border p-2 rounded" /></div>
+              <TextField label="النتيجة" name="result" value={formData.result} onChange={handleChange} />
+              <TextField label="الوحدة" name="unit" value={formData.unit} onChange={handleChange} />
             </div>
           )}
 
-          <div><label className="block mb-1">المواصفة المرجعية</label><input name="specification" value={formData.specification} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-          <div>
-            <label className="block mb-1">الحالة *</label>
-            <select name="status" value={formData.status} onChange={handleChange} required className="w-full border p-2 rounded">
-              <option value="قيد الانتظار">قيد الانتظار</option><option value="تحت الفحص">تحت الفحص</option><option value="مكتمل">مكتمل</option><option value="مرفوض">مرفوض</option>
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1">المسؤول عن الفحص</label>
-            <select name="assignedTo" value={formData.assignedTo} onChange={handleChange} className="w-full border p-2 rounded">
-              <option value="">بدون مسؤول</option>
-              {employees.map((emp) => (<option key={emp.$id} value={emp.$id}>{emp.name} ({emp.jobTitle})</option>))}
-            </select>
-          </div>
-          <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{loading ? 'جارٍ الحفظ...' : 'حفظ الفحص'}</button>
+          <TextField label="المواصفة المرجعية" name="specification" value={formData.specification} onChange={handleChange} />
+          <SelectField label="الحالة" name="status" value={formData.status} onChange={handleChange} required>
+            <option value="قيد الانتظار">قيد الانتظار</option><option value="تحت الفحص">تحت الفحص</option><option value="مكتمل">مكتمل</option><option value="مرفوض">مرفوض</option>
+          </SelectField>
+          <SelectField label="المسؤول عن الفحص" name="assignedTo" value={formData.assignedTo} onChange={handleChange}>
+            <option value="">بدون مسؤول</option>
+            {employees.map((emp) => (<option key={emp.$id} value={emp.$id}>{emp.name} ({emp.jobTitle})</option>))}
+          </SelectField>
+          <TextAreaField label="ملاحظات" name="notes" value={formData.notes} onChange={handleChange} rows={3} />
+          <SubmitButton loading={loading} className="w-full">حفظ الفحص</SubmitButton>
         </form>
-      </div>
+      </FormCard>
     </DashboardLayout></AuthGuard>
   );
 }

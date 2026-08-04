@@ -12,6 +12,11 @@ import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 
 const TYPE_CODES: Record<string, string> = {
@@ -95,36 +100,35 @@ export default function EditSamplePage() {
 
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">تعديل بيانات العينة</h1>
+      <FormCard title="تعديل بيانات العينة" maxWidth="max-w-3xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block mb-1">نوع العينة *</label><select name="type" value={formData.type} onChange={handleChange} required className="w-full border p-2 rounded">{Object.keys(TYPE_CODES).map((t) => (<option key={t} value={t}>{t}</option>))}</select></div>
-            <div><label className="block mb-1">رقم العينة</label><input value={formData.sampleNumber} readOnly className="w-full border p-2 rounded bg-concrete-100 font-mono" /></div>
+            <SelectField label="نوع العينة" name="type" value={formData.type} onChange={handleChange} required>{Object.keys(TYPE_CODES).map((t) => (<option key={t} value={t}>{t}</option>))}</SelectField>
+            <TextField label="رقم العينة" value={formData.sampleNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
           </div>
-          <div><label className="block mb-1">المشروع *</label><select name="projectId" value={formData.projectId} onChange={handleChange} required className="w-full border p-2 rounded"><option value="">اختر المشروع</option>{projects.map((p) => (<option key={p.$id} value={p.$id}>{p.name}</option>))}</select></div>
-          <div><label className="block mb-1">العميل</label><input value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly className="w-full border p-2 rounded bg-concrete-100 text-concrete-500" /></div>
+          <SelectField label="المشروع" name="projectId" value={formData.projectId} onChange={handleChange} required><option value="">اختر المشروع</option>{projects.map((p) => (<option key={p.$id} value={p.$id}>{p.name}</option>))}</SelectField>
+          <TextField label="العميل" value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly inputClassName="bg-concrete-100 text-concrete-500" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label className="block mb-1">تاريخ أخذ العينة</label><input type="date" name="samplingDate" value={formData.samplingDate} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-            <div><label className="block mb-1">تاريخ تحضير العينة</label><input type="date" name="preparationDate" value={formData.preparationDate} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-            <div><label className="block mb-1">تاريخ إحضار العينة للمختبر</label><input type="date" name="deliveryDate" value={formData.deliveryDate} onChange={handleChange} className="w-full border p-2 rounded" /></div>
+            <TextField type="date" label="تاريخ أخذ العينة" name="samplingDate" value={formData.samplingDate} onChange={handleChange} />
+            <TextField type="date" label="تاريخ تحضير العينة" name="preparationDate" value={formData.preparationDate} onChange={handleChange} />
+            <TextField type="date" label="تاريخ إحضار العينة للمختبر" name="deliveryDate" value={formData.deliveryDate} onChange={handleChange} />
           </div>
           {formData.type === 'خرسانة' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-petrol-soft p-4 rounded-lg">
-              <div><label className="block mb-1 text-petrol">تاريخ فحص 7 أيام (تلقائي)</label><input type="date" name="test7DaysDate" value={formData.test7DaysDate} onChange={handleChange} className="w-full border p-2 rounded bg-white" /></div>
-              <div><label className="block mb-1 text-petrol">تاريخ فحص 28 يوم (تلقائي)</label><input type="date" name="test28DaysDate" value={formData.test28DaysDate} onChange={handleChange} className="w-full border p-2 rounded bg-white" /></div>
+              <TextField type="date" label="تاريخ فحص 7 أيام (تلقائي)" name="test7DaysDate" value={formData.test7DaysDate} onChange={handleChange} />
+              <TextField type="date" label="تاريخ فحص 28 يوم (تلقائي)" name="test28DaysDate" value={formData.test28DaysDate} onChange={handleChange} />
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label className="block mb-1">فني أخذ العينة</label><select name="samplerId" value={formData.samplerId} onChange={handleChange} className="w-full border p-2 rounded"><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</select></div>
-            <div><label className="block mb-1">فني تحضير العينة</label><select name="preparerId" value={formData.preparerId} onChange={handleChange} className="w-full border p-2 rounded"><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</select></div>
-            <div><label className="block mb-1">فني إحضار العينة</label><select name="transporterId" value={formData.transporterId} onChange={handleChange} className="w-full border p-2 rounded"><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</select></div>
+            <SelectField label="فني أخذ العينة" name="samplerId" value={formData.samplerId} onChange={handleChange}><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</SelectField>
+            <SelectField label="فني تحضير العينة" name="preparerId" value={formData.preparerId} onChange={handleChange}><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</SelectField>
+            <SelectField label="فني إحضار العينة" name="transporterId" value={formData.transporterId} onChange={handleChange}><option value="">اختر الفني</option>{technicians.map((t) => (<option key={t.$id} value={t.$id}>{t.name}</option>))}</SelectField>
           </div>
-          <div><label className="block mb-1">الحالة *</label><select name="status" value={formData.status} onChange={handleChange} required className="w-full border p-2 rounded"><option value="تم الاستلام">تم الاستلام</option><option value="تحت الفحص">تحت الفحص</option><option value="منجز">منجز</option><option value="مرفوض">مرفوض</option></select></div>
-          <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+          <SelectField label="الحالة" name="status" value={formData.status} onChange={handleChange} required><option value="تم الاستلام">تم الاستلام</option><option value="تحت الفحص">تحت الفحص</option><option value="منجز">منجز</option><option value="مرفوض">مرفوض</option></SelectField>
+          <TextAreaField label="ملاحظات" name="notes" value={formData.notes} onChange={handleChange} rows={3} />
+          <SubmitButton loading={saving} className="w-full">حفظ التعديلات</SubmitButton>
         </form>
-      </div>
+      </FormCard>
     </DashboardLayout></AuthGuard>
   );
 }
