@@ -29,6 +29,8 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import Card from '@/components/Card';
+import ConfirmModal from '@/components/ConfirmModal';
 import {
   Download,
   HardDrive,
@@ -196,6 +198,7 @@ export default function BackupPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(new Set());
   const [restoreFiles, setRestoreFiles] = useState(true);
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
   // =============== النسخ الاحتياطي ===============
   const handleBackup = async () => {
@@ -277,7 +280,6 @@ export default function BackupPage() {
   // =============== استعادة انتقائية ===============
   const handleRestoreSelected = async () => {
     if (!selectedFile || selectedCollections.size === 0) return;
-    if (!confirm('سيتم حذف البيانات المحددة واستبدالها بالمحتوى من الملف. استمرار؟')) return;
     setRestoreLoading(true); setRestorePercent(0); setRestoreProgress('جارٍ التحضير...');
     try {
       let blob: Blob = selectedFile;
@@ -322,14 +324,14 @@ export default function BackupPage() {
       setRestorePercent(100);
       toast.success('تم استعادة البيانات المحددة بنجاح');
     } catch (err: unknown) { toast.error('فشل الاستعادة: ' + (err instanceof Error ? err.message : String(err))); }
-    finally { setRestoreLoading(false); setRestoreProgress(''); setRestorePercent(0); }
+    finally { setRestoreLoading(false); setRestoreProgress(''); setRestorePercent(0); setRestoreConfirmOpen(false); }
   };
 
   return (
     <AuthGuard><DashboardLayout>
       <div className="max-w-3xl mx-auto space-y-8">
         {/* النسخ الاحتياطي */}
-        <div className="bg-white p-8 rounded-xl shadow text-center">
+        <Card className="text-center">
           <HardDrive size={48} className="mx-auto text-petrol mb-4" />
           <h1 className="text-2xl font-bold mb-2">النسخ الاحتياطي</h1>
           <p className="text-concrete-500 mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.</p>
@@ -339,10 +341,10 @@ export default function BackupPage() {
           </div>
           {backupLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {backupProgress}<div className="w-full bg-concrete-200 h-2 rounded-full mt-1"><div className="bg-petrol h-2 rounded-full" style={{width:`${backupPercent}%`}} /></div></div>}
           <button onClick={handleBackup} disabled={backupLoading || (backupEncrypt && !backupPassword)} className="bg-petrol text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-petrol-dark disabled:opacity-50"><Download size={20} /> {backupLoading ? 'جارٍ الإنشاء...' : 'إنشاء نسخة احتياطية'}</button>
-        </div>
+        </Card>
 
         {/* استعادة النسخة */}
-        <div className="bg-white p-8 rounded-xl shadow border-2 border-dashed border-warning">
+        <Card className="border-2 border-dashed border-warning">
           <AlertTriangle size={48} className="mx-auto text-warning mb-4" />
           <h2 className="text-2xl font-bold mb-2">استعادة النسخة الاحتياطية</h2>
           <p className="text-concrete-500 mb-4">ارفع ملف ZIP (أو .enc) لاستعادة البيانات.</p>
@@ -368,17 +370,28 @@ export default function BackupPage() {
           )}
 
           {restoreLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {restoreProgress}<div className="w-full bg-concrete-200 h-2 rounded-full mt-1"><div className="bg-warning-solid h-2 rounded-full" style={{width:`${restorePercent}%`}} /></div></div>}
-          <button onClick={handleRestoreSelected} disabled={restoreLoading || !previewData || selectedCollections.size === 0} className="bg-warning-solid text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-warning-solid disabled:opacity-50"><Upload size={20} /> استعادة المحدد</button>
-        </div>
+          <button onClick={() => setRestoreConfirmOpen(true)} disabled={restoreLoading || !previewData || selectedCollections.size === 0} className="bg-warning-solid text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-warning-solid disabled:opacity-50"><Upload size={20} /> استعادة المحدد</button>
+        </Card>
 
         {/* إعادة تعيين النظام */}
-        <div className="bg-white p-8 rounded-xl shadow border-2 border-danger-bg text-center">
+        <Card className="border-2 border-danger-bg text-center">
           <AlertTriangle size={48} className="mx-auto text-danger mb-4" />
           <h2 className="text-2xl font-bold mb-2 text-danger">إعادة تعيين النظام</h2>
           <p className="text-concrete-500 mb-4">سيؤدي هذا الإجراء إلى حذف جميع البيانات والملفات بشكل كامل ولا يمكن التراجع عنه.</p>
           <ResetSystemButton />
-        </div>
+        </Card>
       </div>
+
+      <ConfirmModal
+        isOpen={restoreConfirmOpen}
+        onClose={() => setRestoreConfirmOpen(false)}
+        onConfirm={handleRestoreSelected}
+        title="تأكيد الاستعادة"
+        message="سيتم حذف البيانات المحددة واستبدالها بالمحتوى من الملف. استمرار؟"
+        confirmText="استعادة"
+        cancelText="إلغاء"
+        loading={restoreLoading}
+      />
     </DashboardLayout></AuthGuard>
   );
 }

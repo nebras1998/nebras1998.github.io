@@ -7,7 +7,12 @@ import type { SampleType, StandardTest } from '@/lib/services';
 import { Query } from '@/lib/services';
 import { toast } from 'sonner';
 import { ID } from 'appwrite';
-import { Calendar, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function BookSamplePage() {
   const router = useRouter();
@@ -129,9 +134,7 @@ export default function BookSamplePage() {
 
   return (
     <div className="min-h-screen bg-concrete-100 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-lg w-full">
-        <h1 className="text-2xl font-bold mb-6 text-center">حجز موعد فحص</h1>
-
+      <FormCard title="حجز موعد فحص" maxWidth="max-w-lg">
         {/* مؤشر الخطوات */}
         <div className="flex justify-center mb-6">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 1 ? 'bg-petrol text-white' : 'bg-concrete-200'}`}>1</div>
@@ -141,13 +144,16 @@ export default function BookSamplePage() {
 
         {step === 1 ? (
           <div className="space-y-4">
-            <div>
-              <label className="block mb-1 font-bold">نوع العينة *</label>
-              <select name="sampleType" value={form.sampleType} onChange={handleSampleTypeChange} required className="w-full border p-3 rounded-xl">
-                <option value="">اختر النوع</option>
-                {sampleTypes.map((t: SampleType) => <option key={t.$id} value={t.name}>{t.name}</option>)}
-              </select>
-            </div>
+            <SelectField
+              label="نوع العينة"
+              name="sampleType"
+              value={form.sampleType}
+              onChange={handleSampleTypeChange}
+              required
+            >
+              <option value="">اختر النوع</option>
+              {sampleTypes.map((t: SampleType) => <option key={t.$id} value={t.name}>{t.name}</option>)}
+            </SelectField>
             {standardTests.length > 0 && (
               <div className="bg-concrete-50 p-4 rounded-xl">
                 <p className="font-bold mb-2">الفحوصات المطلوبة:</p>
@@ -176,39 +182,54 @@ export default function BookSamplePage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1 font-bold">الاسم *</label>
-              <input name="clientName" value={form.clientName} onChange={handleChange} required className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1 font-bold">الهاتف *</label>
-              <input name="clientPhone" value={form.clientPhone} onChange={handleChange} required className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1">البريد الإلكتروني</label>
-              <input name="clientEmail" type="email" value={form.clientEmail} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1">التاريخ المفضل</label>
-              <input type="date" name="preferredDate" value={form.preferredDate} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1">اسم المشروع (اختياري)</label>
-              <input name="projectName" value={form.projectName} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-3 rounded-xl" />
-            </div>
+            <TextField
+              label="الاسم"
+              name="clientName"
+              value={form.clientName}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="الهاتف"
+              name="clientPhone"
+              value={form.clientPhone}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="البريد الإلكتروني"
+              name="clientEmail"
+              type="email"
+              value={form.clientEmail}
+              onChange={handleChange}
+            />
+            <TextField
+              label="التاريخ المفضل"
+              type="date"
+              name="preferredDate"
+              value={form.preferredDate}
+              onChange={handleChange}
+            />
+            <TextField
+              label="اسم المشروع (اختياري)"
+              name="projectName"
+              value={form.projectName}
+              onChange={handleChange}
+            />
+            <TextAreaField
+              label="ملاحظات"
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              rows={2}
+            />
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="flex-1 bg-concrete-200 text-concrete-800 py-3 rounded-xl font-bold hover:bg-concrete-100">السابق</button>
-              <button type="submit" disabled={loading} className="flex-1 bg-petrol text-white py-3 rounded-xl font-bold hover:bg-petrol-dark disabled:opacity-50">
-                {loading ? 'جارٍ الإرسال...' : 'إرسال الطلب'}
-              </button>
+              <SubmitButton loading={loading} loadingText="جارٍ الإرسال..." className="flex-1">إرسال الطلب</SubmitButton>
             </div>
           </form>
         )}
-      </div>
+      </FormCard>
     </div>
   );
 }

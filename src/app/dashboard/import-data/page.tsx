@@ -5,7 +5,8 @@ import { createSampleType, createStandardTest } from '@/lib/services';
 import { ID } from 'appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Upload, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import FormCard from '@/components/FormCard';
+import { Upload, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ImportDataPage() {
@@ -69,12 +70,13 @@ export default function ImportDataPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-8 rounded-xl shadow text-center">
+        <FormCard
+          title="استيراد أنواع العينات والفحوصات"
+          subtitle="ارفغ ملف JSON الذي يحتوي على أنواع العينات والفحوصات القياسية (sampleTypes و standardTests)."
+          maxWidth="max-w-xl"
+          className="text-center"
+        >
           <Upload size={48} className="mx-auto text-petrol mb-4" />
-          <h1 className="text-2xl font-bold mb-2">استيراد أنواع العينات والفحوصات</h1>
-          <p className="text-concrete-500 mb-6">
-            ارفع ملف JSON الذي يحتوي على أنواع العينات والفحوصات القياسية (sampleTypes و standardTests).
-          </p>
 
           <input
             type="file"
@@ -92,7 +94,7 @@ export default function ImportDataPage() {
           )}
 
           <AlertTriangle size={16} className="inline text-warning" /> تأكد من أخذ نسخة احتياطية قبل الاستيراد.
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

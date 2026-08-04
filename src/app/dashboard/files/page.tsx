@@ -8,6 +8,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import { Trash2, Search } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
+import TableSkeleton from '@/components/TableSkeleton';
 
 interface StorageFile {
   $id: string;
@@ -103,7 +104,7 @@ export default function FilesPage() {
         </div>
 
         {loading ? (
-          <p>جارٍ تحميل الملفات...</p>
+          <TableSkeleton rows={5} cols={4} />
         ) : (
           <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="w-full border-collapse">

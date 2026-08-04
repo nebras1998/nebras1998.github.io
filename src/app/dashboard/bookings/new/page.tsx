@@ -7,6 +7,11 @@ import type { SampleType, StandardTest } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { ID } from 'appwrite';
 
@@ -108,30 +113,41 @@ export default function NewBookingPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
-          <h1 className="text-2xl font-bold mb-6">إضافة حجز جديد</h1>
+        <FormCard title="إضافة حجز جديد" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 font-bold">الاسم *</label>
-                <input name="clientName" value={form.clientName} onChange={handleChange} required className="w-full border p-3 rounded-xl" />
-              </div>
-              <div>
-                <label className="block mb-1 font-bold">الهاتف *</label>
-                <input name="clientPhone" value={form.clientPhone} onChange={handleChange} required className="w-full border p-3 rounded-xl" />
-              </div>
+              <TextField
+                label="الاسم"
+                name="clientName"
+                value={form.clientName}
+                onChange={handleChange}
+                required
+              />
+              <TextField
+                label="الهاتف"
+                name="clientPhone"
+                value={form.clientPhone}
+                onChange={handleChange}
+                required
+              />
             </div>
-            <div>
-              <label className="block mb-1">البريد الإلكتروني</label>
-              <input name="clientEmail" type="email" value={form.clientEmail} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1 font-bold">نوع العينة *</label>
-              <select name="sampleType" value={form.sampleType} onChange={handleSampleTypeChange} required className="w-full border p-3 rounded-xl">
-                <option value="">اختر النوع</option>
-                {sampleTypes.map(t => <option key={t.$id} value={t.name}>{t.name}</option>)}
-              </select>
-            </div>
+            <TextField
+              label="البريد الإلكتروني"
+              name="clientEmail"
+              type="email"
+              value={form.clientEmail}
+              onChange={handleChange}
+            />
+            <SelectField
+              label="نوع العينة"
+              name="sampleType"
+              value={form.sampleType}
+              onChange={handleSampleTypeChange}
+              required
+            >
+              <option value="">اختر النوع</option>
+              {sampleTypes.map(t => <option key={t.$id} value={t.name}>{t.name}</option>)}
+            </SelectField>
             {standardTests.length > 0 && (
               <div className="bg-concrete-50 p-4 rounded-xl">
                 <p className="font-bold mb-2">الفحوصات المطلوبة:</p>
@@ -151,40 +167,50 @@ export default function NewBookingPage() {
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">التاريخ المفضل</label>
-                <input type="date" name="preferredDate" value={form.preferredDate} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-              </div>
-              <div>
-                <label className="block mb-1">الحالة</label>
-                <select name="status" value={form.status} onChange={handleChange} className="w-full border p-3 rounded-xl">
-                  <option value="معلق">معلق</option>
-                  <option value="مقبول">مقبول</option>
-                  <option value="مرفوض">مرفوض</option>
-                </select>
-              </div>
+              <TextField
+                label="التاريخ المفضل"
+                type="date"
+                name="preferredDate"
+                value={form.preferredDate}
+                onChange={handleChange}
+              />
+              <SelectField
+                label="الحالة"
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+              >
+                <option value="معلق">معلق</option>
+                <option value="مقبول">مقبول</option>
+                <option value="مرفوض">مرفوض</option>
+              </SelectField>
             </div>
-            <div>
-              <label className="block mb-1">المصدر</label>
-              <select name="source" value={form.source} onChange={handleChange} className="w-full border p-3 rounded-xl">
-                <option value="مباشر">مباشر</option>
-                <option value="هاتف">هاتف</option>
-                <option value="أونلاين">أونلاين</option>
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">اسم المشروع (اختياري)</label>
-              <input name="projectName" value={form.projectName} onChange={handleChange} className="w-full border p-3 rounded-xl" />
-            </div>
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-3 rounded-xl" />
-            </div>
-            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-3 rounded-xl font-bold hover:bg-petrol-dark disabled:opacity-50">
-              {loading ? 'جارٍ الحفظ...' : 'حفظ الحجز'}
-            </button>
+            <SelectField
+              label="المصدر"
+              name="source"
+              value={form.source}
+              onChange={handleChange}
+            >
+              <option value="مباشر">مباشر</option>
+              <option value="هاتف">هاتف</option>
+              <option value="أونلاين">أونلاين</option>
+            </SelectField>
+            <TextField
+              label="اسم المشروع"
+              name="projectName"
+              value={form.projectName}
+              onChange={handleChange}
+            />
+            <TextAreaField
+              label="ملاحظات"
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              rows={2}
+            />
+            <SubmitButton loading={loading} className="w-full">حفظ الحجز</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

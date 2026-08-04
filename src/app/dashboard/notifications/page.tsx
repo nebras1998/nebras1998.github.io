@@ -8,6 +8,8 @@ import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import { Bell, Check } from 'lucide-react';
+import TableSkeleton from '@/components/TableSkeleton';
+import EmptyData from '@/components/EmptyData';
 
 export default function NotificationsPage() {
   const [notifs, setNotifs] = useState<Notification[]>([]);
@@ -57,10 +59,10 @@ export default function NotificationsPage() {
             </button>
           </div>
 
-          {loading ? <p>جارٍ التحميل...</p> : (
+          {loading ? <TableSkeleton rows={5} cols={2} /> : (
             <div className="space-y-2">
               {notifs.length === 0 ? (
-                <p className="text-center text-concrete-500">لا توجد تنبيهات</p>
+                <EmptyData title="لا توجد تنبيهات" />
               ) : (
                 notifs.map(n => (
                   <div

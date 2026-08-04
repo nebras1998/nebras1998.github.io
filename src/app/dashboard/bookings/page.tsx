@@ -29,7 +29,15 @@ import { generateUniqueProjectNumber } from '@/lib/helpers';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatCard from '@/components/StatCard';
 import Badge from '@/components/Badge';
+import Card from '@/components/Card';
+import TableSkeleton from '@/components/TableSkeleton';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import moment from 'moment';
+
+const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 // ==================== مكون التقويم المخصص ====================
 const CustomCalendar = ({
@@ -107,7 +115,7 @@ const CustomCalendar = ({
             </div>
           ))}
           {dayBookings.length > 2 && (
-            <div className="text-xs text-concrete-500">+{dayBookings.length - 2} more</div>
+            <div className="text-xs text-concrete-500">+{dayBookings.length - 2} المزيد</div>
           )}
         </div>
       </div>
@@ -127,14 +135,14 @@ const CustomCalendar = ({
   }
 
   return (
-    <div dir="ltr">
+    <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <button onClick={goToPreviousMonth} className="p-2 rounded-lg hover:bg-concrete-200 border">
             <ChevronLeft size={18} />
           </button>
           <button onClick={goToToday} className="px-3 py-1 text-sm rounded-lg hover:bg-concrete-200 border">
-            Today
+            اليوم
           </button>
           <button onClick={goToNextMonth} className="p-2 rounded-lg hover:bg-concrete-200 border">
             <ChevronRight size={18} />
@@ -146,7 +154,7 @@ const CustomCalendar = ({
             onChange={handleMonthChange}
             className="px-3 py-1 border rounded-lg text-sm font-bold bg-white"
           >
-            {moment.months().map((month, idx) => (
+            {ARABIC_MONTHS.map((month, idx) => (
               <option key={idx} value={idx}>{month}</option>
             ))}
           </select>
@@ -154,7 +162,7 @@ const CustomCalendar = ({
         </div>
       </div>
       <div className="grid grid-cols-7 bg-concrete-100 border-b">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+        {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(d => (
           <div key={d} className="p-2 text-center font-bold text-sm">{d}</div>
         ))}
       </div>
@@ -508,9 +516,9 @@ export default function BookingsPage() {
           )}
 
           {loading ? (
-            <p className="text-center text-concrete-500">جارٍ التحميل...</p>
+            <TableSkeleton rows={5} cols={6} />
           ) : viewMode === 'calendar' ? (
-            <div className="bg-white p-4 rounded-xl shadow print:hidden">
+            <Card className="print:hidden">
               <CustomCalendar
                 bookings={bookings}
                 onSelectDay={(dateStr) => {
@@ -519,7 +527,7 @@ export default function BookingsPage() {
                   setQuickAddModal(true);
                 }}
               />
-            </div>
+            </Card>
           ) : (
             <div className="bg-white rounded-xl shadow overflow-x-auto print:shadow-none print:rounded-none">
               <table className="w-full border-collapse">
@@ -586,53 +594,51 @@ export default function BookingsPage() {
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
               <h2 className="text-xl font-bold mb-4">حجز جديد - {quickAddDate}</h2>
               <form onSubmit={handleQuickAdd} className="space-y-3">
-                <input
+                <TextField
                   name="clientName"
+                  label="اسم العميل"
                   value={quickAddForm.clientName}
                   onChange={e => setQuickAddForm({ ...quickAddForm, clientName: e.target.value })}
-                  placeholder="اسم العميل *"
+                  placeholder="اسم العميل"
                   required
-                  className="w-full border p-2 rounded-lg"
                 />
-                <input
+                <TextField
                   name="clientPhone"
+                  label="الهاتف"
                   value={quickAddForm.clientPhone}
                   onChange={e => setQuickAddForm({ ...quickAddForm, clientPhone: e.target.value })}
-                  placeholder="الهاتف *"
+                  placeholder="الهاتف"
                   required
-                  className="w-full border p-2 rounded-lg"
                 />
-                <select
+                <SelectField
                   name="sampleType"
+                  label="نوع العينة"
                   value={quickAddForm.sampleType}
                   onChange={e => setQuickAddForm({ ...quickAddForm, sampleType: e.target.value })}
                   required
-                  className="w-full border p-2 rounded-lg"
                 >
-                  <option value="">نوع العينة *</option>
+                  <option value="">نوع العينة</option>
                   {sampleTypes.map(t => (
                     <option key={t.$id} value={t.name}>{t.name}</option>
                   ))}
-                </select>
-                <input
+                </SelectField>
+                <TextField
                   name="projectName"
+                  label="اسم المشروع"
                   value={quickAddForm.projectName}
                   onChange={e => setQuickAddForm({ ...quickAddForm, projectName: e.target.value })}
                   placeholder="اسم المشروع (اختياري)"
-                  className="w-full border p-2 rounded-lg"
                 />
-                <textarea
+                <TextAreaField
                   name="notes"
+                  label="ملاحظات"
                   value={quickAddForm.notes}
                   onChange={e => setQuickAddForm({ ...quickAddForm, notes: e.target.value })}
                   placeholder="ملاحظات"
                   rows={2}
-                  className="w-full border p-2 rounded-lg"
                 />
                 <div className="flex gap-2">
-                  <button type="submit" disabled={quickAddLoading} className="flex-1 bg-petrol text-white py-2 rounded-lg font-bold">
-                    {quickAddLoading ? 'جارٍ الحفظ...' : 'حفظ'}
-                  </button>
+                  <SubmitButton loading={quickAddLoading} className="flex-1">حفظ</SubmitButton>
                   <button type="button" onClick={() => setQuickAddModal(false)} className="flex-1 bg-concrete-200 text-concrete-800 py-2 rounded-lg font-bold">
                     إلغاء
                   </button>
