@@ -7,6 +7,11 @@ import { listClients, createProject } from '@/lib/services';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { generateUniqueProjectNumber } from '@/lib/helpers';
 
@@ -99,66 +104,39 @@ export default function NewProjectPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">إضافة مشروع جديد</h1>
+        <FormCard title="إضافة مشروع جديد" maxWidth="max-w-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-1">رقم المشروع *</label>
-              <input
+              <TextField
+                label="رقم المشروع"
                 name="projectNumber"
                 value={formData.projectNumber}
                 onChange={handleChange}
                 required
-                className="w-full border p-2 rounded bg-concrete-50"
+                inputClassName="bg-concrete-50"
                 placeholder={generatingNumber ? 'جارٍ التوليد...' : 'رقم المشروع'}
                 readOnly={generatingNumber}
               />
               <p className="text-sm text-concrete-500 mt-1">يتم توليده تلقائياً (يمكنك تعديله يدوياً)</p>
             </div>
-            <div>
-              <label className="block mb-1">اسم المشروع *</label>
-              <input name="name" value={formData.name} onChange={handleChange} required className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">العميل *</label>
-              <select name="clientId" value={formData.clientId} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="">اختر العميل</option>
-                {clients.map(client => <option key={client.$id} value={client.$id}>{client.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">الموقع</label>
-              <input name="location" value={formData.location} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">المقاول</label>
-              <input name="contractor" value={formData.contractor} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">الاستشاري</label>
-              <input name="consultant" value={formData.consultant} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">تاريخ البداية</label>
-              <input name="startDate" type="date" value={formData.startDate} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">الحالة *</label>
-              <select name="status" value={formData.status} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="نشط">نشط</option>
-                <option value="مكتمل">مكتمل</option>
-                <option value="متوقف">متوقف</option>
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
-            </div>
-            <button type="submit" disabled={loading} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {loading ? 'جارٍ الحفظ...' : 'حفظ المشروع'}
-            </button>
+            <TextField label="اسم المشروع" name="name" value={formData.name} onChange={handleChange} required />
+            <SelectField label="العميل" name="clientId" value={formData.clientId} onChange={handleChange} required>
+              <option value="">اختر العميل</option>
+              {clients.map(client => <option key={client.$id} value={client.$id}>{client.name}</option>)}
+            </SelectField>
+            <TextField label="الموقع" name="location" value={formData.location} onChange={handleChange} />
+            <TextField label="المقاول" name="contractor" value={formData.contractor} onChange={handleChange} />
+            <TextField label="الاستشاري" name="consultant" value={formData.consultant} onChange={handleChange} />
+            <TextField label="تاريخ البداية" name="startDate" type="date" value={formData.startDate} onChange={handleChange} />
+            <SelectField label="الحالة" name="status" value={formData.status} onChange={handleChange} required>
+              <option value="نشط">نشط</option>
+              <option value="مكتمل">مكتمل</option>
+              <option value="متوقف">متوقف</option>
+            </SelectField>
+            <TextAreaField label="ملاحظات" name="notes" value={formData.notes} onChange={handleChange} rows={3} />
+            <SubmitButton loading={loading}>حفظ المشروع</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

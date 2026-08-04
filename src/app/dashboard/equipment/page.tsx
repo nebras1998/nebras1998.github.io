@@ -11,6 +11,7 @@ import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
+import TableSkeleton from '@/components/TableSkeleton';
 
 // دالة لفحص إذا كان التاريخ قريباً (خلال 30 يوماً)
 const isNearDate = (dateStr: string) => {
@@ -71,7 +72,7 @@ export default function EquipmentPage() {
         <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
         <input type="text" placeholder="ابحث عن جهاز..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border border-concrete-200 rounded p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-petrol" />
       </div>
-      {loading ? <p>جارٍ تحميل البيانات...</p> :
+      {loading ? <TableSkeleton rows={10} cols={6} /> :
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="w-full border-collapse">
           <thead><tr className="bg-concrete-50 border-b">

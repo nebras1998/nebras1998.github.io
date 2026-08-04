@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { createEquipment } from '@/lib/services/equipment';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 
 export default function NewEquipmentPage() {
@@ -41,61 +46,31 @@ export default function NewEquipmentPage() {
 
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">إضافة جهاز جديد</h1>
+      <FormCard title="إضافة جهاز جديد" maxWidth="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1">اسم الجهاز *</label>
-              <input name="name" value={formData.name} onChange={handleChange} required className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">الموديل</label>
-              <input name="model" value={formData.model} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
+            <TextField label="اسم الجهاز" name="name" value={formData.name} onChange={handleChange} required />
+            <TextField label="الموديل" name="model" value={formData.model} onChange={handleChange} />
           </div>
-          <div>
-            <label className="block mb-1">الرقم التسلسلي</label>
-            <input name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full border p-2 rounded" />
+          <TextField label="الرقم التسلسلي" name="serialNumber" value={formData.serialNumber} onChange={handleChange} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TextField label="تاريخ الشراء" name="purchaseDate" type="date" value={formData.purchaseDate} onChange={handleChange} />
+            <TextField label="تاريخ آخر معايرة" name="calibrationDate" type="date" value={formData.calibrationDate} onChange={handleChange} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1">تاريخ الشراء</label>
-              <input name="purchaseDate" type="date" value={formData.purchaseDate} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">تاريخ آخر معايرة</label>
-              <input name="calibrationDate" type="date" value={formData.calibrationDate} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
+            <TextField label="تاريخ المعايرة القادمة" name="nextCalibrationDate" type="date" value={formData.nextCalibrationDate} onChange={handleChange} />
+            <TextField label="تاريخ آخر صيانة" name="maintenanceDate" type="date" value={formData.maintenanceDate} onChange={handleChange} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1">تاريخ المعايرة القادمة</label>
-              <input name="nextCalibrationDate" type="date" value={formData.nextCalibrationDate} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">تاريخ آخر صيانة</label>
-              <input name="maintenanceDate" type="date" value={formData.maintenanceDate} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-          </div>
-          <div>
-            <label className="block mb-1">الحالة *</label>
-            <select name="status" value={formData.status} onChange={handleChange} required className="w-full border p-2 rounded">
-              <option value="يعمل">يعمل</option>
-              <option value="قيد الصيانة">قيد الصيانة</option>
-              <option value="متوقف">متوقف</option>
-              <option value="خارج الخدمة">خارج الخدمة</option>
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1">ملاحظات</label>
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
-          </div>
-          <button type="submit" disabled={loading} className="bg-petrol text-white px-6 py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-            {loading ? 'جارٍ الحفظ...' : 'حفظ الجهاز'}
-          </button>
+          <SelectField label="الحالة" name="status" value={formData.status} onChange={handleChange} required>
+            <option value="يعمل">يعمل</option>
+            <option value="قيد الصيانة">قيد الصيانة</option>
+            <option value="متوقف">متوقف</option>
+            <option value="خارج الخدمة">خارج الخدمة</option>
+          </SelectField>
+          <TextAreaField label="ملاحظات" name="notes" value={formData.notes} onChange={handleChange} rows={3} />
+          <SubmitButton loading={loading}>حفظ الجهاز</SubmitButton>
         </form>
-      </div>
+      </FormCard>
     </DashboardLayout></AuthGuard>
   );
 }

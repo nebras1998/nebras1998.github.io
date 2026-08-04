@@ -9,9 +9,10 @@ import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { Edit, FlaskConical, ClipboardCheck, FileText } from 'lucide-react';
+import { Edit, ArrowRight, FlaskConical, ClipboardCheck, FileText } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import EmptyData from '@/components/EmptyData';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -75,6 +76,11 @@ export default function ProjectDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-5xl mx-auto space-y-6">
+          <div className="flex items-center gap-2 text-sm text-concrete-500">
+            <Link href="/dashboard/projects" className="hover:underline">المشاريع</Link>
+            <ArrowRight size={14} />
+            <span>تفاصيل المشروع</span>
+          </div>
           {/* بطاقة بيانات المشروع */}
           <Card>
             <div className="flex justify-between items-start mb-4">
@@ -97,7 +103,7 @@ export default function ProjectDetailPage() {
           {/* العينات */}
           <Card>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><FlaskConical size={20} /> العينات ({samples.length})</h2>
-            {samples.length === 0 ? <p className="text-concrete-500">لا توجد عينات</p> : (
+            {samples.length === 0 ? <EmptyData title="لا توجد عينات" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم العينة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الاستلام</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
@@ -108,7 +114,7 @@ export default function ProjectDetailPage() {
                         <td className="p-3">{s.type}</td>
                         <td className="p-3"><Badge status={s.status} size="sm" /></td>
                         <td className="p-3">{s.samplingDate || '-'}</td>
-                        <td className="p-3"><Link href={`/dashboard/samples/${s.$id}/edit`} className="text-petrol hover:underline text-sm">تفاصيل</Link></td>
+                        <td className="p-3"><Link href={`/dashboard/samples/${s.$id}`} className="text-petrol hover:underline text-sm">تفاصيل</Link></td>
                       </tr>
                     ))}
                   </tbody>
@@ -120,7 +126,7 @@ export default function ProjectDetailPage() {
           {/* الفحوصات */}
           <Card>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><ClipboardCheck size={20} /> الفحوصات ({tests.length})</h2>
-            {tests.length === 0 ? <p className="text-concrete-500">لا توجد فحوصات</p> : (
+            {tests.length === 0 ? <EmptyData title="لا توجد فحوصات" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">اسم الفحص</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النتيجة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوحدة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
@@ -143,7 +149,7 @@ export default function ProjectDetailPage() {
           {/* الفواتير */}
           <Card>
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><FileText size={20} /> الفواتير ({invoices.length})</h2>
-            {invoices.length === 0 ? <p className="text-concrete-500">لا توجد فواتير</p> : (
+            {invoices.length === 0 ? <EmptyData title="لا توجد فواتير" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الفاتورة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المدفوع</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المتبقي</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
