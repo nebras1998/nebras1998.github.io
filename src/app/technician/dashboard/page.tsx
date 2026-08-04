@@ -9,6 +9,9 @@ import Link from 'next/link';
 import { LogOut, ClipboardCheck, Clock, AlertCircle } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import Badge from '@/components/Badge';
+import Card from '@/components/Card';
+import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function TechnicianDashboard() {
   const { user, employee, logout, loading } = useAuthStore();
@@ -48,7 +51,7 @@ export default function TechnicianDashboard() {
     router.push('/technician/login');
   };
 
-  if (loading) return <div className="p-4 text-center">جارٍ التحميل...</div>;
+  if (loading) return <div className="p-4"><TableSkeleton rows={5} cols={3} /></div>;
 
   return (
     <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
@@ -99,16 +102,18 @@ export default function TechnicianDashboard() {
             <ClipboardCheck size={22} /> الفحوصات المسندة إليّ
           </h2>
           {assignedTests.length === 0 ? (
-            <div className="bg-white p-6 rounded-xl shadow text-center text-concrete-500">لا توجد مهام حالياً</div>
+            <EmptyData title="لا توجد مهام حالياً" />
           ) : (
             <div className="space-y-3">
               {assignedTests.map((test) => (
-                <Link key={test.$id} href={`/technician/tests/${test.$id}`} className="block bg-white p-5 rounded-xl shadow hover:shadow-md transition-shadow">
-                  <div className="font-bold text-lg">{test.testName}</div>
-                  <div className="text-sm text-concrete-500 mt-1">رقم العينة: {test.sampleId}</div>
-                  <div className="mt-2">
-                    <Badge status={test.status} size="sm" />
-                  </div>
+                <Link key={test.$id} href={`/technician/tests/${test.$id}`} className="block">
+                  <Card className="hover:shadow-md transition-shadow">
+                    <div className="font-bold text-lg">{test.testName}</div>
+                    <div className="text-sm text-concrete-500 mt-1">رقم العينة: {test.sampleId}</div>
+                    <div className="mt-2">
+                      <Badge status={test.status} size="sm" />
+                    </div>
+                  </Card>
                 </Link>
               ))}
             </div>

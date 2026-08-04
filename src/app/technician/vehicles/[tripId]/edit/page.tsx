@@ -9,6 +9,10 @@ import { ArrowRight, Save } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { useAuthStore } from '@/store/useAuthStore';
 import { createNotification } from '@/lib/notifications';
+import Card from '@/components/Card';
+import TextField from '@/components/TextField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function EditTripPage() {
   const router = useRouter();
@@ -103,49 +107,30 @@ export default function EditTripPage() {
       </header>
 
       <main className="p-4">
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-4">
-          <div>
-            <label className="block mb-1 font-bold">تاريخ ووقت الانطلاق</label>
-            <input type="datetime-local" value={form.departureTime} disabled className="w-full border p-2 rounded bg-concrete-100" />
-          </div>
+        <Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" value={form.departureTime} disabled inputClassName="bg-concrete-100" />
 
-          <div>
-            <label className="block mb-1 font-bold">تاريخ ووقت العودة *</label>
-            <input type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} required className="w-full border p-2 rounded" />
+          <TextField label="تاريخ ووقت العودة" type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} required />
+
+          <div className="grid grid-cols-2 gap-4">
+            <TextField label="الوجهة" name="destination" value={form.destination} onChange={handleChange} />
+            <TextField label="الغرض" name="purpose" value={form.purpose} onChange={handleChange} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-bold">الوجهة</label>
-              <input name="destination" value={form.destination} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1 font-bold">الغرض</label>
-              <input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
+            <TextField label="عداد الانطلاق" type="number" value={form.startMileage} disabled inputClassName="bg-concrete-100" />
+            <TextField label="عداد العودة" type="number" name="endMileage" value={form.endMileage} onChange={handleChange} required />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-bold">عداد الانطلاق</label>
-              <input type="number" value={form.startMileage} disabled className="w-full border p-2 rounded bg-concrete-100" />
-            </div>
-            <div>
-              <label className="block mb-1 font-bold">عداد العودة *</label>
-              <input type="number" name="endMileage" value={form.endMileage} onChange={handleChange} required className="w-full border p-2 rounded" />
-            </div>
-          </div>
+          <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} placeholder="أي ملاحظات إضافية..." />
 
-          <div>
-            <label className="block mb-1 font-bold">ملاحظات</label>
-            <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" placeholder="أي ملاحظات إضافية..." />
-          </div>
-
-          <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-3 rounded-lg font-bold text-lg hover:bg-petrol-dark disabled:opacity-50 flex items-center justify-center gap-2">
+          <SubmitButton loading={saving} className="w-full text-lg flex items-center justify-center gap-2">
             <Save size={20} />
-            {saving ? 'جارٍ الحفظ...' : 'إنهاء الرحلة'}
-          </button>
+            إنهاء الرحلة
+          </SubmitButton>
         </form>
+        </Card>
       </main>
 
       <TechnicianBottomNav />

@@ -10,6 +10,7 @@ import { ArrowRight, CalendarCheck } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { createNotification } from '@/lib/notifications';
 import Card from '@/components/Card';
+import TextField from '@/components/TextField';
 
 export default function TechnicianAttendance() {
   const { employee } = useAuthStore();
@@ -92,12 +93,13 @@ export default function TechnicianAttendance() {
             <button onClick={() => setMode('out')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'out' ? 'bg-warning-solid text-white' : 'bg-concrete-200'}`}>تسجيل انصراف</button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1.5 font-bold text-base">{mode === 'in' ? 'وقت الحضور' : 'وقت الانصراف'}</label>
-              <input type="time" value={mode === 'in' ? checkIn : checkOut}
-                onChange={e => mode === 'in' ? setCheckIn(e.target.value) : setCheckOut(e.target.value)}
-                className="w-full border p-3.5 rounded-xl text-lg text-center" />
-            </div>
+            <TextField
+              label={mode === 'in' ? 'وقت الحضور' : 'وقت الانصراف'}
+              type="time"
+              value={mode === 'in' ? checkIn : checkOut}
+              onChange={e => mode === 'in' ? setCheckIn(e.target.value) : setCheckOut(e.target.value)}
+              inputClassName="text-lg text-center"
+            />
             <button type="submit" disabled={loading}
               className={`w-full text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 ${mode === 'in' ? 'bg-petrol hover:bg-petrol-dark' : 'bg-warning-solid hover:bg-warning-solid'}`}>
               {loading ? 'جارٍ التسجيل...' : mode === 'in' ? 'تسجيل حضور' : 'تسجيل انصراف'}

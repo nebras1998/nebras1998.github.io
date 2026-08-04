@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import TextField from '@/components/TextField';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function TechnicianLoginPage() {
   const [email, setEmail] = useState('');
@@ -48,39 +50,31 @@ export default function TechnicianLoginPage() {
           </div>
         )}
 
-        <div className="mb-4">
-          <label className="block mb-1.5 text-concrete-800 font-medium">البريد الإلكتروني</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-concrete-200 p-3.5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-petrol"
-            placeholder="example@lab.ps"
-            dir="ltr"
-          />
-        </div>
+        <TextField
+          label="البريد الإلكتروني"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="example@lab.ps"
+          dir="ltr"
+          className="mb-4"
+        />
 
-        <div className="mb-6">
-          <label className="block mb-1.5 text-concrete-800 font-medium">كلمة المرور</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border border-concrete-200 p-3.5 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-petrol"
-            placeholder="********"
-            dir="ltr"
-          />
-        </div>
+        <TextField
+          label="كلمة المرور"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          placeholder="********"
+          dir="ltr"
+          className="mb-6"
+        />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-petrol text-white py-3.5 rounded-xl text-lg font-bold hover:bg-petrol-dark transition-colors disabled:opacity-50"
-        >
-          {loading ? 'جارٍ تسجيل الدخول...' : 'دخول'}
-        </button>
+        <SubmitButton loading={loading} loadingText="جارٍ تسجيل الدخول..." className="w-full text-lg">
+          دخول
+        </SubmitButton>
       </form>
     </div>
   );

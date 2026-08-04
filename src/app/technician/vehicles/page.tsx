@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { Plus, ArrowRight, Car } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import Card from '@/components/Card';
+import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function TechnicianVehiclesPage() {
   const { employee } = useAuthStore();
@@ -62,8 +64,8 @@ export default function TechnicianVehiclesPage() {
   }, [employee]);
 
   if (loading) return (
-    <div className="min-h-screen bg-concrete-50 flex items-center justify-center" dir="rtl">
-      <p className="text-concrete-500">جارٍ التحميل...</p>
+    <div className="min-h-screen bg-concrete-50 p-4" dir="rtl">
+      <TableSkeleton rows={5} cols={3} />
     </div>
   );
 
@@ -88,9 +90,7 @@ export default function TechnicianVehiclesPage() {
             <Car size={22} /> رحلات قيد التنفيذ
           </h2>
           {activeTrips.length === 0 ? (
-            <div className="bg-white p-6 rounded-2xl shadow text-center text-concrete-500">
-              لا توجد رحلات نشطة
-            </div>
+            <EmptyData title="لا توجد رحلات نشطة" />
           ) : (
             <div className="space-y-3">
               {activeTrips.map((trip) => (
@@ -117,9 +117,7 @@ export default function TechnicianVehiclesPage() {
         <section>
           <h2 className="font-bold text-lg mb-3">آخر الرحلات المكتملة</h2>
           {pastTrips.length === 0 ? (
-            <div className="bg-white p-6 rounded-2xl shadow text-center text-concrete-500">
-              لا توجد رحلات سابقة
-            </div>
+            <EmptyData title="لا توجد رحلات سابقة" />
           ) : (
             <div className="space-y-2">
               {pastTrips.slice(0, 5).map((trip) => (

@@ -10,6 +10,10 @@ import { toast } from 'sonner';
 import { ArrowRight } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { createNotification } from '@/lib/notifications';
+import Card from '@/components/Card';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -82,47 +86,31 @@ export default function NewTripPage() {
       </header>
 
       <main className="p-4">
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow space-y-4">
-          <div>
-            <label className="block mb-1 font-bold">المركبة *</label>
-            <select name="vehicleId" value={form.vehicleId} onChange={handleChange} required className="w-full border p-2 rounded">
-              <option value="">اختر المركبة</option>
-              {vehicles.map((v) => (
-                <option key={v.$id} value={v.$id}>{v.plateNumber} ({v.brand} {v.model})</option>
-              ))}
-            </select>
-          </div>
+        <Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <SelectField label="المركبة" name="vehicleId" value={form.vehicleId} onChange={handleChange} required>
+            <option value="">اختر المركبة</option>
+            {vehicles.map((v) => (
+              <option key={v.$id} value={v.$id}>{v.plateNumber} ({v.brand} {v.model})</option>
+            ))}
+          </SelectField>
 
-          <div>
-            <label className="block mb-1 font-bold">السائق (أنت)</label>
-            <input type="text" value={employee?.name || ''} disabled className="w-full border p-2 rounded bg-concrete-100" />
-          </div>
+          <TextField label="السائق (أنت)" type="text" value={employee?.name || ''} disabled inputClassName="bg-concrete-100" />
 
-          <div>
-            <label className="block mb-1 font-bold">تاريخ ووقت الانطلاق *</label>
-            <input type="datetime-local" name="departureTime" value={form.departureTime} onChange={handleChange} required className="w-full border p-2 rounded" />
-          </div>
+          <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} onChange={handleChange} required />
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-bold">الوجهة</label>
-              <input name="destination" value={form.destination} onChange={handleChange} className="w-full border p-2 rounded" placeholder="موقع المشروع" />
-            </div>
-            <div>
-              <label className="block mb-1 font-bold">الغرض</label>
-              <input name="purpose" value={form.purpose} onChange={handleChange} className="w-full border p-2 rounded" placeholder="أخذ عينات، فحص..." />
-            </div>
+            <TextField label="الوجهة" name="destination" value={form.destination} onChange={handleChange} placeholder="موقع المشروع" />
+            <TextField label="الغرض" name="purpose" value={form.purpose} onChange={handleChange} placeholder="أخذ عينات، فحص..." />
           </div>
 
-          <div>
-            <label className="block mb-1 font-bold">قراءة العداد (الانطلاق)</label>
-            <input type="number" name="startMileage" value={form.startMileage} onChange={handleChange} className="w-full border p-2 rounded" placeholder="كم" />
-          </div>
+          <TextField label="قراءة العداد (الانطلاق)" type="number" name="startMileage" value={form.startMileage} onChange={handleChange} placeholder="كم" />
 
-          <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-3 rounded-lg font-bold text-lg hover:bg-petrol-dark disabled:opacity-50">
-            {loading ? 'جارٍ البدء...' : 'بدء الرحلة'}
-          </button>
+          <SubmitButton loading={loading} loadingText="جارٍ البدء..." className="w-full text-lg">
+            بدء الرحلة
+          </SubmitButton>
         </form>
+        </Card>
       </main>
 
       <TechnicianBottomNav />

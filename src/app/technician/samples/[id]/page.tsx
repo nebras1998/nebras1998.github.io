@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import DashboardLayout from '@/components/DashboardLayout';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { Sample } from '@/types';
 import { getSample, getProject, getClient, getEmployee } from '@/lib/services';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, QrCode, Building, User } from 'lucide-react';
+import { Download, QrCode, Building, User, ArrowRight } from 'lucide-react';
 import Badge from '@/components/Badge';
+import FormCard from '@/components/FormCard';
+import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 
 export default function SampleDetailPage() {
   const params = useParams();
@@ -128,9 +129,7 @@ export default function SampleDetailPage() {
   const isTechnician = user?.labels?.includes('technician'); // أو حسب منطق دور المستخدم لديك
 
   const content = (
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-6">تفاصيل العينة</h1>
-
+    <FormCard title="تفاصيل العينة" maxWidth="max-w-2xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><span className="text-concrete-500">رقم العينة:</span> {sample.sampleNumber}</div>
         <div><span className="text-concrete-500">النوع:</span> {sample.type}</div>
@@ -175,11 +174,21 @@ export default function SampleDetailPage() {
           <Download size={16} /> تحميل صورة الباركود
         </button>
       </div>
-    </div>
+    </FormCard>
   );
 
-  // إذا كان المستخدم مديرًا/موظفًا، نلف المحتوى بـ DashboardLayout
-  // أما إذا كان فنيًا، قد نكتفي بعرض المحتوى بدون الشريط الجانبي (حسب التصميم)
-  // هنا نستخدم DashboardLayout للجميع، لكن يمكن تخصيصه
-  return <DashboardLayout>{content}</DashboardLayout>;
+  return (
+    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
+      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+        <button onClick={() => router.back()} className="text-white">
+          <ArrowRight size={24} />
+        </button>
+        <h1 className="text-lg font-bold">عينة {sample.sampleNumber}</h1>
+      </header>
+
+      <main className="p-4">{content}</main>
+
+      <TechnicianBottomNav />
+    </div>
+  );
 }
