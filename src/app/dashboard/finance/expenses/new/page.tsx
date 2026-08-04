@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import type { Vehicle } from '@/lib/services/vehicles';
 import { Query } from '@/lib/services';
 import { listExpenses, createExpense } from '@/lib/services/expenses';
@@ -99,25 +104,24 @@ export default function NewExpensePage() {
 
   return (
     <AuthGuard><DashboardLayout>
-      <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">إضافة مصروف جديد</h1>
+      <FormCard title="إضافة مصروف جديد" maxWidth="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block mb-1">رقم المصروف</label><input value={form.expenseNumber} disabled className="w-full border p-2 rounded bg-concrete-100 font-mono" /></div>
+          <TextField label="رقم المصروف" value={form.expenseNumber} disabled inputClassName="bg-concrete-100 font-mono" />
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block mb-1">النوع *</label><select name="type" value={form.type} onChange={handleChange} required className="w-full border p-2 rounded"><option value="سولار">سولار</option><option value="صيانة">صيانة</option><option value="شراء مواد">شراء مواد</option><option value="رواتب">رواتب</option><option value="إيجار">إيجار</option><option value="أخرى">أخرى</option></select></div>
-            <div><label className="block mb-1">المبلغ *</label><input type="number" step="0.01" name="amount" value={form.amount} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
+            <SelectField label="النوع" name="type" value={form.type} onChange={handleChange} required><option value="سولار">سولار</option><option value="صيانة">صيانة</option><option value="شراء مواد">شراء مواد</option><option value="رواتب">رواتب</option><option value="إيجار">إيجار</option><option value="أخرى">أخرى</option></SelectField>
+            <TextField label="المبلغ" type="number" step="0.01" name="amount" value={form.amount} onChange={handleChange} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block mb-1">التاريخ *</label><input type="date" name="date" value={form.date} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
-            <div><label className="block mb-1">طريقة الدفع</label><select name="paymentMethod" value={form.paymentMethod} onChange={handleChange} className="w-full border p-2 rounded"><option value="نقداً">نقداً</option><option value="بطاقة">بطاقة</option><option value="حوالة">حوالة</option></select></div>
+            <TextField label="التاريخ" type="date" name="date" value={form.date} onChange={handleChange} required />
+            <SelectField label="طريقة الدفع" name="paymentMethod" value={form.paymentMethod} onChange={handleChange}><option value="نقداً">نقداً</option><option value="بطاقة">بطاقة</option><option value="حوالة">حوالة</option></SelectField>
           </div>
-          <div><label className="block mb-1">المركبة (اختياري)</label><select name="vehicleId" value={form.vehicleId} onChange={handleChange} className="w-full border p-2 rounded"><option value="">بدون مركبة</option>{vehicles.map(v => <option key={v.$id} value={v.$id}>{v.plateNumber}</option>)}</select></div>
-          <div><label className="block mb-1">البائع / المحطة</label><input name="vendor" value={form.vendor} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-          <div><label className="block mb-1">الوصف</label><input name="description" value={form.description} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-          <div><label className="block mb-1">ملاحظات</label><textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-danger-solid text-white py-2 rounded hover:bg-danger-solid disabled:opacity-50">{loading ? 'جارٍ الحفظ...' : 'حفظ المصروف'}</button>
+          <SelectField label="المركبة (اختياري)" name="vehicleId" value={form.vehicleId} onChange={handleChange}><option value="">بدون مركبة</option>{vehicles.map(v => <option key={v.$id} value={v.$id}>{v.plateNumber}</option>)}</SelectField>
+          <TextField label="البائع / المحطة" name="vendor" value={form.vendor} onChange={handleChange} />
+          <TextField label="الوصف" name="description" value={form.description} onChange={handleChange} />
+          <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
+          <SubmitButton loading={loading} variant="danger" className="w-full">حفظ المصروف</SubmitButton>
         </form>
-      </div>
+      </FormCard>
     </DashboardLayout></AuthGuard>
   );
 }

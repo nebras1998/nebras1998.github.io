@@ -14,6 +14,10 @@ import ConfirmModal from '@/components/ConfirmModal';
 import type { Invoice, Payment, InvoiceItem } from '@/types';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import SubmitButton from '@/components/SubmitButton';
+import EmptyData from '@/components/EmptyData';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -180,7 +184,7 @@ export default function InvoiceDetailPage() {
 
           <Card>
             <h2 className="text-xl font-bold mb-4">المدفوعات ({payments.length})</h2>
-            {payments.length === 0 ? <p className="text-concrete-500">لا توجد دفعات بعد</p> : (
+            {payments.length === 0 ? <EmptyData title="لا توجد دفعات بعد" /> : (
               <ul className="divide-y mb-4">
                 {payments.map(p => (
                   <li key={p.$id} className="py-2 flex justify-between items-center">
@@ -192,21 +196,12 @@ export default function InvoiceDetailPage() {
             )}
             {invoice.status !== 'مدفوعة' && (
               <form onSubmit={handleAddPayment} className="border-t pt-4 flex flex-wrap items-end gap-3">
-                <div>
-                  <label className="block text-sm">المبلغ</label>
-                  <input type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} required className="border p-2 rounded w-28" />
-                </div>
-                <div>
-                  <label className="block text-sm">التاريخ</label>
-                  <input type="date" value={payDate} onChange={e => setPayDate(e.target.value)} required className="border p-2 rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm">الطريقة</label>
-                  <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="border p-2 rounded">
-                    <option>نقداً</option><option>شيك</option><option>تحويل بنكي</option>
-                  </select>
-                </div>
-                <button type="submit" disabled={addingPayment} className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark disabled:opacity-50 flex items-center gap-1"><Plus size={16} /> تسجيل دفعة</button>
+                <TextField label="المبلغ" type="number" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} required inputClassName="w-28" />
+                <TextField label="التاريخ" type="date" value={payDate} onChange={e => setPayDate(e.target.value)} required />
+                <SelectField label="الطريقة" value={payMethod} onChange={e => setPayMethod(e.target.value)}>
+                  <option>نقداً</option><option>شيك</option><option>تحويل بنكي</option>
+                </SelectField>
+                <SubmitButton loading={addingPayment} className="flex items-center gap-1"><Plus size={16} /> تسجيل دفعة</SubmitButton>
               </form>
             )}
             {remaining > 0 && <p className="mt-2 text-sm text-concrete-500">المتبقي: <strong className="text-danger">{remaining.toFixed(2)} ₪</strong></p>}

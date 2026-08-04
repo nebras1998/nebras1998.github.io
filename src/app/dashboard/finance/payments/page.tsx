@@ -11,6 +11,7 @@ import Pagination from '@/components/Pagination';
 import { Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
+import TableSkeleton from '@/components/TableSkeleton';
 import type { Payment, Invoice, Client } from '@/types';
 
 const PAGE_SIZE = 20;
@@ -189,7 +190,7 @@ export default function PaymentsPage() {
         </div>
 
         {loading ? (
-          <p>جارٍ تحميل البيانات...</p>
+          <TableSkeleton rows={5} cols={6} />
         ) : (
           <>
             <div className="bg-white rounded-lg shadow overflow-x-auto">

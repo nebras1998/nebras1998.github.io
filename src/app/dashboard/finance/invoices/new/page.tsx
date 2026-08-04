@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import type { Client } from '@/types';
 import type { Project } from '@/types';
 import type { StandardTest, SampleType } from '@/lib/services/sample-types';
@@ -183,32 +188,19 @@ export default function NewInvoicePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">إنشاء فاتورة جديدة</h1>
+        <FormCard title="إنشاء فاتورة جديدة" maxWidth="max-w-4xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">العميل *</label>
-                <select value={clientId} onChange={e => setClientId(e.target.value)} required className="w-full border p-2 rounded">
-                  <option value="">اختر العميل</option>
-                  {clients.map(c => <option key={c.$id} value={c.$id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1">المشروع (اختياري)</label>
-                <select value={projectId} onChange={e => setProjectId(e.target.value)} className="w-full border p-2 rounded">
-                  <option value="">بدون مشروع</option>
-                  {projects.map(p => <option key={p.$id} value={p.$id}>{p.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1">تاريخ الإصدار</label>
-                <input type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} required className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">تاريخ الاستحقاق</label>
-                <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="w-full border p-2 rounded" />
-              </div>
+              <SelectField label="العميل" value={clientId} onChange={e => setClientId(e.target.value)} required>
+                <option value="">اختر العميل</option>
+                {clients.map(c => <option key={c.$id} value={c.$id}>{c.name}</option>)}
+              </SelectField>
+              <SelectField label="المشروع (اختياري)" value={projectId} onChange={e => setProjectId(e.target.value)}>
+                <option value="">بدون مشروع</option>
+                {projects.map(p => <option key={p.$id} value={p.$id}>{p.name}</option>)}
+              </SelectField>
+              <TextField label="تاريخ الإصدار" type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} required />
+              <TextField label="تاريخ الاستحقاق" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
 
             <div>
@@ -276,16 +268,11 @@ export default function NewInvoicePage() {
               <div className="flex justify-between text-xl"><span>الإجمالي:</span><span className="font-bold">{total.toFixed(2)} ₪</span></div>
             </div>
 
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full border p-2 rounded" />
-            </div>
+            <TextAreaField label="ملاحظات" value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
 
-            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {loading ? 'جارٍ الحفظ...' : 'إنشاء الفاتورة'}
-            </button>
+            <SubmitButton loading={loading} className="w-full">إنشاء الفاتورة</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

@@ -11,6 +11,7 @@ import Pagination from '@/components/Pagination';
 import { Plus, Trash2, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
+import TableSkeleton from '@/components/TableSkeleton';
 import type { Invoice, Client } from '@/types';
 import Badge from '@/components/Badge';
 
@@ -93,7 +94,7 @@ export default function InvoicesPage() {
         </div>
 
         {loading ? (
-          <p>جارٍ تحميل البيانات...</p>
+          <TableSkeleton rows={5} cols={9} />
         ) : (
           <>
             <div className="bg-white rounded-lg shadow overflow-x-auto">

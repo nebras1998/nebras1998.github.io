@@ -5,6 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import { getService, updateService } from '@/lib/services/services-catalog';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 
 const COMMON_CATEGORIES = [
@@ -66,25 +71,21 @@ export default function EditServicePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تعديل الخدمة</h1>
+        <FormCard title="تعديل الخدمة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div><label className="block mb-1">الاسم *</label><input name="name" value={form.name} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
-            <div>
-              <label className="block mb-1">الفئة</label>
-              <select name="category" value={form.category} onChange={handleChange} className="w-full border p-2 rounded">
-                <option value="">اختر الفئة</option>
-                {COMMON_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
-            </div>
-            <div><label className="block mb-1">الوصف</label><textarea name="description" value={form.description} onChange={handleChange} rows={2} className="w-full border p-2 rounded" /></div>
+            <TextField label="الاسم" name="name" value={form.name} onChange={handleChange} required />
+            <SelectField label="الفئة" name="category" value={form.category} onChange={handleChange}>
+              <option value="">اختر الفئة</option>
+              {COMMON_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+            </SelectField>
+            <TextAreaField label="الوصف" name="description" value={form.description} onChange={handleChange} rows={2} />
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block mb-1">الوحدة</label><input name="unit" value={form.unit} onChange={handleChange} className="w-full border p-2 rounded" /></div>
-              <div><label className="block mb-1">السعر (₪) *</label><input name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required className="w-full border p-2 rounded" /></div>
+              <TextField label="الوحدة" name="unit" value={form.unit} onChange={handleChange} />
+              <TextField label="السعر (₪)" name="price" type="number" step="0.01" value={form.price} onChange={handleChange} required />
             </div>
-            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">{saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}</button>
+            <SubmitButton loading={saving} className="w-full">حفظ التعديلات</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

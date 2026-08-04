@@ -7,6 +7,7 @@ import { listSampleTypes, listStandardTests, updateStandardTest } from '@/lib/se
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
+import EmptyData from '@/components/EmptyData';
 import { Edit, Save, X } from 'lucide-react';
 
 export default function ServicesPage() {
@@ -141,7 +142,7 @@ export default function ServicesPage() {
                 );
               })}
               {Object.values(testsByType).every(arr => arr.length === 0) && (
-                <p className="text-center text-concrete-500">لا توجد خدمات حتى الآن. قم بإدخال أنواع العينات والفحوصات أولاً.</p>
+                <EmptyData title="لا توجد خدمات حتى الآن. قم بإدخال أنواع العينات والفحوصات أولاً." />
               )}
             </div>
           )}
