@@ -9,6 +9,7 @@ import { Search, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
+import TableSkeleton from '@/components/TableSkeleton';
 import type { AttendanceRecord, Employee } from '@/types';
 import { listAttendance, updateAttendance, deleteAttendance } from '@/lib/services/attendance';
 import { listEmployees } from '@/lib/services/employees';
@@ -163,7 +164,7 @@ export default function AttendancePage() {
           <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setFilterDate(''); setCurrentPage(1); }} className="border p-2 rounded" />
         </div>
 
-        {loading ? <p>جارٍ التحميل...</p> : (
+        {loading ? <TableSkeleton rows={5} cols={9} /> : (
           <>
             <div className="bg-white rounded-lg shadow overflow-x-auto mb-4">
               <table className="w-full border-collapse">

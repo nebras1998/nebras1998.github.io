@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { Employee } from '@/types';
@@ -73,19 +76,15 @@ export default function CheckInPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تسجيل الحضور اليومي</h1>
+        <FormCard title="تسجيل الحضور اليومي">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">التاريخ</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="border p-2 rounded"
-                required
-              />
-            </div>
+            <TextField
+              label="التاريخ"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -145,15 +144,9 @@ export default function CheckInPage() {
               </table>
             </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50"
-            >
-              {saving ? 'جارٍ التسجيل...' : 'حفظ الحضور'}
-            </button>
+            <SubmitButton loading={saving} loadingText="جارٍ التسجيل...">حفظ الحضور</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

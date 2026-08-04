@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
@@ -56,44 +61,26 @@ export default function NewLeavePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">طلب إجازة جديد</h1>
+        <FormCard title="طلب إجازة جديد" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">الموظف *</label>
-              <select name="employeeId" value={form.employeeId} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="">اختر الموظف</option>
-                {employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}
-              </select>
-            </div>
+            <SelectField label="الموظف" name="employeeId" value={form.employeeId} onChange={handleChange} required>
+              <option value="">اختر الموظف</option>
+              {employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}
+            </SelectField>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">تاريخ البداية *</label>
-                <input type="date" name="startDate" value={form.startDate} onChange={handleChange} required className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">تاريخ النهاية *</label>
-                <input type="date" name="endDate" value={form.endDate} onChange={handleChange} required className="w-full border p-2 rounded" />
-              </div>
+              <TextField label="تاريخ البداية" type="date" name="startDate" value={form.startDate} onChange={handleChange} required />
+              <TextField label="تاريخ النهاية" type="date" name="endDate" value={form.endDate} onChange={handleChange} required />
             </div>
-            <div>
-              <label className="block mb-1">نوع الإجازة *</label>
-              <select name="type" value={form.type} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="سنوي">سنوية</option>
-                <option value="مرضي">مرضية</option>
-                <option value="طارئ">طارئة</option>
-                <option value="بدون راتب">بدون راتب</option>
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">السبب</label>
-              <textarea name="reason" value={form.reason} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
-            </div>
-            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {loading ? 'جارٍ التقديم...' : 'تقديم الطلب'}
-            </button>
+            <SelectField label="نوع الإجازة" name="type" value={form.type} onChange={handleChange} required>
+              <option value="سنوي">سنوية</option>
+              <option value="مرضي">مرضية</option>
+              <option value="طارئ">طارئة</option>
+              <option value="بدون راتب">بدون راتب</option>
+            </SelectField>
+            <TextAreaField label="السبب" name="reason" value={form.reason} onChange={handleChange} rows={3} />
+            <SubmitButton loading={loading} loadingText="جارٍ التقديم...">تقديم الطلب</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

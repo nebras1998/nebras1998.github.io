@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { Upload, X, FileDown } from 'lucide-react';
 import { getEmployee, updateEmployee } from '@/lib/services/employees';
@@ -160,80 +165,43 @@ export default function EditEmployeePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تعديل بيانات الموظف</h1>
+        <FormCard title="تعديل بيانات الموظف">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">رقم الموظف</label>
-              <input value={form.employeeNumber} readOnly className="w-full border p-2 rounded bg-concrete-100 font-mono" />
+            <TextField label="رقم الموظف" value={form.employeeNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TextField label="الاسم" name="name" value={form.name} onChange={handleChange} required />
+              <TextField label="المسمى الوظيفي" name="jobTitle" value={form.jobTitle} onChange={handleChange} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">الاسم *</label>
-                <input name="name" value={form.name} onChange={handleChange} required className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">المسمى الوظيفي *</label>
-                <input name="jobTitle" value={form.jobTitle} onChange={handleChange} required className="w-full border p-2 rounded" />
-              </div>
+              <TextField label="القسم" name="department" value={form.department} onChange={handleChange} />
+              <TextField label="تاريخ التعيين" name="hireDate" type="date" value={form.hireDate} onChange={handleChange} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">القسم</label>
-                <input name="department" value={form.department} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">تاريخ التعيين</label>
-                <input name="hireDate" type="date" value={form.hireDate} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
+              <TextField label="البريد الإلكتروني" name="email" type="email" value={form.email} onChange={handleChange} />
+              <TextField label="الهاتف" name="phone" value={form.phone} onChange={handleChange} />
             </div>
+
+            <TextField label="المؤهل العلمي" name="qualification" value={form.qualification} onChange={handleChange} />
+
+            <TextAreaField label="الشهادات المهنية" name="certifications" value={form.certifications} onChange={handleChange} rows={2} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">البريد الإلكتروني</label>
-                <input name="email" type="email" value={form.email} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">الهاتف</label>
-                <input name="phone" value={form.phone} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
+              <SelectField label="الحالة" name="status" value={form.status} onChange={handleChange} required>
+                <option value="يعمل">يعمل</option>
+                <option value="إجازة">إجازة</option>
+                <option value="مستقيل">مستقيل</option>
+              </SelectField>
+              <SelectField label="الدور" name="role" value={form.role} onChange={handleChange} required>
+                <option value="فني">فني</option>
+                <option value="مدير">مدير</option>
+                <option value="إداري">إداري</option>
+              </SelectField>
             </div>
 
-            <div>
-              <label className="block mb-1">المؤهل العلمي</label>
-              <input name="qualification" value={form.qualification} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-
-            <div>
-              <label className="block mb-1">الشهادات المهنية</label>
-              <textarea name="certifications" value={form.certifications} onChange={handleChange} rows={2} className="w-full border p-2 rounded" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">الحالة *</label>
-                <select name="status" value={form.status} onChange={handleChange} required className="w-full border p-2 rounded">
-                  <option value="يعمل">يعمل</option>
-                  <option value="إجازة">إجازة</option>
-                  <option value="مستقيل">مستقيل</option>
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1">الدور *</label>
-                <select name="role" value={form.role} onChange={handleChange} required className="w-full border p-2 rounded">
-                  <option value="فني">فني</option>
-                  <option value="مدير">مدير</option>
-                  <option value="إداري">إداري</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
-            </div>
+            <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={3} />
 
             {/* قسم المستندات الحالية */}
             {existingDocs.length > 0 && (
@@ -277,11 +245,9 @@ export default function EditEmployeePage() {
               {uploading && <p className="text-sm text-petrol mt-1">جارٍ رفع الملفات...</p>}
             </div>
 
-            <button type="submit" disabled={saving || uploading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}
-            </button>
+            <SubmitButton loading={saving || uploading}>حفظ التعديلات</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

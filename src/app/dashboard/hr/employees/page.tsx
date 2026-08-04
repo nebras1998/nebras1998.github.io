@@ -11,6 +11,7 @@ import { Query } from '@/lib/services';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -94,7 +95,7 @@ export default function EmployeesPage() {
         </div>
 
         {loading ? (
-          <p>جارٍ تحميل البيانات...</p>
+          <TableSkeleton rows={5} cols={6} />
         ) : (
           <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="w-full border-collapse">

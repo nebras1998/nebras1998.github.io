@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { getAttendance, updateAttendance } from '@/lib/services/attendance';
 
@@ -64,41 +69,23 @@ export default function EditAttendancePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">تعديل سجل الحضور</h1>
+        <FormCard title="تعديل سجل الحضور" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">التاريخ</label>
-              <input type="date" name="date" value={form.date} onChange={handleChange} required className="w-full border p-2 rounded" />
-            </div>
+            <TextField label="التاريخ" type="date" name="date" value={form.date} onChange={handleChange} required />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">وقت الحضور</label>
-                <input type="time" name="checkIn" value={form.checkIn} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">وقت الانصراف</label>
-                <input type="time" name="checkOut" value={form.checkOut} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
+              <TextField label="وقت الحضور" type="time" name="checkIn" value={form.checkIn} onChange={handleChange} />
+              <TextField label="وقت الانصراف" type="time" name="checkOut" value={form.checkOut} onChange={handleChange} />
             </div>
-            <div>
-              <label className="block mb-1">الحالة</label>
-              <select name="status" value={form.status} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="حاضر">حاضر</option>
-                <option value="غائب">غائب</option>
-                <option value="متأخر">متأخر</option>
-                <option value="إجازة">إجازة</option>
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" />
-            </div>
-            <button type="submit" disabled={saving} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {saving ? 'جارٍ الحفظ...' : 'حفظ التعديلات'}
-            </button>
+            <SelectField label="الحالة" name="status" value={form.status} onChange={handleChange} required>
+              <option value="حاضر">حاضر</option>
+              <option value="غائب">غائب</option>
+              <option value="متأخر">متأخر</option>
+              <option value="إجازة">إجازة</option>
+            </SelectField>
+            <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
+            <SubmitButton loading={saving}>حفظ التعديلات</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );

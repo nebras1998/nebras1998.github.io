@@ -14,6 +14,8 @@ import { getFile, getFileViewUrl } from '@/lib/services/files';
 import { Query } from '@/lib/services';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import StatCard from '@/components/StatCard';
+import EmptyData from '@/components/EmptyData';
 
 export default function EmployeeDetailPage() {
   const params = useParams();
@@ -142,7 +144,7 @@ export default function EmployeeDetailPage() {
           <Card>
             <h2 className="text-xl font-bold mb-4">المستندات</h2>
             {documents.length === 0 ? (
-              <p className="text-concrete-500">لا توجد مستندات مرفوعة</p>
+              <EmptyData title="لا توجد مستندات مرفوعة" />
             ) : (
               <ul className="divide-y">
                 {documents.map((doc) => (
@@ -168,7 +170,7 @@ export default function EmployeeDetailPage() {
               <ClipboardCheck size={24} /> الفحوصات الموكلة ({assignedTests.length})
             </h2>
             {assignedTests.length === 0 ? (
-              <p className="text-concrete-500">لا توجد فحوصات موكلة لهذا الموظف</p>
+              <EmptyData title="لا توجد فحوصات موكلة لهذا الموظف" />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
@@ -203,9 +205,6 @@ export default function EmployeeDetailPage() {
 // مكون مساعد لعرض المعلومات
 function InfoItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="bg-concrete-50 p-3 rounded">
-      <p className="text-sm text-concrete-500">{label}</p>
-      <p className={`font-bold ${mono ? 'font-mono' : ''}`}>{value}</p>
-    </div>
+    <StatCard title={label} value={value} bgColor="bg-concrete-50" valueClass={mono ? 'font-mono' : undefined} centered />
   );
 }

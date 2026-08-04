@@ -2,6 +2,7 @@
 
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import Card from '@/components/Card';
 import Link from 'next/link';
 import { Users, UserCheck, CalendarCheck, Clock } from 'lucide-react';
 
@@ -11,48 +12,44 @@ export default function HRPage() {
       <DashboardLayout>
         <h1 className="text-3xl font-bold mb-8">الموارد البشرية</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link
-            href="/dashboard/hr/employees"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
-          >
-            <Users size={32} className="text-petrol" />
-            <div>
-              <h2 className="text-xl font-bold">الموظفون</h2>
-              <p className="text-concrete-500">إدارة بيانات الموظفين</p>
-            </div>
+          <Link href="/dashboard/hr/employees" className="block">
+            <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
+              <Users size={32} className="text-petrol" />
+              <div>
+                <h2 className="text-xl font-bold">الموظفون</h2>
+                <p className="text-concrete-500">إدارة بيانات الموظفين</p>
+              </div>
+            </Card>
           </Link>
 
-          <Link
-            href="/dashboard/hr/attendance"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
-          >
-            <CalendarCheck size={32} className="text-petrol" />
-            <div>
-              <h2 className="text-xl font-bold">الحضور والانصراف</h2>
-              <p className="text-concrete-500">تسجيل ومتابعة الحضور اليومي</p>
-            </div>
+          <Link href="/dashboard/hr/attendance" className="block">
+            <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
+              <CalendarCheck size={32} className="text-petrol" />
+              <div>
+                <h2 className="text-xl font-bold">الحضور والانصراف</h2>
+                <p className="text-concrete-500">تسجيل ومتابعة الحضور اليومي</p>
+              </div>
+            </Card>
           </Link>
 
-          <Link
-            href="/dashboard/hr/leaves"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
-          >
-            <UserCheck size={32} className="text-warning" />
-            <div>
-              <h2 className="text-xl font-bold">الإجازات</h2>
-              <p className="text-concrete-500">إدارة طلبات الإجازة</p>
-            </div>
+          <Link href="/dashboard/hr/leaves" className="block">
+            <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
+              <UserCheck size={32} className="text-warning" />
+              <div>
+                <h2 className="text-xl font-bold">الإجازات</h2>
+                <p className="text-concrete-500">إدارة طلبات الإجازة</p>
+              </div>
+            </Card>
           </Link>
 
-          <Link
-            href="/dashboard/hr/overtime"
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow flex items-center gap-4"
-          >
-            <Clock size={32} className="text-petrol" />
-            <div>
-              <h2 className="text-xl font-bold">العمل الإضافي</h2>
-              <p className="text-concrete-500">إدارة طلبات وساعات العمل الإضافي</p>
-            </div>
+          <Link href="/dashboard/hr/overtime" className="block">
+            <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
+              <Clock size={32} className="text-petrol" />
+              <div>
+                <h2 className="text-xl font-bold">العمل الإضافي</h2>
+                <p className="text-concrete-500">إدارة طلبات وساعات العمل الإضافي</p>
+              </div>
+            </Card>
           </Link>
         </div>
       </DashboardLayout>

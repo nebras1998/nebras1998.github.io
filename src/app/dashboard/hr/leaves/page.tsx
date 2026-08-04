@@ -9,6 +9,7 @@ import { Plus, Search, Check, X as XIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
+import TableSkeleton from '@/components/TableSkeleton';
 import type { LeaveRequest, Employee } from '@/types';
 import { listLeaveRequests, updateLeaveRequest, deleteLeaveRequest } from '@/lib/services/leaves';
 import { listEmployees } from '@/lib/services/employees';
@@ -175,7 +176,7 @@ export default function LeavesPage() {
           </div>
         )}
 
-        {loading ? <p>جارٍ تحميل البيانات...</p> : (
+        {loading ? <TableSkeleton rows={5} cols={7} /> : (
           <>
             <div className="bg-white rounded-lg shadow overflow-x-auto">
               <table className="w-full border-collapse">

@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import FormCard from '@/components/FormCard';
+import TextField from '@/components/TextField';
+import SelectField from '@/components/SelectField';
+import TextAreaField from '@/components/TextAreaField';
+import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
@@ -80,48 +85,24 @@ export default function NewOvertimePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="max-w-xl mx-auto bg-white p-6 rounded-lg shadow">
-          <h1 className="text-2xl font-bold mb-6">طلب عمل إضافي جديد</h1>
+        <FormCard title="طلب عمل إضافي جديد" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1">الموظف *</label>
-              <select name="employeeId" value={form.employeeId} onChange={handleChange} required className="w-full border p-2 rounded">
-                <option value="">اختر الموظف</option>
-                {employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1">التاريخ *</label>
-              <input type="date" name="date" value={form.date} onChange={handleChange} required className="w-full border p-2 rounded" />
-            </div>
+            <SelectField label="الموظف" name="employeeId" value={form.employeeId} onChange={handleChange} required>
+              <option value="">اختر الموظف</option>
+              {employees.map(emp => <option key={emp.$id} value={emp.$id}>{emp.name}</option>)}
+            </SelectField>
+            <TextField label="التاريخ" type="date" name="date" value={form.date} onChange={handleChange} required />
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1">وقت البداية</label>
-                <input type="time" name="startTime" value={form.startTime} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
-              <div>
-                <label className="block mb-1">وقت النهاية</label>
-                <input type="time" name="endTime" value={form.endTime} onChange={handleChange} className="w-full border p-2 rounded" />
-              </div>
+              <TextField label="وقت البداية" type="time" name="startTime" value={form.startTime} onChange={handleChange} />
+              <TextField label="وقت النهاية" type="time" name="endTime" value={form.endTime} onChange={handleChange} />
             </div>
-            <div>
-              <label className="block mb-1">عدد الساعات *</label>
-              <input type="number" step="0.5" min="0" name="hours" value={form.hours} onChange={handleChange} required className="w-full border p-2 rounded" />
-              <p className="text-sm text-concrete-500 mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
-            </div>
-            <div>
-              <label className="block mb-1">سبب العمل الإضافي</label>
-              <textarea name="reason" value={form.reason} onChange={handleChange} rows={3} className="w-full border p-2 rounded" />
-            </div>
-            <div>
-              <label className="block mb-1">ملاحظات</label>
-              <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} className="w-full border p-2 rounded" />
-            </div>
-            <button type="submit" disabled={loading} className="w-full bg-petrol text-white py-2 rounded hover:bg-petrol-dark disabled:opacity-50">
-              {loading ? 'جارٍ التقديم...' : 'تقديم الطلب'}
-            </button>
+            <TextField label="عدد الساعات" type="number" step="0.5" min="0" name="hours" value={form.hours} onChange={handleChange} required />
+            <p className="text-sm text-concrete-500 mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
+            <TextAreaField label="سبب العمل الإضافي" name="reason" value={form.reason} onChange={handleChange} rows={3} />
+            <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
+            <SubmitButton loading={loading} loadingText="جارٍ التقديم...">تقديم الطلب</SubmitButton>
           </form>
-        </div>
+        </FormCard>
       </DashboardLayout>
     </AuthGuard>
   );
