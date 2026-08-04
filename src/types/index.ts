@@ -251,6 +251,14 @@ export interface Booking {
   notes?: string;
 }
 
+// ===== إحصائيات لوحة التحكم (محسوبة على الخادم) =====
+export interface DashboardStats {
+  totalRevenue: number;
+  samplesByType: { name: string; value: number }[];
+  monthlyRevenue: { month: string; revenue: number }[];
+  generatedAt: string;
+}
+
 // ===== أنواع مساعدة =====
 export type PaginatedResult<T> = {
   documents: T[];

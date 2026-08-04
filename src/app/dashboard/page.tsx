@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { listClients, listProjects, listSamples, listTests, listInvoices, listEmployees, listVehicles, listVehicleTrips, listBookings } from '@/lib/services';
-import type { Sample, Invoice, Booking } from '@/types';
+import type { Sample, Booking, DashboardStats } from '@/types';
 import type { Vehicle, VehicleTrip } from '@/lib/services';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
@@ -88,7 +88,6 @@ export default function DashboardPage() {
   const [advancedLoading, setAdvancedLoading] = useState(true);
 
   // بيانات وسيطة لتغذية الأقسام الأخرى
-  const [allInvoicesData, setAllInvoicesData] = useState<Invoice[]>([]);
   const [activeTripsData, setActiveTripsData] = useState<VehicleTrip[]>([]);
   const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
 
@@ -103,23 +102,25 @@ export default function DashboardPage() {
           todaySamplesRes,
           pendingTestsRes,
           unpaidInvoicesRes,
-          allInvoicesRes,
+          statsRes,
           vehiclesRes,
           activeTripsRes,
           todayBookingsRes,
         ] = await Promise.all([
           listClients([Query.limit(1)]),
-          listProjects([Query.equal('status', 'نشط'), Query.limit(100)]),
-          listSamples([Query.equal('samplingDate', today), Query.limit(100)]),
-          listTests([Query.equal('status', 'قيد الانتظار'), Query.limit(100)]),
-          listInvoices([Query.equal('status', 'صادرة'), Query.limit(200)]),
-          listInvoices([Query.limit(500)]),
+          listProjects([Query.equal('status', 'نشط'), Query.limit(1)]),
+          listSamples([Query.equal('samplingDate', today), Query.limit(1)]),
+          listTests([Query.equal('status', 'قيد الانتظار'), Query.limit(1)]),
+          listInvoices([Query.equal('status', 'صادرة'), Query.limit(1)]),
+          fetch('/api/dashboard-stats'),
           listVehicles([Query.limit(100)]),
           listVehicleTrips([Query.equal('status', 'قيد الرحلة'), Query.limit(20)]),
-          listBookings([Query.equal('preferredDate', today), Query.limit(100)]),
+          listBookings([Query.equal('preferredDate', today), Query.limit(1)]),
         ]);
 
-        const revenue = allInvoicesRes.documents.reduce((sum: number, inv) => sum + (inv.paidAmount || 0), 0);
+        if (!statsRes.ok) throw new Error('فشل تحميل إحصائيات لوحة التحكم');
+        const stats: DashboardStats = await statsRes.json();
+
         const inUse = activeTripsRes.documents.length;
         const readyVehicles = vehiclesRes.documents.filter((v) => v.status === 'جاهزة').length;
 
@@ -129,14 +130,17 @@ export default function DashboardPage() {
           todaySamples: todaySamplesRes.total,
           pendingTests: pendingTestsRes.total,
           unpaidInvoices: unpaidInvoicesRes.total,
-          totalRevenue: revenue,
+          totalRevenue: stats.totalRevenue,
           readyVehicles,
           vehiclesInUse: inUse,
           todayBookings: todayBookingsRes.total,
         });
 
+        // توزيع العينات حسب النوع والإيرادات الشهرية تُحسب مرة واحدة على الخادم
+        setSamplesByType(stats.samplesByType);
+        setMonthlyRevenue(stats.monthlyRevenue);
+
         // تخزين البيانات الوسيطة
-        setAllInvoicesData(allInvoicesRes.documents);
         setActiveTripsData(activeTripsRes.documents);
         setVehiclesData(vehiclesRes.documents);
       } catch (err) {
@@ -164,9 +168,9 @@ export default function DashboardPage() {
           upcomingRes,
           recentBookingsRes,
         ] = await Promise.all([
-          listSamples([Query.limit(500)]),
+          listSamples([Query.limit(500), Query.select(['type', 'samplerId', 'preparerId', 'transporterId', 'samplingDate', 'preparationDate', 'deliveryDate'])]),
           listSamples([Query.orderDesc('$createdAt'), Query.limit(5)]),
-          listTests([Query.limit(1000)]),
+          listTests([Query.limit(1000), Query.select(['assignedTo', 'status', 'sampleId', '$createdAt'])]),
           listEmployees([Query.equal('role', 'فني'), Query.equal('status', 'يعمل'), Query.limit(200)]),
           listSamples([
             Query.or([
@@ -178,26 +182,8 @@ export default function DashboardPage() {
           listBookings([Query.orderDesc('$createdAt'), Query.limit(5)]),
         ]);
 
-        // توزيع العينات حسب النوع
-        const typeCount: Record<string, number> = {};
-        allSamplesRes.documents.forEach((s) => {
-          typeCount[s.type] = (typeCount[s.type] || 0) + 1;
-        });
-        setSamplesByType(Object.entries(typeCount).map(([name, value]) => ({ name, value })));
+        // العينات الأخيرة
         setRecentSamples(recentSamplesRes.documents);
-
-        // الإيرادات الشهرية
-        const monthly: Record<string, number> = {};
-        allInvoicesData.forEach((inv) => {
-          if (inv.issueDate) {
-            const [y, m] = inv.issueDate.split('-');
-            const key = `${y}-${m}`;
-            monthly[key] = (monthly[key] || 0) + (inv.paidAmount || 0);
-          }
-        });
-        const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-        const currentYear = new Date().getFullYear().toString();
-        setMonthlyRevenue(months.map(m => ({ month: m, revenue: monthly[`${currentYear}-${m}`] || 0 })));
 
         // الفحوصات الأسبوعية
         const days = [];
@@ -279,7 +265,7 @@ export default function DashboardPage() {
       }
     };
     fetchAdvanced();
-  }, [allInvoicesData, activeTripsData, vehiclesData]);
+  }, [activeTripsData, vehiclesData]);
 
   return (
     <AuthGuard>
