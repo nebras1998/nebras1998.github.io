@@ -16,6 +16,7 @@ import { Edit, Plus, ArrowRight } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function VehicleDetailPage() {
   const params = useParams();
@@ -63,8 +64,8 @@ export default function VehicleDetailPage() {
     fetchData();
   }, [vehicleId]);
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!vehicle) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-danger">المركبة غير موجودة</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!vehicle) return <AuthGuard><DashboardLayout><EmptyData title="المركبة غير موجودة" /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

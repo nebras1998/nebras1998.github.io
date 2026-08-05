@@ -9,6 +9,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 import { toast } from 'sonner';
 import { getAttendance, updateAttendance } from '@/lib/services/attendance';
 
@@ -64,7 +65,7 @@ export default function EditAttendancePage() {
     }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={2} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

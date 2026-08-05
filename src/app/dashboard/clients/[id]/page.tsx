@@ -14,6 +14,7 @@ import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import StatCard from '@/components/StatCard';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -54,8 +55,8 @@ export default function ClientDetailPage() {
     fetchData();
   }, [clientId]);
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!client) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-danger">العميل غير موجود</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!client) return <AuthGuard><DashboardLayout><EmptyData title="العميل غير موجود" /></DashboardLayout></AuthGuard>;
 
   const totalInvoices = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
   const totalPaid = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);

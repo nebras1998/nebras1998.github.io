@@ -10,6 +10,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 import { toast } from 'sonner';
 
 const COMMON_CATEGORIES = [
@@ -66,7 +67,7 @@ export default function EditServicePage() {
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'خطأ غير معروف'); setSaving(false); }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={2} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

@@ -9,6 +9,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 import type { Vehicle } from '@/lib/services/vehicles';
 import { Query } from '@/lib/services';
 import { getExpense, updateExpense } from '@/lib/services/expenses';
@@ -72,7 +73,7 @@ export default function EditExpensePage() {
     } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={2} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard><DashboardLayout>

@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { Employee } from '@/types';
@@ -71,7 +72,7 @@ export default function CheckInPage() {
     }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="p-10 text-center">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={2} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

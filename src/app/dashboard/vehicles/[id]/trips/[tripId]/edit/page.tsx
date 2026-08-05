@@ -8,6 +8,7 @@ import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
 
@@ -77,7 +78,7 @@ export default function EditTripPage() {
     }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={2} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

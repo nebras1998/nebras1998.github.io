@@ -18,6 +18,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import SubmitButton from '@/components/SubmitButton';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -145,8 +146,8 @@ export default function InvoiceDetailPage() {
     }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!invoice) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-danger">الفاتورة غير موجودة</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!invoice) return <AuthGuard><DashboardLayout><EmptyData title="الفاتورة غير موجودة" /></DashboardLayout></AuthGuard>;
 
   const items: InvoiceItem[] = invoice.items
     ? (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items)

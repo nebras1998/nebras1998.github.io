@@ -12,6 +12,8 @@ import Card from '@/components/Card';
 import TextField from '@/components/TextField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
+import EmptyData from '@/components/EmptyData';
 
 const MULTI_RESULT_TESTS = ['مقاومة الضغط للقلب الخرساني']; // فحوصات متعددة المكعبات (بدون أعمار)
 const DUAL_AGE_TESTS = ['مقاومة الضغط']; // الفحص الذي له عمر 7 و 28 يوم
@@ -170,8 +172,8 @@ export default function TechnicianTestPage() {
     }
   };
 
-  if (loading) return <div className="p-4 text-center">جارٍ التحميل...</div>;
-  if (!test) return <div className="p-4 text-center text-danger">الفحص غير موجود</div>;
+  if (loading) return <div className="p-4"><TableSkeleton rows={6} cols={2} /></div>;
+  if (!test) return <div className="p-4"><EmptyData title="الفحص غير موجود" /></div>;
 
   return (
     <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">

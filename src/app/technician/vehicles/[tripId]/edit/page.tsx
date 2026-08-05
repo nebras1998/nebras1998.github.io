@@ -13,6 +13,7 @@ import Card from '@/components/Card';
 import TextField from '@/components/TextField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function EditTripPage() {
   const router = useRouter();
@@ -95,7 +96,7 @@ export default function EditTripPage() {
     }
   };
 
-  if (loading) return <div className="p-4 text-center">جارٍ التحميل...</div>;
+  if (loading) return <div className="p-4"><TableSkeleton rows={5} cols={2} /></div>;
 
   return (
     <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">

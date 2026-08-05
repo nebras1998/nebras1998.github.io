@@ -13,6 +13,7 @@ import { Edit, ArrowRight, FlaskConical, ClipboardCheck, FileText } from 'lucide
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -69,8 +70,8 @@ export default function ProjectDetailPage() {
     fetchData();
   }, [projectId]);
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="text-center p-10">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!project) return <AuthGuard><DashboardLayout><p className="text-center p-10 text-danger">المشروع غير موجود</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!project) return <AuthGuard><DashboardLayout><EmptyData title="المشروع غير موجود" /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard>

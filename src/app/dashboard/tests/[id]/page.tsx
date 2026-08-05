@@ -11,6 +11,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
 import StatCard from '@/components/StatCard';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 import { toast } from 'sonner';
 import { FileDown, ArrowRight } from 'lucide-react';
@@ -53,8 +54,8 @@ export default function TestDetailPage() {
     try { return new Date(dateStr).toLocaleDateString('ar-EG'); } catch { return dateStr.slice(0, 10); }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="p-10 text-center">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!test) return <AuthGuard><DashboardLayout><p className="p-10 text-center text-danger">الفحص غير موجود</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!test) return <AuthGuard><DashboardLayout><EmptyData title="الفحص غير موجود" /></DashboardLayout></AuthGuard>;
 
   // تحليل النتائج المخزنة
   let resultsArray: number[] = [];

@@ -11,6 +11,7 @@ import { Download, QrCode, Building, User, ArrowRight } from 'lucide-react';
 import Badge from '@/components/Badge';
 import FormCard from '@/components/FormCard';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function SampleDetailPage() {
   const params = useParams();
@@ -85,8 +86,10 @@ export default function SampleDetailPage() {
   // ------------------- حالة التحميل -------------------
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-concrete-100">
-        <p className="text-concrete-500">جارٍ التحميل...</p>
+      <div className="min-h-screen flex items-center justify-center bg-concrete-100 p-4">
+        <div className="w-full max-w-3xl">
+          <TableSkeleton rows={4} cols={3} />
+        </div>
       </div>
     );
   }

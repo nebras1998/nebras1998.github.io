@@ -15,6 +15,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Download, QrCode, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
+import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function SampleDetailPage() {
   const params = useParams();
@@ -83,8 +85,8 @@ export default function SampleDetailPage() {
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><p className="p-10 text-center">جارٍ التحميل...</p></DashboardLayout></AuthGuard>;
-  if (!sample) return <AuthGuard><DashboardLayout><p className="p-10 text-center text-danger">العينة غير موجودة</p></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={4} cols={3} /></DashboardLayout></AuthGuard>;
+  if (!sample) return <AuthGuard><DashboardLayout><EmptyData title="العينة غير موجودة" /></DashboardLayout></AuthGuard>;
 
   const pageUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard/samples/${sampleId}` : '';
 
