@@ -9,6 +9,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 import { Upload, X, FileDown } from 'lucide-react';
 import { getEmployee, updateEmployee } from '@/lib/services/employees';
@@ -165,6 +166,9 @@ export default function EditEmployeePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-2xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/hr/employees', label: 'الموظفون' }, { label: 'تعديل بيانات الموظف' }]} />
+        </div>
         <FormCard title="تعديل بيانات الموظف">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="رقم الموظف" value={form.employeeNumber} readOnly inputClassName="bg-concrete-100 font-mono" />

@@ -11,6 +11,7 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 const COMMON_CATEGORIES = [
@@ -72,6 +73,9 @@ export default function EditServicePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/finance/services', label: 'الخدمات والأسعار' }, { label: 'تعديل الخدمة' }]} />
+        </div>
         <FormCard title="تعديل الخدمة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="الاسم" name="name" value={form.name} onChange={handleChange} required />

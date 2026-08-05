@@ -19,6 +19,7 @@ import SelectField from '@/components/SelectField';
 import SubmitButton from '@/components/SubmitButton';
 import EmptyData from '@/components/EmptyData';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -157,6 +158,7 @@ export default function InvoiceDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
+          <Breadcrumb items={[{ href: '/dashboard/finance/invoices', label: 'الفواتير' }, { label: `فاتورة ${invoice.invoiceNumber}` }]} />
           <Card>
             <div className="flex justify-between items-start mb-4">
               <div>

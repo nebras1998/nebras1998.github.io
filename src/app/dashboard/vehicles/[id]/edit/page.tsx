@@ -10,6 +10,7 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { getVehicle, updateVehicle } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
 
@@ -76,6 +77,9 @@ export default function EditVehiclePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/vehicles', label: 'المركبات' }, { label: 'تعديل المركبة' }]} />
+        </div>
         <FormCard title="تعديل المركبة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="رقم اللوحة" name="plateNumber" value={form.plateNumber} onChange={handleChange} required />

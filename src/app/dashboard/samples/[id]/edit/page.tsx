@@ -17,6 +17,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 const TYPE_CODES: Record<string, string> = {
@@ -100,6 +101,9 @@ export default function EditSamplePage() {
 
   return (
     <AuthGuard><DashboardLayout>
+      <div className="max-w-3xl mx-auto mb-4">
+        <Breadcrumb items={[{ href: '/dashboard/samples', label: 'العينات' }, { label: 'تعديل بيانات العينة' }]} />
+      </div>
       <FormCard title="تعديل بيانات العينة" maxWidth="max-w-3xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

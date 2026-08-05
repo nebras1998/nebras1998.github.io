@@ -12,8 +12,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, QrCode, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { Download, QrCode } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import Badge from '@/components/Badge';
 import EmptyData from '@/components/EmptyData';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -94,11 +94,7 @@ export default function SampleDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 text-sm text-concrete-500 mb-4">
-            <Link href="/dashboard/samples" className="hover:underline">العينات</Link>
-            <ArrowRight size={14} />
-            <span>تفاصيل العينة</span>
-          </div>
+          <Breadcrumb items={[{ href: '/dashboard/samples', label: 'العينات' }, { label: 'تفاصيل العينة' }]} />
           <FormCard title="تفاصيل العينة" maxWidth="max-w-2xl">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

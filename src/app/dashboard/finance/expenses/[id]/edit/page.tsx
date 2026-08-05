@@ -10,6 +10,7 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import type { Vehicle } from '@/lib/services/vehicles';
 import { Query } from '@/lib/services';
 import { getExpense, updateExpense } from '@/lib/services/expenses';
@@ -77,6 +78,9 @@ export default function EditExpensePage() {
 
   return (
     <AuthGuard><DashboardLayout>
+      <div className="max-w-xl mx-auto mb-4">
+        <Breadcrumb items={[{ href: '/dashboard/finance/expenses', label: 'المصروفات' }, { label: 'تعديل المصروف' }]} />
+      </div>
       <FormCard title="تعديل المصروف" maxWidth="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <TextField label="رقم المصروف" value={form.expenseNumber} disabled inputClassName="bg-concrete-100" />

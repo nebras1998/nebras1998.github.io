@@ -9,8 +9,9 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import { Query } from '@/lib/services';
 import Link from 'next/link';
-import { Edit, ArrowRight, Building, FileText } from 'lucide-react';
+import { Edit, Building, FileText } from 'lucide-react';
 import Badge from '@/components/Badge';
+import Breadcrumb from '@/components/Breadcrumb';
 import Card from '@/components/Card';
 import StatCard from '@/components/StatCard';
 import EmptyData from '@/components/EmptyData';
@@ -66,6 +67,7 @@ export default function ClientDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-5xl mx-auto space-y-6">
+          <Breadcrumb items={[{ href: '/dashboard/clients', label: 'العملاء' }, { label: client.name }]} />
           {/* بطاقة بيانات العميل */}
           <Card>
             <div className="flex justify-between items-start mb-4">

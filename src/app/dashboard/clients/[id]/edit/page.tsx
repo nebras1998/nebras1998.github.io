@@ -11,6 +11,7 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 export default function EditClientPage() {
@@ -75,6 +76,9 @@ export default function EditClientPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-2xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/clients', label: 'العملاء' }, { label: 'تعديل بيانات العميل' }]} />
+        </div>
         <FormCard title="تعديل بيانات العميل">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField

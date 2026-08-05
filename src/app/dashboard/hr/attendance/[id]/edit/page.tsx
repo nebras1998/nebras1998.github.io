@@ -10,6 +10,7 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 import { getAttendance, updateAttendance } from '@/lib/services/attendance';
 
@@ -70,6 +71,9 @@ export default function EditAttendancePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/hr/attendance', label: 'الحضور والانصراف' }, { label: 'تعديل سجل الحضور' }]} />
+        </div>
         <FormCard title="تعديل سجل الحضور" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="التاريخ" type="date" name="date" value={form.date} onChange={handleChange} required />

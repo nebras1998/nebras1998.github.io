@@ -6,7 +6,8 @@ import type { Employee, Test } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
-import { FileDown, Edit, ArrowRight, ClipboardCheck } from 'lucide-react';
+import { FileDown, Edit, ClipboardCheck } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import Link from 'next/link';
 import { getEmployee } from '@/lib/services/employees';
 import { listTests } from '@/lib/services/tests';
@@ -95,12 +96,7 @@ export default function EmployeeDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* مسار التنقل */}
-          <div className="flex items-center gap-2 text-sm text-concrete-500">
-            <Link href="/dashboard/hr/employees" className="hover:underline">الموظفون</Link>
-            <ArrowRight size={14} />
-            <span>{employee.name}</span>
-          </div>
+          <Breadcrumb items={[{ href: '/dashboard/hr/employees', label: 'الموظفون' }, { label: employee.name }]} />
 
           {/* البطاقة الأساسية */}
           <Card>

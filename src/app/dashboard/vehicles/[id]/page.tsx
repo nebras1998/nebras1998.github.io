@@ -12,7 +12,8 @@ import { listVehicleTrips } from '@/lib/services/vehicle-trips';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
 import Link from 'next/link';
-import { Edit, Plus, ArrowRight } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import EmptyData from '@/components/EmptyData';
@@ -71,12 +72,7 @@ export default function VehicleDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* مسار التنقل */}
-          <div className="flex items-center gap-2 text-sm text-concrete-500">
-            <Link href="/dashboard/vehicles" className="hover:underline">المركبات</Link>
-            <ArrowRight size={14} />
-            <span>{vehicle.plateNumber}</span>
-          </div>
+          <Breadcrumb items={[{ href: '/dashboard/vehicles', label: 'المركبات' }, { label: vehicle.plateNumber }]} />
 
           {/* بطاقة بيانات المركبة */}
           <Card>

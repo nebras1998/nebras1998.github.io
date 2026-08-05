@@ -9,6 +9,7 @@ import TextField from '@/components/TextField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
 
@@ -83,6 +84,9 @@ export default function EditTripPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/vehicles', label: 'المركبات' }, { label: 'تعديل الرحلة' }]} />
+        </div>
         <FormCard title="تعديل الرحلة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} disabled inputClassName="bg-concrete-100" />

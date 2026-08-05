@@ -12,6 +12,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 export default function EditProjectPage() {
@@ -94,6 +95,9 @@ export default function EditProjectPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
+        <div className="max-w-2xl mx-auto mb-4">
+          <Breadcrumb items={[{ href: '/dashboard/projects', label: 'المشاريع' }, { label: 'تعديل بيانات المشروع' }]} />
+        </div>
         <FormCard title="تعديل بيانات المشروع" maxWidth="max-w-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField label="رقم المشروع" name="projectNumber" value={formData.projectNumber} onChange={handleChange} required />

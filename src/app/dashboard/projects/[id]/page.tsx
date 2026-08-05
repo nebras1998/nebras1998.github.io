@@ -9,7 +9,8 @@ import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { Edit, ArrowRight, FlaskConical, ClipboardCheck, FileText } from 'lucide-react';
+import { Edit, FlaskConical, ClipboardCheck, FileText } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import EmptyData from '@/components/EmptyData';
@@ -77,11 +78,7 @@ export default function ProjectDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-5xl mx-auto space-y-6">
-          <div className="flex items-center gap-2 text-sm text-concrete-500">
-            <Link href="/dashboard/projects" className="hover:underline">المشاريع</Link>
-            <ArrowRight size={14} />
-            <span>تفاصيل المشروع</span>
-          </div>
+          <Breadcrumb items={[{ href: '/dashboard/projects', label: 'المشاريع' }, { label: 'تفاصيل المشروع' }]} />
           {/* بطاقة بيانات المشروع */}
           <Card>
             <div className="flex justify-between items-start mb-4">

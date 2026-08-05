@@ -14,8 +14,8 @@ import EmptyData from '@/components/EmptyData';
 import TableSkeleton from '@/components/TableSkeleton';
 
 import { toast } from 'sonner';
-import { FileDown, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { FileDown } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import Badge from '@/components/Badge';
 
 export default function TestDetailPage() {
@@ -73,11 +73,7 @@ export default function TestDetailPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 text-sm text-concrete-500 mb-4">
-            <Link href="/dashboard/tests" className="hover:underline">الفحوصات</Link>
-            <ArrowRight size={14} />
-            <span>تفاصيل الفحص</span>
-          </div>
+          <Breadcrumb items={[{ href: '/dashboard/tests', label: 'الفحوصات' }, { label: 'تفاصيل الفحص' }]} />
 
           <FormCard className="space-y-6">
             <h1 className="text-2xl font-bold">{test.testName}</h1>

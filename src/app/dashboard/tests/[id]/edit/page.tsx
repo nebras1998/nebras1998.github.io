@@ -18,6 +18,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import Breadcrumb from '@/components/Breadcrumb';
 
 import { toast } from 'sonner';
 
@@ -160,6 +161,9 @@ export default function EditTestPage() {
 
   return (
     <AuthGuard><DashboardLayout>
+      <div className="max-w-3xl mx-auto mb-4">
+        <Breadcrumb items={[{ href: '/dashboard/tests', label: 'الفحوصات' }, { label: 'تعديل الفحص' }]} />
+      </div>
       <FormCard title="تعديل الفحص" maxWidth="max-w-3xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <SelectField label="العينة" name="sampleId" value={formData.sampleId} onChange={handleChange} required>
