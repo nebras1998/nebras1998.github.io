@@ -119,7 +119,7 @@ export default function NewExpensePage() {
           <TextField label="البائع / المحطة" name="vendor" value={form.vendor} onChange={handleChange} />
           <TextField label="الوصف" name="description" value={form.description} onChange={handleChange} />
           <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
-          <SubmitButton loading={loading} variant="danger" className="w-full">حفظ المصروف</SubmitButton>
+          <SubmitButton loading={loading} className="w-full">حفظ المصروف</SubmitButton>
         </form>
       </FormCard>
     </DashboardLayout></AuthGuard>

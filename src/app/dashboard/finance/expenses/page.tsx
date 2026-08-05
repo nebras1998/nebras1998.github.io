@@ -94,7 +94,7 @@ export default function ExpensesPage() {
       <DashboardLayout>
         <div className="mb-6 flex justify-between items-center">
           <h1 className="text-2xl font-bold">المصروفات</h1>
-          <Link href="/dashboard/finance/expenses/new" className="bg-danger-solid text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-danger-solid">
+          <Link href="/dashboard/finance/expenses/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
             <Plus size={18} /> إضافة مصروف
           </Link>
         </div>
