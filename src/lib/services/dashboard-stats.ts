@@ -1,4 +1,5 @@
 import { Client, Databases, Query } from 'appwrite';
+import { createHash } from 'node:crypto';
 import {
   DATABASE_ID,
   INVOICES_COLLECTION_ID,
@@ -6,13 +7,20 @@ import {
 } from '@/lib/constants';
 import type { DashboardStats } from '@/types';
 
-const INVOICE_LIMIT = 500;
-const SAMPLE_LIMIT = 500;
+const PAGE_SIZE = 100;
 
 export const CACHE_TTL_MS = 5 * 60 * 1000;
 
 type InvoiceAggregate = { paidAmount?: number; issueDate?: string };
 type SampleAggregate = { type: string };
+
+// قرار التصميم بخصوص التخزين المؤقت:
+// التخزين المؤقت داخل الذاكرة هو "أفضل جهد" لكل مثيل خادم. في حالة النشر على منصات
+// serverless متعددة المثيلات قد يكون لكل مثيل ذاكرة تخزين مؤقت خاصة به، لكن هذا لا يؤثر
+// على صحة البيانات لأن الحساب يُنفَّذ بالكامل عبر تقسيم الصفحات (pagination) فيكون الأثر
+// الوحيد محتملًا هو الأداء وليس فقدان البيانات. الخريطة مفصولة حسب هوية المستخدم (بصمة
+// من جلسة Appwrite) حتى لا تتسرب بيانات مستخدم إلى مستخدم آخر.
+const cacheMap = new Map<string, { data: DashboardStats; expiresAt: number }>();
 
 function createDatabases(sessionCookie: string): Databases {
   const client = new Client()
@@ -23,21 +31,34 @@ function createDatabases(sessionCookie: string): Databases {
   return new Databases(client);
 }
 
+async function fetchAllDocuments<T>(
+  databases: Databases,
+  collectionId: string,
+  select: string[]
+): Promise<T[]> {
+  const all: T[] = [];
+  let offset = 0;
+  for (;;) {
+    const res = await databases.listDocuments(DATABASE_ID, collectionId, [
+      Query.limit(PAGE_SIZE),
+      Query.offset(offset),
+      Query.select(select),
+    ]);
+    all.push(...(res.documents as unknown as T[]));
+    offset += PAGE_SIZE;
+    if (offset >= res.total) break;
+  }
+  return all;
+}
+
 export async function computeDashboardStats(sessionCookie: string): Promise<DashboardStats> {
   const databases = createDatabases(sessionCookie);
 
-  const [invoicesRes, samplesRes] = await Promise.all([
-    databases.listDocuments(DATABASE_ID, INVOICES_COLLECTION_ID, [
-      Query.limit(INVOICE_LIMIT),
-      Query.select(['paidAmount', 'issueDate']),
-    ]),
-    databases.listDocuments(DATABASE_ID, SAMPLES_COLLECTION_ID, [
-      Query.limit(SAMPLE_LIMIT),
-      Query.select(['type']),
-    ]),
+  const [invoices, samples] = await Promise.all([
+    fetchAllDocuments<InvoiceAggregate>(databases, INVOICES_COLLECTION_ID, ['paidAmount', 'issueDate']),
+    fetchAllDocuments<SampleAggregate>(databases, SAMPLES_COLLECTION_ID, ['type']),
   ]);
 
-  const invoices = invoicesRes.documents as unknown as InvoiceAggregate[];
   const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
 
   const monthly: Record<string, number> = {};
@@ -52,7 +73,7 @@ export async function computeDashboardStats(sessionCookie: string): Promise<Dash
   const monthlyRevenue = months.map((m) => ({ month: m, revenue: monthly[`${currentYear}-${m}`] || 0 }));
 
   const typeCount: Record<string, number> = {};
-  (samplesRes.documents as unknown as SampleAggregate[]).forEach((s) => {
+  samples.forEach((s) => {
     typeCount[s.type] = (typeCount[s.type] || 0) + 1;
   });
   const samplesByType = Object.entries(typeCount).map(([name, value]) => ({ name, value }));
@@ -60,14 +81,14 @@ export async function computeDashboardStats(sessionCookie: string): Promise<Dash
   return { totalRevenue, samplesByType, monthlyRevenue, generatedAt: new Date().toISOString() };
 }
 
-let cache: { data: DashboardStats; expiresAt: number } | null = null;
-
 export async function getDashboardStats(sessionCookie: string): Promise<DashboardStats> {
-  if (cache && Date.now() < cache.expiresAt) {
-    return cache.data;
+  const key = createHash('sha256').update(sessionCookie).digest('hex');
+  const cached = cacheMap.get(key);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
   }
 
   const data = await computeDashboardStats(sessionCookie);
-  cache = { data, expiresAt: Date.now() + CACHE_TTL_MS };
+  cacheMap.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
   return data;
 }

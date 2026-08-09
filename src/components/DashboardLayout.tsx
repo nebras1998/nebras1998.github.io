@@ -39,21 +39,33 @@ import GlobalSearch from '@/components/GlobalSearch';
 type NavItem = { href: string; label: string; icon: LucideIcon };
 type NavGroup = { key: string; href: string; label: string; icon: LucideIcon; items: NavItem[] };
 
-const OPERATIONS: NavItem[] = [
-  { href: '/dashboard/clients', label: 'العملاء', icon: Users },
-  { href: '/dashboard/projects', label: 'المشاريع', icon: FolderKanban },
-  { href: '/dashboard/samples', label: 'العينات', icon: FlaskConical },
-  { href: '/dashboard/tests', label: 'الفحوصات', icon: ClipboardCheck },
-  { href: '/dashboard/equipment', label: 'الأجهزة', icon: Wrench },
-  { href: '/dashboard/bookings', label: 'الحجوزات', icon: Calendar },
-];
+const OPERATIONS: NavGroup = {
+  key: 'operations',
+  href: '/dashboard',
+  label: 'العمليات',
+  icon: Home,
+  items: [
+    { href: '/dashboard/clients', label: 'العملاء', icon: Users },
+    { href: '/dashboard/projects', label: 'المشاريع', icon: FolderKanban },
+    { href: '/dashboard/samples', label: 'العينات', icon: FlaskConical },
+    { href: '/dashboard/tests', label: 'الفحوصات', icon: ClipboardCheck },
+    { href: '/dashboard/equipment', label: 'الأجهزة', icon: Wrench },
+    { href: '/dashboard/bookings', label: 'الحجوزات', icon: Calendar },
+  ],
+};
 
-const RESOURCES: NavItem[] = [
-  { href: '/dashboard/vehicles', label: 'المركبات', icon: Car },
-  { href: '/dashboard/files', label: 'الملفات', icon: FolderOpen },
-  { href: '/dashboard/backup', label: 'النسخ الاحتياطي', icon: HardDrive },
-  { href: '/dashboard/import-data', label: 'استيراد', icon: Upload },
-];
+const RESOURCES: NavGroup = {
+  key: 'resources',
+  href: '/dashboard/files',
+  label: 'الموارد',
+  icon: HardDrive,
+  items: [
+    { href: '/dashboard/vehicles', label: 'المركبات', icon: Car },
+    { href: '/dashboard/files', label: 'الملفات', icon: FolderOpen },
+    { href: '/dashboard/backup', label: 'النسخ الاحتياطي', icon: HardDrive },
+    { href: '/dashboard/import-data', label: 'استيراد', icon: Upload },
+  ],
+};
 
 const GROUPS: NavGroup[] = [
   {
@@ -82,6 +94,8 @@ const GROUPS: NavGroup[] = [
   },
 ];
 
+const ALL_GROUPS: NavGroup[] = [OPERATIONS, ...GROUPS, RESOURCES];
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
@@ -105,11 +119,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.clearTimeout(closeTimer.current);
     closeTimer.current = window.setTimeout(() => setOpenMenu(null), 180);
   };
-
-  const navLinkClass = (active: boolean) =>
-    `flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
-      active ? 'text-petrol bg-petrol-soft font-bold' : 'text-concrete-500 hover:text-petrol hover:bg-concrete-50'
-    }`;
 
   return (
     <div className="min-h-screen bg-concrete-50" dir="rtl">
@@ -137,17 +146,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* التنقل الرئيسي (سطح المكتب) */}
             <nav className="hidden lg:flex items-center gap-1 min-w-0 overflow-x-auto py-1">
-              <span className="text-[11px] font-bold text-concrete-400 px-1.5 select-none">العمليات</span>
-              {OPERATIONS.map((item) => (
-                <Link key={item.href} href={item.href} className={navLinkClass(false)}>
-                  <item.icon size={16} />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-
-              <div className="w-px h-6 bg-concrete-200 mx-1.5 flex-shrink-0" />
-
-              {GROUPS.map((group) => {
+              {ALL_GROUPS.map((group) => {
                 const active = openMenu === group.key;
                 return (
                   <button
@@ -165,16 +164,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </button>
                 );
               })}
-
-              <div className="w-px h-6 bg-concrete-200 mx-1.5 flex-shrink-0" />
-
-              <span className="text-[11px] font-bold text-concrete-400 px-1.5 select-none">الموارد</span>
-              {RESOURCES.map((item) => (
-                <Link key={item.href} href={item.href} className={navLinkClass(false)}>
-                  <item.icon size={16} />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
             </nav>
 
             {/* البحث العام (سطح المكتب) */}
@@ -187,7 +176,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span className="text-concrete-500 text-sm hidden xl:inline">{user?.email}</span>
             <button
               onClick={handleLogout}
-              className="bg-danger-solid hover:bg-danger-solid text-white px-3 py-1.5 rounded text-sm flex items-center gap-1"
+              className="bg-danger-solid hover:bg-danger-dark text-white px-3 py-1.5 rounded text-sm flex items-center gap-1"
             >
               <LogOut size={14} />
               <span className="hidden sm:inline">خروج</span>
@@ -201,7 +190,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onMouseEnter={() => openMenuSoon(openMenu)}
               onMouseLeave={closeMenuSoon}
             >
-              {GROUPS.filter((g) => g.key === openMenu).map((group) => (
+              {ALL_GROUPS.filter((g) => g.key === openMenu).map((group) => (
                 <div key={group.key} className="max-w-screen-2xl mx-auto px-4 py-4">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-base font-bold flex items-center gap-2">
@@ -235,24 +224,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="lg:hidden border-t border-concrete-100 bg-white px-4 py-4 space-y-5 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <GlobalSearch />
 
-            <div>
-              <h3 className="text-xs font-bold text-concrete-400 mb-2">العمليات</h3>
-              <div className="grid grid-cols-2 gap-1">
-                {OPERATIONS.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-concrete-700 hover:bg-concrete-50"
-                  >
-                    <item.icon size={16} className="text-concrete-500" />
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {GROUPS.map((group) => (
+            {ALL_GROUPS.map((group) => (
               <div key={group.key}>
                 <h3 className="text-xs font-bold text-concrete-400 mb-2">{group.label}</h3>
                 <div className="grid grid-cols-2 gap-1">
@@ -270,23 +242,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
             ))}
-
-            <div>
-              <h3 className="text-xs font-bold text-concrete-400 mb-2">الموارد</h3>
-              <div className="grid grid-cols-2 gap-1">
-                {RESOURCES.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-concrete-700 hover:bg-concrete-50"
-                  >
-                    <item.icon size={16} className="text-concrete-500" />
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         )}
       </header>

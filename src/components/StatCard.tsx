@@ -2,6 +2,12 @@
 
 import React from 'react';
 
+const VALUE_SIZE = {
+  sm: 'text-lg',
+  md: 'text-xl',
+  lg: 'text-2xl',
+} as const;
+
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -10,13 +16,24 @@ interface StatCardProps {
   iconColor?: string;
   centered?: boolean;
   valueClass?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export default function StatCard({ title, value, icon, bgColor = 'bg-concrete-50', iconColor = 'text-petrol', centered = false, valueClass = '' }: StatCardProps) {
+export default function StatCard({
+  title,
+  value,
+  icon,
+  bgColor = 'bg-concrete-50',
+  iconColor = 'text-petrol',
+  centered = false,
+  valueClass = '',
+  size = 'lg',
+}: StatCardProps) {
+  const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
   if (centered) {
     return (
       <div className={`${bgColor} p-4 rounded-xl shadow-sm border border-concrete-200 text-center`}>
-        <p className={`text-lg font-bold ${valueClass}`}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
+        <p className={`${VALUE_SIZE[size]} font-bold ${valueClass}`}>{formattedValue}</p>
         <p className="text-sm">{title}</p>
       </div>
     );
@@ -27,7 +44,7 @@ export default function StatCard({ title, value, icon, bgColor = 'bg-concrete-50
         <span className="text-concrete-500 text-sm">{title}</span>
         {icon && <div className={`p-2 rounded-full bg-white shadow-sm ${iconColor}`}>{icon}</div>}
       </div>
-      <p className={`text-2xl font-bold text-concrete-800 ${valueClass}`}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
+      <p className={`${VALUE_SIZE[size]} font-bold text-concrete-800 ${valueClass}`}>{formattedValue}</p>
     </div>
   );
 }
