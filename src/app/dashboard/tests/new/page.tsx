@@ -124,7 +124,9 @@ export default function NewTestPage() {
   const addResult = (setter: React.Dispatch<React.SetStateAction<string[]>>) => setter((prev: string[]) => [...prev, '']);
   const removeResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => setter((prev: string[]) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
   const calcAvg = (vals: string[]) => {
-    const nums = vals.map(Number).filter(n => !isNaN(n));
+    // filter blank cells before numeric conversion — Number('') === 0 would otherwise
+    // silently pull the average down
+    const nums = vals.filter((v) => v.trim() !== '').map(Number).filter((n) => !isNaN(n));
     return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
   };
 
@@ -136,8 +138,10 @@ export default function NewTestPage() {
 
       if (isDualAge) {
         // فحص مقاومة الضغط
-        payload.result7Days = JSON.stringify(age7Results.map(Number));
-        payload.result28Days = JSON.stringify(age28Results.map(Number));
+        const valid7 = age7Results.filter((r) => r.trim() !== '');
+        const valid28 = age28Results.filter((r) => r.trim() !== '');
+        payload.result7Days = JSON.stringify(valid7.map(Number));
+        payload.result28Days = JSON.stringify(valid28.map(Number));
         payload.average7Days = parseFloat(calcAvg(age7Results) || '0');
         payload.average28Days = parseFloat(calcAvg(age28Results) || '0');
         payload.test7Date = test7Date;
@@ -236,7 +240,7 @@ export default function NewTestPage() {
                   {age7Results.map((val, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <span className="text-sm w-16">مكعب {idx + 1}</span>
-                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge7Results, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
+                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge7Results, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
                       {age7Results.length > 1 && <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger"><X size={16} /></button>}
                     </div>
                   ))}
@@ -256,7 +260,7 @@ export default function NewTestPage() {
                   {age28Results.map((val, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <span className="text-sm w-16">مكعب {idx + 1}</span>
-                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge28Results, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
+                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge28Results, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
                       {age28Results.length > 1 && <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger"><X size={16} /></button>}
                     </div>
                   ))}
@@ -277,7 +281,7 @@ export default function NewTestPage() {
               {cubeResults.map((val, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <span className="text-sm text-concrete-500 w-20">مكعب {idx + 1}</span>
-                  <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border p-2 rounded" placeholder="0" />
+                  <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
                   <span className="text-sm">{formData.unit || 'kg/cm2'}</span>
                   {cubeResults.length > 1 && <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger"><X size={16} /></button>}
                 </div>

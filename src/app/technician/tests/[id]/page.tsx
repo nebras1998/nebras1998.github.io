@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Test, Sample } from '@/types';
-import { getTest, updateTest, getSample } from '@/lib/services';
+import { getTest, updateTest, getSample, listEmployees, Query } from '@/lib/services';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ArrowRight, Save, Plus, X } from 'lucide-react';
@@ -105,7 +105,9 @@ export default function TechnicianTestPage() {
   const addResult = (setter: React.Dispatch<React.SetStateAction<string[]>>) => setter((prev: string[]) => [...prev, '']);
   const removeResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => setter((prev: string[]) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
   const calcAvg = (vals: string[]) => {
-    const nums = vals.map(Number).filter(n => !isNaN(n));
+    // filter blank cells before numeric conversion — Number('') === 0 would otherwise
+    // silently pull the average down
+    const nums = vals.filter((v) => v.trim() !== '').map(Number).filter((n) => !isNaN(n));
     return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
   };
 
@@ -125,8 +127,10 @@ export default function TechnicianTestPage() {
 
       if (isDualAge) {
         // فحص مقاومة الضغط (عمرين)
-        payload.result7Days = JSON.stringify(age7Results.map(Number));
-        payload.result28Days = JSON.stringify(age28Results.map(Number));
+        const valid7 = age7Results.filter((r) => r.trim() !== '');
+        const valid28 = age28Results.filter((r) => r.trim() !== '');
+        payload.result7Days = JSON.stringify(valid7.map(Number));
+        payload.result28Days = JSON.stringify(valid28.map(Number));
         payload.average7Days = parseFloat(calcAvg(age7Results) || '0');
         payload.average28Days = parseFloat(calcAvg(age28Results) || '0');
         payload.test7Date = test7Date;
@@ -147,7 +151,7 @@ export default function TechnicianTestPage() {
 
       await updateTest(testId, payload);
 
-      // تنبيه المدير
+      // تنبيه المديرين والإداريين
       if (employee) {
         const sampleNumber = sample?.sampleNumber || test.sampleId;
         const resultText = isDualAge
@@ -155,13 +159,32 @@ export default function TechnicianTestPage() {
           : isMultiResult
           ? `متوسط: ${calcAvg(cubeResults)}`
           : result;
-        await createNotification({
-          type: 'فحص_مكتمل',
-          message: `أكمل ${employee.name} فحص "${test.testName}" للعينة ${sampleNumber} بالنتيجة ${resultText}`,
-          relatedId: testId,
-          employeeId: employee.$id,
-          employeeName: employee.name,
-        });
+
+        try {
+          const managersRes = await listEmployees([
+            Query.equal('status', 'يعمل'),
+            Query.limit(200),
+          ]);
+          const recipients = managersRes.documents.filter(
+            (e) => e.role === 'مدير' || e.role === 'إداري'
+          );
+          if (recipients.length === 0) {
+            console.warn('فشل إرسال تنبيه للمدير: لا يوجد موظفون بدور مدير أو إداري');
+          }
+          await Promise.all(
+            recipients.map((manager) =>
+              createNotification({
+                type: 'فحص_مكتمل',
+                message: `أكمل ${employee.name} فحص "${test.testName}" للعينة ${sampleNumber} بالنتيجة ${resultText}`,
+                relatedId: testId,
+                employeeId: manager.$id,
+                employeeName: manager.name,
+              })
+            )
+          );
+        } catch (notifyErr) {
+          console.error('فشل إرسال تنبيه للمدير:', notifyErr);
+        }
       }
 
       toast.success('تم حفظ النتيجة بنجاح');

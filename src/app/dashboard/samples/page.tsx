@@ -9,6 +9,8 @@ import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -55,6 +57,39 @@ export default function SamplesPage() {
     })();
   }, []);
 
+  // تحميل أسماء العملاء والمشاريع المفقودة من خريطة التحميل المسبق (أكثر من 500 مستند)
+  // بدلًا من عرض معرّف المستند الخام، نجلبه عند الحاجة. إذا فشل الجلب فهي غالبًا مشكلة
+  // صلاحيات للمستند في Appwrite ولا يمكن حلها من الكود — نعرض المعرّف مع تحذير في الكنزول.
+  const resolveNames = async (list: Sample[]) => {
+    const clientIds = [...new Set(list.map((s) => s.clientId).filter((id): id is string => !!id))];
+    const projectIds = [...new Set(list.map((s) => s.projectId).filter((id): id is string => !!id))];
+
+    if (clientIds.length > 0) {
+      try {
+        const res = await listClients([Query.equal('$id', clientIds), Query.limit(clientIds.length)]);
+        setClients((prev) => {
+          const next = { ...prev };
+          for (const c of res.documents) next[c.$id] = c.name;
+          return next;
+        });
+      } catch (err) {
+        console.warn('تعذر تحميل أسماء العملاء (قد تكون مشكلة صلاحيات للمستند):', err);
+      }
+    }
+    if (projectIds.length > 0) {
+      try {
+        const res = await listProjects([Query.equal('$id', projectIds), Query.limit(projectIds.length)]);
+        setProjects((prev) => {
+          const next = { ...prev };
+          for (const p of res.documents) next[p.$id] = p.name;
+          return next;
+        });
+      } catch (err) {
+        console.warn('تعذر تحميل أسماء المشاريع (قد تكون مشكلة صلاحيات للمستند):', err);
+      }
+    }
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -62,7 +97,7 @@ export default function SamplesPage() {
         const queries: string[] = [];
         if (filterStatus) queries.push(Query.equal('status', filterStatus));
         if (filterType) queries.push(Query.equal('type', filterType));
-        if (filterClient) queries.push(Query.equal('clientName', filterClient));
+        if (filterClient) queries.push(Query.equal('clientId', filterClient));
         if (searchTerm.trim()) {
           queries.push(Query.search('sampleNumber', searchTerm));
         }
@@ -73,6 +108,7 @@ export default function SamplesPage() {
         setSamples(samplesRes.documents);
         setTotalDocuments(samplesRes.total);
         setTotalPages(Math.ceil(samplesRes.total / PAGE_SIZE));
+        resolveNames(samplesRes.documents);
       } catch {
         toast.error('فشل تحميل العينات');
       } finally {
@@ -82,6 +118,7 @@ export default function SamplesPage() {
   }, [currentPage, filterStatus, filterType, filterClient, searchTerm]);
 
   const openDeleteModal = (id: string, number: string) => { setDeleteTarget({ id, number }); setModalOpen(true); };
+
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -94,7 +131,11 @@ export default function SamplesPage() {
   };
 
   const sampleTypes = [...new Set(samples.map((s) => s.type).filter(Boolean))];
-  const clientOptions = [...new Set(samples.map((s) => s.clientName || clients[s.clientId || ''] || '').filter(Boolean))];
+  const clientOptions = [...new Map(
+    samples
+      .map((s) => (s.clientId ? [s.clientId, clients[s.clientId] || s.clientName || ''] as [string, string] : null))
+      .filter((x): x is [string, string] => x !== null && x[1] !== '')
+  ).values()];
 
   return (
     <AuthGuard><DashboardLayout>
@@ -121,17 +162,17 @@ export default function SamplesPage() {
         </select>
         <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded">
           <option value="">كل العملاء</option>
-          {clientOptions.map((name) => <option key={name} value={name}>{name}</option>)}
+          {clientOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
         </select>
       </div>
 
       {loading ? <TableSkeleton rows={PAGE_SIZE} cols={7} /> : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead><tr className="bg-concrete-50 border-b"><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم العينة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المشروع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الأخذ</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th></tr></thead>
               <tbody>
-                {samples.length === 0 ? <tr><td colSpan={7} className="text-center p-4 text-concrete-500">لا يوجد عينات مطابقة</td></tr> :
+                {samples.length === 0 ? <tr><td colSpan={7}><EmptyData title="لا يوجد عينات مطابقة" className="py-8" /></td></tr> :
                   samples.map(sample => (
                     <tr key={sample.$id} className="border-b hover:bg-concrete-50">
                       <td className="p-3 font-mono">{sample.sampleNumber}</td>
@@ -161,7 +202,7 @@ export default function SamplesPage() {
                 }
               </tbody>
             </table>
-          </div>
+          </Card>
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
             <p className="text-sm text-concrete-500">عرض {samples.length} من أصل {totalDocuments} عينة</p>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />

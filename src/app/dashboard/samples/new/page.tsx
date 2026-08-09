@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { listSamples, createSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
-import { listClients } from '@/lib/services/clients';
 import { listEmployees } from '@/lib/services/employees';
 import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
 import { listTests, createTest } from '@/lib/services/tests';
@@ -164,22 +163,12 @@ export default function NewSamplePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const project = projects.find(p => p.$id === formData.projectId);
-      const projectName = project?.name || '';
-      let clientName = '';
-      if (project?.clientId) {
-        try {
-          const clientRes = await listClients([Query.equal('$id', project.clientId), Query.limit(1)]);
-          if (clientRes.documents.length > 0) clientName = clientRes.documents[0].name;
-        } catch {}
-      }
-
       let sample = null;
       let sampleNumberStr = formData.sampleNumber;
       let sampleAttempts = 0;
       while (!sample && sampleAttempts < 10) {
         try {
-          sample = await createSample(sampleNumberStr, { ...formData, sampleNumber: sampleNumberStr, projectName, clientName });
+          sample = await createSample(sampleNumberStr, { ...formData, sampleNumber: sampleNumberStr });
         } catch (err: unknown) {
           const appwriteErr = err as { code?: number };
           if (appwriteErr.code === 409) {
