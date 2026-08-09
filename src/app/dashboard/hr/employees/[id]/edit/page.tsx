@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import TableSkeleton from '@/components/TableSkeleton';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
@@ -157,7 +158,7 @@ export default function EditEmployeePage() {
     return (
       <AuthGuard>
         <DashboardLayout>
-          <div className="text-center p-10">جارٍ تحميل بيانات الموظف...</div>
+          <TableSkeleton rows={6} cols={3} />
         </DashboardLayout>
       </AuthGuard>
     );

@@ -158,12 +158,12 @@ function ResetSystemButton() {
     finally { setLoading(false); }
   };
 
-  if (step === 'hidden') return <button onClick={() => setStep('confirm')} className="bg-danger-solid text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-danger-solid"><Trash2 size={20} /> حذف جميع البيانات</button>;
+  if (step === 'hidden') return <button onClick={() => setStep('confirm')} className="bg-danger-solid text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-danger-dark"><Trash2 size={20} /> حذف جميع البيانات</button>;
   if (step === 'confirm') return (
     <div className="space-y-3">
       <p className="text-danger font-bold">هل أنت متأكد؟ هذه العملية لا يمكن التراجع عنها.</p>
       <div className="flex justify-center gap-3">
-        <button onClick={() => setStep('input')} className="bg-danger-solid text-white px-4 py-2 rounded hover:bg-danger-solid">نعم، متابعة</button>
+        <button onClick={() => setStep('input')} className="bg-danger-solid text-white px-4 py-2 rounded hover:bg-danger-dark">نعم، متابعة</button>
         <button onClick={() => setStep('hidden')} className="bg-concrete-200 text-concrete-800 px-4 py-2 rounded hover:bg-concrete-100">إلغاء</button>
       </div>
     </div>
@@ -172,9 +172,9 @@ function ResetSystemButton() {
   return (
     <div className="space-y-3">
       <p className="text-danger font-bold">اكتب <span className="bg-concrete-200 px-1 rounded">حذف كل البيانات</span> للتأكيد:</p>
-      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border p-2 rounded w-48 text-center" placeholder="حذف كل البيانات" dir="rtl" />
+      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48 text-center" placeholder="حذف كل البيانات" dir="rtl" />
       <br />
-      <button onClick={handleReset} disabled={loading || inputText !== 'حذف كل البيانات'} className="bg-danger-solid text-white px-6 py-2 rounded hover:bg-danger-solid disabled:opacity-50">{loading ? 'جارٍ الحذف...' : 'تأكيد الحذف النهائي'}</button>
+      <button onClick={handleReset} disabled={loading || inputText !== 'حذف كل البيانات'} className="bg-danger-solid text-white px-6 py-2 rounded hover:bg-danger-dark disabled:opacity-50">{loading ? 'جارٍ الحذف...' : 'تأكيد الحذف النهائي'}</button>
       <button onClick={() => { setStep('hidden'); setInputText(''); }} className="bg-concrete-200 text-concrete-800 px-4 py-2 rounded hover:bg-concrete-100 mr-2">إلغاء</button>
     </div>
   );
@@ -337,7 +337,7 @@ export default function BackupPage() {
           <p className="text-concrete-500 mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.</p>
           <div className="mb-4 flex flex-col items-center gap-2">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={backupEncrypt} onChange={e => setBackupEncrypt(e.target.checked)} /> تشفير الملف بكلمة مرور</label>
-            {backupEncrypt && <input type="password" placeholder="كلمة المرور" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} className="border p-2 rounded w-48" />}
+            {backupEncrypt && <input type="password" placeholder="كلمة المرور" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48" />}
           </div>
           {backupLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {backupProgress}<div className="w-full bg-concrete-200 h-2 rounded-full mt-1"><div className="bg-petrol h-2 rounded-full" style={{width:`${backupPercent}%`}} /></div></div>}
           <button onClick={handleBackup} disabled={backupLoading || (backupEncrypt && !backupPassword)} className="bg-petrol text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-petrol-dark disabled:opacity-50"><Download size={20} /> {backupLoading ? 'جارٍ الإنشاء...' : 'إنشاء نسخة احتياطية'}</button>
@@ -350,7 +350,7 @@ export default function BackupPage() {
           <p className="text-concrete-500 mb-4">ارفع ملف ZIP (أو .enc) لاستعادة البيانات.</p>
           <div className="mb-4 bg-warning-bg border border-warning-bg rounded-lg p-3 text-sm text-warning">تحذير: سيتم حذف البيانات الحالية في المجموعات المحددة.</div>
           <input type="file" accept=".zip,.enc" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="block mx-auto mb-2" />
-          {selectedFile?.name?.endsWith('.enc') && <input type="password" placeholder="كلمة مرور فك التشفير" value={restorePassword} onChange={e => setRestorePassword(e.target.value)} className="border p-2 rounded w-48 mx-auto mb-2" />}
+          {selectedFile?.name?.endsWith('.enc') && <input type="password" placeholder="كلمة مرور فك التشفير" value={restorePassword} onChange={e => setRestorePassword(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48 mx-auto mb-2" />}
           <button onClick={handlePreview} disabled={previewLoading || !selectedFile} className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 mx-auto mb-4 hover:bg-petrol-dark"><Eye size={16} /> معاينة المحتويات</button>
 
           {previewData && (

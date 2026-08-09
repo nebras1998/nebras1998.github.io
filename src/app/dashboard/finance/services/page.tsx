@@ -6,8 +6,10 @@ import { Query } from '@/lib/services';
 import { listSampleTypes, listStandardTests, updateStandardTest } from '@/lib/services/sample-types';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import Card from '@/components/Card';
 import { toast } from 'sonner';
 import EmptyData from '@/components/EmptyData';
+import TableSkeleton from '@/components/TableSkeleton';
 import { Edit, Save, X } from 'lucide-react';
 
 export default function ServicesPage() {
@@ -76,14 +78,14 @@ export default function ServicesPage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">الخدمات والأسعار</h1>
           {loading ? (
-            <p className="text-center text-concrete-500">جارٍ تحميل البيانات...</p>
+            <TableSkeleton rows={5} cols={4} />
           ) : (
             <div className="space-y-6">
               {sampleTypes.map(type => {
                 const tests = testsByType[type.$id] || [];
                 if (tests.length === 0) return null;
                 return (
-                  <div key={type.$id} className="bg-white rounded-lg shadow overflow-hidden">
+                  <Card key={type.$id} className="overflow-hidden">
                     <div className="bg-concrete-50 px-4 py-3 border-b font-bold text-lg">
                       {type.name}
                     </div>
@@ -118,7 +120,7 @@ export default function ServicesPage() {
                                         setEditingPrice({ testId: editingPrice.testId, price: e.target.value });
                                       }
                                     }}
-                                    className="w-24 border p-1 rounded text-sm"
+                                    className="w-24 border border-concrete-200 p-2 rounded-xl bg-concrete-0 text-sm"
                                     autoFocus
                                   />
                                   <button onClick={() => savePrice(test.$id)} className="text-petrol hover:text-success" title="حفظ">
@@ -138,7 +140,7 @@ export default function ServicesPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </Card>
                 );
               })}
               {Object.values(testsByType).every(arr => arr.length === 0) && (

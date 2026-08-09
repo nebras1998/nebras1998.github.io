@@ -7,6 +7,8 @@ import { listInvoices, updateInvoice } from '@/lib/services/invoices';
 import { listClients } from '@/lib/services/clients';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import Pagination from '@/components/Pagination';
 import { Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -193,7 +195,7 @@ export default function PaymentsPage() {
           <TableSkeleton rows={5} cols={6} />
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -208,8 +210,8 @@ export default function PaymentsPage() {
                 <tbody>
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center p-4 text-concrete-500">
-                        لا توجد مدفوعات
+                      <td colSpan={6}>
+                        <EmptyData title="لا توجد مدفوعات" className="py-8" />
                       </td>
                     </tr>
                   ) : (
@@ -237,7 +239,7 @@ export default function PaymentsPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
 
             <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
               <span>إجمالي النتائج: {filtered.length} دفعة</span>

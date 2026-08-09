@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import Pagination from '@/components/Pagination';
 import { Plus, Search, Check, X as XIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -158,7 +160,7 @@ export default function OvertimePage() {
           <select
             value={selectedEmployee}
             onChange={(e) => { setSelectedEmployee(e.target.value); setCurrentPage(1); }}
-            className="border p-2 rounded"
+            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
           >
             <option value="">كل الموظفين</option>
             {employeeOptions.map(([id, name]) => (
@@ -168,7 +170,7 @@ export default function OvertimePage() {
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-            className="border p-2 rounded"
+            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
           >
             <option value="">كل الحالات</option>
             <option value="معلق">معلق</option>
@@ -179,13 +181,13 @@ export default function OvertimePage() {
             type="date"
             value={filterDate}
             onChange={(e) => { setFilterDate(e.target.value); setFilterMonth(''); setCurrentPage(1); }}
-            className="border p-2 rounded"
+            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
           />
           <input
             type="month"
             value={filterMonth}
             onChange={(e) => { setFilterMonth(e.target.value); setFilterDate(''); setCurrentPage(1); }}
-            className="border p-2 rounded"
+            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
           />
         </div>
 
@@ -193,7 +195,7 @@ export default function OvertimePage() {
           <TableSkeleton rows={5} cols={7} />
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto mb-4">
+            <Card className="overflow-x-auto mb-4">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -208,7 +210,7 @@ export default function OvertimePage() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center p-4 text-concrete-500">لا توجد طلبات</td></tr>
+                    <tr><td colSpan={7}><EmptyData title="لا توجد طلبات" className="py-8" /></td></tr>
                   ) : (
                     paginated.map((ot) => (
                       <tr key={ot.$id} className="border-b hover:bg-concrete-50">
@@ -239,7 +241,7 @@ export default function OvertimePage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
             <div className="flex items-center justify-between text-sm text-concrete-500">
               <span>إجمالي الساعات: {totalHours.toFixed(2)} ساعة</span>
             </div>

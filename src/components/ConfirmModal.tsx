@@ -77,7 +77,7 @@ export default function ConfirmModal({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 rounded bg-danger-solid text-white hover:bg-danger-solid disabled:opacity-50 flex items-center gap-1"
+            className="px-4 py-2 rounded bg-danger-solid text-white hover:bg-danger-dark disabled:opacity-50 flex items-center gap-1"
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

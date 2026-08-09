@@ -11,6 +11,8 @@ import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye, Loader2 } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -158,7 +160,7 @@ export default function TestsPage() {
 
         {loading ? <TableSkeleton rows={PAGE_SIZE} cols={10} /> : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -176,7 +178,7 @@ export default function TestsPage() {
                 </thead>
                 <tbody>
                   {tests.length === 0 ? (
-                    <tr><td colSpan={10} className="text-center p-4 text-concrete-500">لا يوجد فحوصات مطابقة</td></tr>
+                    <tr><td colSpan={10}><EmptyData title="لا يوجد فحوصات مطابقة" className="py-8" /></td></tr>
                   ) : (
                     tests.map(test => (
                       <tr key={test.$id} className="border-b hover:bg-concrete-50">
@@ -210,7 +212,7 @@ export default function TestsPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
               <p className="text-sm text-concrete-500">عرض {tests.length} من أصل {totalDocuments} فحص</p>
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />

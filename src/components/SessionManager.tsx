@@ -124,7 +124,7 @@ export default function SessionManager({
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-danger-solid text-white px-6 py-2 rounded-lg hover:bg-danger-solid flex items-center gap-1"
+                className="bg-danger-solid text-white px-6 py-2 rounded-lg hover:bg-danger-dark flex items-center gap-1"
               >
                 <LogOut size={16} />
                 تسجيل الخروج

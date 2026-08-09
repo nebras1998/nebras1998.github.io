@@ -5,6 +5,8 @@ import { listFiles, deleteFile } from '@/lib/services/files';
 import { listTests, updateTest } from '@/lib/services/tests';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { toast } from 'sonner';
 import { Trash2, Search } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -106,7 +108,7 @@ export default function FilesPage() {
         {loading ? (
           <TableSkeleton rows={5} cols={4} />
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-concrete-50 border-b">
@@ -119,7 +121,7 @@ export default function FilesPage() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center p-4 text-concrete-500">لا توجد ملفات</td>
+                    <td colSpan={4}><EmptyData title="لا توجد ملفات" className="py-8" /></td>
                   </tr>
                 ) : (
                   filtered.map((file: StorageFile) => (
@@ -140,7 +142,7 @@ export default function FilesPage() {
                 )}
               </tbody>
             </table>
-          </div>
+          </Card>
         )}
 
         <ConfirmModal

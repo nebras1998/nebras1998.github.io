@@ -7,6 +7,7 @@ import { getProject, listClients, updateProject } from '@/lib/services';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import TableSkeleton from '@/components/TableSkeleton';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
@@ -86,7 +87,7 @@ export default function EditProjectPage() {
     return (
       <AuthGuard>
         <DashboardLayout>
-          <div className="text-center p-10">جارٍ تحميل بيانات المشروع...</div>
+          <TableSkeleton rows={5} cols={3} />
         </DashboardLayout>
       </AuthGuard>
     );

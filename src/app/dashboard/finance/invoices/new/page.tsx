@@ -232,7 +232,7 @@ export default function NewInvoicePage() {
                               value={item.testId}
                               onChange={e => updateItem(idx, 'testId', e.target.value)}
                               required
-                              className="w-full border p-1 rounded text-sm"
+                              className="w-full border border-concrete-200 p-2 rounded-xl bg-concrete-0 text-sm"
                             >
                               <option value="">اختر فحصاً</option>
                               {Object.entries(groupedTests()).map(([typeName, typeTests]) => (
@@ -247,7 +247,7 @@ export default function NewInvoicePage() {
                             </select>
                           </td>
                           <td className="p-3">
-                            <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 border p-1 rounded" />
+                            <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
                           </td>
                           <td className="p-3">{item.price.toFixed(2)} ₪</td>
                           <td className="p-3 font-bold">{item.total.toFixed(2)} ₪</td>

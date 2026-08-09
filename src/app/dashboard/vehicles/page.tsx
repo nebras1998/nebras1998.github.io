@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import type { Vehicle } from '@/lib/services';
 import { listVehicles, deleteVehicle } from '@/lib/services/vehicles';
@@ -64,11 +66,11 @@ export default function VehiclesPage() {
         <input type="text" placeholder="ابحث عن مركبة..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border p-2 pr-10 rounded" />
       </div>
       {loading ? <TableSkeleton rows={4} cols={6} /> : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <Card className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead><tr className="bg-concrete-50 border-b"><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم اللوحة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الماركة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموديل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th></tr></thead>
             <tbody>
-              {filteredVehicles.length === 0 ? <tr><td colSpan={6} className="text-center p-4 text-concrete-500">لا توجد مركبات</td></tr> :
+              {filteredVehicles.length === 0 ? <tr><td colSpan={6}><EmptyData title="لا توجد مركبات" className="py-8" /></td></tr> :
                 filteredVehicles.map((v: Vehicle) => (
                   <tr key={v.$id} className="border-b hover:bg-concrete-50">
                     <td className="p-3 font-mono">{v.plateNumber}</td>
@@ -86,7 +88,7 @@ export default function VehiclesPage() {
               }
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
       <ConfirmModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onConfirm={handleDeleteConfirm} title="تأكيد الحذف" message={`هل أنت متأكد من حذف المركبة "${deleteTarget?.plate}"؟`} confirmText="حذف" cancelText="إلغاء" loading={deleting} />
     </DashboardLayout></AuthGuard>

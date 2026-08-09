@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import type { Employee, Test } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import TableSkeleton from '@/components/TableSkeleton';
 import { toast } from 'sonner';
 import { FileDown, Edit, ClipboardCheck } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -76,7 +77,7 @@ export default function EmployeeDetailPage() {
     return (
       <AuthGuard>
         <DashboardLayout>
-          <div className="text-center p-10">جارٍ تحميل البيانات...</div>
+          <TableSkeleton rows={5} cols={3} />
         </DashboardLayout>
       </AuthGuard>
     );

@@ -106,7 +106,7 @@ export default function CheckInPage() {
                         <select
                           value={attendanceList[emp.$id]?.status || 'حاضر'}
                           onChange={(e) => handleChange(emp.$id, 'status', e.target.value)}
-                          className="border p-1 rounded w-full"
+                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
                         >
                           <option value="حاضر">حاضر</option>
                           <option value="غائب">غائب</option>
@@ -119,7 +119,7 @@ export default function CheckInPage() {
                           type="time"
                           value={attendanceList[emp.$id]?.checkIn || ''}
                           onChange={(e) => handleChange(emp.$id, 'checkIn', e.target.value)}
-                          className="border p-1 rounded w-full"
+                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
                         />
                       </td>
                       <td className="p-3">
@@ -127,7 +127,7 @@ export default function CheckInPage() {
                           type="time"
                           value={attendanceList[emp.$id]?.checkOut || ''}
                           onChange={(e) => handleChange(emp.$id, 'checkOut', e.target.value)}
-                          className="border p-1 rounded w-full"
+                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
                         />
                       </td>
                       <td className="p-3">
@@ -135,7 +135,7 @@ export default function CheckInPage() {
                           type="text"
                           value={attendanceList[emp.$id]?.notes || ''}
                           onChange={(e) => handleChange(emp.$id, 'notes', e.target.value)}
-                          className="border p-1 rounded w-full"
+                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
                           placeholder="ملاحظة"
                         />
                       </td>

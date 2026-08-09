@@ -4,7 +4,7 @@ import type { ButtonHTMLAttributes } from 'react';
 
 const VARIANTS = {
   primary: 'bg-petrol text-white hover:bg-petrol-dark',
-  danger: 'bg-danger-solid text-white hover:bg-danger-solid',
+  danger: 'bg-danger-solid text-white hover:bg-danger-dark',
 };
 
 export default function SubmitButton({

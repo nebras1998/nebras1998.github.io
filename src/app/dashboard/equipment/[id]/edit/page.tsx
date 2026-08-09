@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { getEquipment, updateEquipment } from '@/lib/services/equipment';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import TableSkeleton from '@/components/TableSkeleton';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
@@ -61,7 +62,7 @@ export default function EditEquipmentPage() {
     } catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><div className="text-center p-10">جارٍ تحميل بيانات الجهاز...</div></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={5} cols={3} /></DashboardLayout></AuthGuard>;
 
   return (
     <AuthGuard><DashboardLayout>

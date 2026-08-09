@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import Pagination from '@/components/Pagination';
 import { Plus, Search, Check, X as XIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -160,7 +162,7 @@ export default function LeavesPage() {
           <select
             value={selectedEmployee}
             onChange={(e) => { setSelectedEmployee(e.target.value); setCurrentPage(1); }}
-            className="border p-2 rounded"
+            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
           >
             <option value="">كل الموظفين</option>
             {employeeOptions.map(([id, name]) => (
@@ -178,7 +180,7 @@ export default function LeavesPage() {
 
         {loading ? <TableSkeleton rows={5} cols={7} /> : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -193,7 +195,7 @@ export default function LeavesPage() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center p-4 text-concrete-500">لا توجد طلبات إجازة</td></tr>
+                    <tr><td colSpan={7}><EmptyData title="لا توجد طلبات إجازة" className="py-8" /></td></tr>
                   ) : (
                     paginated.map(leave => (
                       <tr key={leave.$id} className="border-b hover:bg-concrete-50">
@@ -224,7 +226,7 @@ export default function LeavesPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
             <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
               <span>إجمالي النتائج: {filtered.length} طلب</span>
             </div>

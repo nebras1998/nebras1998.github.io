@@ -6,6 +6,7 @@ import { LogOut, User, Briefcase, Building, GraduationCap, Award, Mail, Phone } 
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
+import TableSkeleton from '@/components/TableSkeleton';
 
 export default function TechnicianProfilePage() {
   const { employee, logout } = useAuthStore();
@@ -19,8 +20,10 @@ export default function TechnicianProfilePage() {
   // إذا لم تكن بيانات الموظف محملة بعد، نعرض مؤشر تحميل
   if (!employee) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-concrete-50">
-        <p className="text-concrete-500">جارٍ تحميل الملف الشخصي...</p>
+      <div className="min-h-screen flex items-center justify-center bg-concrete-50 p-4">
+        <div className="w-full max-w-3xl">
+          <TableSkeleton rows={4} cols={3} />
+        </div>
       </div>
     );
   }
@@ -34,14 +37,14 @@ export default function TechnicianProfilePage() {
 
       <main className="p-4 space-y-4">
         {/* بطاقة الاسم والمسمى */}
-        <div className="bg-white p-6 rounded-xl shadow text-center">
+        <Card className="text-center">
           <div className="w-20 h-20 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-3">
             <User size={36} className="text-petrol" />
           </div>
           <h2 className="text-xl font-bold">{employee.name}</h2>
           <p className="text-concrete-500">{employee.jobTitle}</p>
           <Badge status={employee.status} />
-        </div>
+        </Card>
 
         {/* تفاصيل الموظف */}
         <Card className="space-y-3">
@@ -103,7 +106,7 @@ export default function TechnicianProfilePage() {
         {/* زر تسجيل الخروج */}
         <button
           onClick={handleLogout}
-          className="w-full bg-danger-solid hover:bg-danger-solid text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow"
+          className="w-full bg-danger-solid hover:bg-danger-dark text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow"
         >
           <LogOut size={20} />
           تسجيل الخروج

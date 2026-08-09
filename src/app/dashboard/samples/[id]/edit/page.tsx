@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Project } from '@/types';
 import type { Employee } from '@/types';
-import type { Client } from '@/types';
 import { getSample, updateSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
-import { listClients } from '@/lib/services/clients';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import TableSkeleton from '@/components/TableSkeleton';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
@@ -30,7 +29,6 @@ export default function EditSamplePage() {
   const sampleId = params.id as string;
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
   const [technicians, setTechnicians] = useState<Employee[]>([]);
   const [formData, setFormData] = useState({
     sampleNumber: '', type: 'خرسانة', projectId: '', clientId: '', status: 'تم الاستلام',
@@ -44,10 +42,9 @@ export default function EditSamplePage() {
   useEffect(() => {
     (async () => {
       try {
-        const [sample, projectsRes, clientsRes, techRes] = await Promise.all([
+        const [sample, projectsRes, techRes] = await Promise.all([
           getSample(sampleId),
           listProjects([Query.limit(200)]),
-          listClients([Query.limit(200)]),
           listEmployees([Query.equal('role', 'فني'), Query.equal('status', 'يعمل'), Query.limit(100)]),
         ]);
         setFormData({
@@ -58,7 +55,6 @@ export default function EditSamplePage() {
           notes: sample.notes || '',
         });
         setProjects(projectsRes.documents);
-        setClients(clientsRes.documents);
         setTechnicians(techRes.documents);
       } catch (err: unknown) { toast.error('خطأ في جلب البيانات: ' + (err instanceof Error ? err.message : String(err))); } finally { setLoading(false); }
     })();
@@ -85,17 +81,13 @@ export default function EditSamplePage() {
 
   const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true);
     try {
-      const project = projects.find(p => p.$id === formData.projectId);
-      const projectName = project?.name || '';
-      const clientDoc = clients.find(c => c.$id === formData.clientId);
-      const clientName = clientDoc?.name || '';
-      await updateSample(sampleId, { ...formData, projectName, clientName });
+      await updateSample(sampleId, formData);
       toast.success('تم تحديث العينة بنجاح'); router.push('/dashboard/samples');
     }
     catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }
   };
 
-  if (loading) return <AuthGuard><DashboardLayout><div className="text-center p-10">جارٍ تحميل بيانات العينة...</div></DashboardLayout></AuthGuard>;
+  if (loading) return <AuthGuard><DashboardLayout><TableSkeleton rows={6} cols={3} /></DashboardLayout></AuthGuard>;
 
   const selectedProject = projects.find((p: Project) => p.$id === formData.projectId);
 

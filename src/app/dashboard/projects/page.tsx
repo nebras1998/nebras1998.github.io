@@ -7,6 +7,8 @@ import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -104,11 +106,11 @@ export default function ProjectsPage() {
 
       {loading ? <TableSkeleton rows={PAGE_SIZE} cols={6} /> : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead><tr className="bg-concrete-50 border-b"><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم المشروع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">اسم المشروع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموقع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th></tr></thead>
               <tbody>
-                {projects.length === 0 ? <tr><td colSpan={6} className="text-center p-4 text-concrete-500">لا يوجد مشاريع مطابقة</td></tr> :
+                {projects.length === 0 ? <tr><td colSpan={6}><EmptyData title="لا يوجد مشاريع مطابقة" className="py-8" /></td></tr> :
                   projects.map(project => (
                     <tr key={project.$id} className="border-b hover:bg-concrete-50">
                       <td className="p-3">{project.projectNumber}</td>
@@ -126,7 +128,7 @@ export default function ProjectsPage() {
                 }
               </tbody>
             </table>
-          </div>
+          </Card>
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
             <p className="text-sm text-concrete-500">عرض {projects.length} من أصل {totalDocuments} مشروع</p>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />

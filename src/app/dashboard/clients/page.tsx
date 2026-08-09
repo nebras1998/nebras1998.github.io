@@ -7,6 +7,8 @@ import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -102,7 +104,7 @@ export default function ClientsPage() {
           <TableSkeleton rows={PAGE_SIZE} cols={6} />
         ) : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -117,8 +119,8 @@ export default function ClientsPage() {
                 <tbody>
                   {clients.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center p-4 text-concrete-500">
-                        لا يوجد عملاء مطابقين
+                      <td colSpan={6}>
+                        <EmptyData title="لا يوجد عملاء مطابقين" className="py-8" />
                       </td>
                     </tr>
                   ) : (
@@ -154,7 +156,7 @@ export default function ClientsPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
 
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
               <p className="text-sm text-concrete-500">

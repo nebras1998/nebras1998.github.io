@@ -7,6 +7,7 @@ import type { SampleType } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
 import { toast } from 'sonner';
 import {
   Check,
@@ -506,7 +507,7 @@ export default function BookingsPage() {
                 <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
                 <input type="text" placeholder="ابحث..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border p-2 pr-10 rounded-xl" />
               </div>
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border p-2 rounded-xl">
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0">
                 <option value="">كل الحالات</option>
                 <option value="معلق">معلق</option>
                 <option value="مقبول">مقبول</option>
@@ -543,7 +544,7 @@ export default function BookingsPage() {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center p-4 text-concrete-500">لا توجد حجوزات</td></tr>
+                    <tr><td colSpan={6}><EmptyData title="لا توجد حجوزات" className="py-8" /></td></tr>
                   ) : (
                     filtered.map(b => (
                       <tr key={b.$id} className="border-b hover:bg-concrete-50">

@@ -7,6 +7,8 @@ import { listVehicles } from '@/lib/services/vehicles';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import Pagination from '@/components/Pagination';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -104,7 +106,7 @@ export default function ExpensesPage() {
             <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
             <input type="text" placeholder="ابحث..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border p-2 pr-10 rounded" />
           </div>
-          <select value={filterType} onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }} className="border p-2 rounded">
+          <select value={filterType} onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0">
             <option value="">كل الأنواع</option>
             <option value="سولار">سولار</option>
             <option value="صيانة">صيانة</option>
@@ -113,12 +115,12 @@ export default function ExpensesPage() {
             <option value="إيجار">إيجار</option>
             <option value="أخرى">أخرى</option>
           </select>
-          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setCurrentPage(1); }} className="border p-2 rounded" />
+          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
         </div>
 
         {loading ? <TableSkeleton rows={5} cols={7} /> : (
           <>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
+            <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-concrete-50 border-b">
@@ -133,7 +135,7 @@ export default function ExpensesPage() {
                 </thead>
                 <tbody>
                   {paginated.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center p-4 text-concrete-500">لا توجد مصروفات</td></tr>
+                    <tr><td colSpan={7}><EmptyData title="لا توجد مصروفات" className="py-8" /></td></tr>
                   ) : (
                     paginated.map(exp => (
                       <tr key={exp.$id} className="border-b hover:bg-concrete-50">
@@ -156,7 +158,7 @@ export default function ExpensesPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
 
             <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
               <span>إجمالي النتائج: {filtered.length} مصروف</span>

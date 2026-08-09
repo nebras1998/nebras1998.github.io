@@ -59,7 +59,7 @@ export default function TechnicianDashboard() {
         <h1 className="text-lg font-bold">مهامي</h1>
         <div className="flex items-center gap-3">
           <span className="text-sm">{employee?.name}</span>
-          <button onClick={handleLogout} className="bg-danger-solid hover:bg-danger-solid text-white px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">
+          <button onClick={handleLogout} className="bg-danger-solid hover:bg-danger-dark text-white px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">
             <LogOut size={16} /> خروج
           </button>
         </div>

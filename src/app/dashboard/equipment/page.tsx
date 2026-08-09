@@ -7,6 +7,8 @@ import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
+import EmptyData from '@/components/EmptyData';
+import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -73,14 +75,14 @@ export default function EquipmentPage() {
         <input type="text" placeholder="ابحث عن جهاز..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border border-concrete-200 rounded p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-petrol" />
       </div>
       {loading ? <TableSkeleton rows={10} cols={6} /> :
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <Card className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead><tr className="bg-concrete-50 border-b">
             <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الاسم</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموديل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الرقم التسلسلي</th>
             <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المعايرة القادمة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
           </tr></thead>
           <tbody>
-            {equipmentFiltered.length === 0 ? <tr><td colSpan={6} className="text-center p-4 text-concrete-500">لا يوجد أجهزة مطابقة</td></tr> :
+            {equipmentFiltered.length === 0 ? <tr><td colSpan={6}><EmptyData title="لا يوجد أجهزة مطابقة" className="py-8" /></td></tr> :
               equipmentFiltered.map(eq => {
                 const nearCalibration = eq.nextCalibrationDate ? isNearDate(eq.nextCalibrationDate) : false;
                 return (
@@ -107,7 +109,7 @@ export default function EquipmentPage() {
             }
           </tbody>
         </table>
-      </div>}
+      </Card>}
       <ConfirmModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onConfirm={handleDeleteConfirm} title="تأكيد الحذف" message={`هل أنت متأكد من حذف الجهاز "${deleteTarget?.name}"؟`} confirmText="حذف" cancelText="إلغاء" loading={deleting} />
     </DashboardLayout></AuthGuard>
   );
