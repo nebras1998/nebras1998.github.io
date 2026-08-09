@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { account, databases } from '@/lib/appwrite';
+import { account, databases, client } from '@/lib/appwrite';
 import { DATABASE_ID, EMPLOYEES_COLLECTION_ID } from '@/lib/constants';
 import { Models, Query } from 'appwrite';
 import type { Employee } from '@/types';
@@ -47,6 +47,35 @@ const syncAppwriteCookies = () => {
   }
 };
 
+// استخراج سر الجلسة من cookieFallback المخزن في localStorage
+// (قيمة الكوكي هي base64url لـ JSON يحتوي على الحقل secret)
+const readSessionSecret = (): string | null => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    const fallback = window.localStorage.getItem('cookieFallback');
+    if (!fallback) return null;
+    const cookies = JSON.parse(fallback) as Record<string, string>;
+    for (const value of Object.values(cookies)) {
+      if (!value) continue;
+      try {
+        const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+        const decoded = JSON.parse(atob(padded));
+        if (decoded?.secret) return decoded.secret;
+      } catch {}
+    }
+  } catch {}
+  return null;
+};
+
+// اعتماد الجلسة عبر ترويسة X-Appwrite-Session مباشرة بدلًا من الاعتماد
+// على cookies الطرف الثالث أو localStorage فقط، لتجنب خطأ
+// "User (role: guests) missing scope (account)" عند حظر المتصفح للكوكيز
+const applySessionToClient = (secret?: string | null) => {
+  const value = secret || readSessionSecret();
+  if (value) client.setSession(value);
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   employee: null,
@@ -59,7 +88,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         await account.deleteSession('current');
       } catch (e) {
       }
-      await account.createEmailPasswordSession(email, password);
+      const session = await account.createEmailPasswordSession(email, password);
+      applySessionToClient(session?.secret);
       syncAppwriteCookies();
       const user = await account.get();
       
@@ -98,7 +128,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   loginTechnician: async (email, password) => {
     try {
       try { await account.deleteSession('current'); } catch {}
-      await account.createEmailPasswordSession(email, password);
+      const session = await account.createEmailPasswordSession(email, password);
+      applySessionToClient(session?.secret);
       syncAppwriteCookies();
       const user = await account.get();
 
@@ -129,11 +160,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       await account.deleteSession('current');
     } catch {}
     clearAppwriteCookies();
+    client.setSession('');
     set({ user: null, employee: null, role: null, loading: false });
   },
 
   checkSession: async () => {
     try {
+      applySessionToClient();
       const user = await account.get();
       let employee = null;
       let role = null;
