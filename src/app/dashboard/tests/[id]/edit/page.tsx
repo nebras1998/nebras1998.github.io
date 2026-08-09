@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import type { Test, Sample } from '@/types';
+import type { Sample } from '@/types';
 import type { StandardTest } from '@/lib/services';
 import type { Employee } from '@/types';
 import { getTest, updateTest } from '@/lib/services/tests';
@@ -24,9 +24,18 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 import { FileDown, X, Plus } from 'lucide-react';
-
-const MULTI_RESULT_TESTS = ['مقاومة الضغط للقلب الخرساني'];
-const DUAL_AGE_TESTS = ['مقاومة الضغط'];
+import {
+  getTestResultType,
+  parseResultFields,
+  parseSpecificationProfiles,
+  parseAppliedStandard,
+  serializeResultFields,
+  serializeAppliedStandard,
+  evaluateCompliance,
+  type ResultFieldDef,
+  type SpecificationProfile,
+  type TestResultType,
+} from '@/lib/test-config';
 
 export default function EditTestPage() {
   const router = useRouter();
@@ -40,7 +49,7 @@ export default function EditTestPage() {
   const [formData, setFormData] = useState({
     testName: '', sampleId: '', projectId: '', clientId: '', status: 'قيد الانتظار',
     result: '', unit: '', specification: '', assignedTo: '', notes: '', reportFileId: '',
-    completedAt: '',
+    completedAt: '', resultType: '',
   });
 
   const [age7Results, setAge7Results] = useState<string[]>([]);
@@ -50,6 +59,15 @@ export default function EditTestPage() {
 
   const [cubeResults, setCubeResults] = useState<string[]>([]);
 
+  // --- نتائج متعددة الحقول (multi_field) ---
+  const [resultFields, setResultFields] = useState<ResultFieldDef[]>([]);
+  const [resultFieldsValues, setResultFieldsValues] = useState<Record<string, string>>({});
+
+  // --- معايير المواصفات والمعيار المطبق ---
+  const [specProfiles, setSpecProfiles] = useState<SpecificationProfile[]>([]);
+  const [selectedProfileName, setSelectedProfileName] = useState('');
+  const [appliedStandard, setAppliedStandard] = useState<SpecificationProfile | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -57,8 +75,10 @@ export default function EditTestPage() {
   const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isMultiResult = MULTI_RESULT_TESTS.includes(formData.testName);
-  const isDualAge = DUAL_AGE_TESTS.includes(formData.testName);
+  const resultType: TestResultType = getTestResultType(formData.testName, formData.resultType);
+  const isDualAge = resultType === 'dual_age';
+  const isMultiResult = resultType === 'multi_no_age';
+  const isMultiField = resultType === 'multi_field';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,7 +92,7 @@ export default function EditTestPage() {
           testName: test.testName, sampleId: test.sampleId || '', projectId: test.projectId || '', clientId: test.clientId || '',
           status: test.status, result: test.result || '', unit: test.unit || '', specification: test.specification || '',
           assignedTo: test.assignedTo || '', notes: test.notes || '', reportFileId: test.reportFileId || '',
-          completedAt: test.completedAt || '',
+          completedAt: test.completedAt || '', resultType: test.resultType || '',
         });
         setSamples(samplesRes.documents);
         setEmployees(employeesRes.documents);
@@ -85,6 +105,13 @@ export default function EditTestPage() {
 
         if (test.results) { try { setCubeResults(JSON.parse(test.results).map(String)); } catch { setCubeResults([]); } }
 
+        // تعبئة حقول multi_field والمواصفة المطبقة
+        setResultFields(parseResultFields(test.resultFields));
+        setAppliedStandard(parseAppliedStandard(test.appliedStandard));
+        if (test.resultFieldsValues) {
+          try { setResultFieldsValues(JSON.parse(test.resultFieldsValues)); } catch { setResultFieldsValues({}); }
+        }
+
         if (test.reportFileId) setExistingFileUrl(getFileViewUrl(test.reportFileId));
 
         if (test.sampleId) {
@@ -94,6 +121,12 @@ export default function EditTestPage() {
             if (typeRes.documents.length > 0) {
               const testsRes = await listStandardTests([Query.equal('sampleTypeId', typeRes.documents[0].$id), Query.limit(50)]);
               setStandardTests(testsRes.documents);
+              const matched = testsRes.documents.find((t: StandardTest) => t.name === test.testName);
+              const profiles = matched ? parseSpecificationProfiles(matched.specificationProfiles) : [];
+              const applied = parseAppliedStandard(test.appliedStandard);
+              if (applied && !profiles.some((p) => p.name === applied.name)) profiles.unshift(applied);
+              setSpecProfiles(profiles);
+              if (applied) setSelectedProfileName(applied.name);
             }
           }
         }
@@ -107,7 +140,28 @@ export default function EditTestPage() {
   };
 
   const handleTestSelect = (test: StandardTest) => {
-    setFormData({ ...formData, testName: test.name, specification: test.specification || '', unit: test.unit || '' });
+    setFormData((prev) => ({
+      ...prev,
+      testName: test.name,
+      resultType: test.resultType || '',
+      specification: test.specification || '',
+      unit: test.unit || '',
+    }));
+    setResultFields(parseResultFields(test.resultFields));
+    setSpecProfiles(parseSpecificationProfiles(test.specificationProfiles));
+    setSelectedProfileName('');
+    setAppliedStandard(null);
+    setCubeResults([]);
+    setResultFieldsValues({});
+  };
+
+  const handleProfileSelect = (name: string) => {
+    setSelectedProfileName(name);
+    const profile = specProfiles.find((p) => p.name === name);
+    setAppliedStandard(profile ?? null);
+    if (profile) {
+      setFormData((prev) => ({ ...prev, specification: profile.specification || '', unit: profile.unit || '' }));
+    }
   };
 
   const updateResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => setter((prev: string[]) => { const n = [...prev]; n[index] = value; return n; });
@@ -137,6 +191,11 @@ export default function EditTestPage() {
       const newFileId = await uploadFile();
       if (newFileId === null && selectedFile) { setSaving(false); return; }
       const payload: Record<string, unknown> = { ...formData, reportFileId: newFileId || formData.reportFileId };
+      payload.resultType = resultType;
+      if (resultFields.length > 0) payload.resultFields = serializeResultFields(resultFields);
+      if (appliedStandard) payload.appliedStandard = serializeAppliedStandard(appliedStandard);
+
+      let compliance: 'مطابق' | 'غير مطابق' | undefined;
 
       if (isDualAge) {
         const valid7 = age7Results.filter((r) => r.trim() !== '');
@@ -148,13 +207,38 @@ export default function EditTestPage() {
         payload.test7Date = test7Date;
         payload.test28Date = test28Date;
         payload.result = '';
+        if (age7Results.some((r) => r.trim() !== '') || age28Results.some((r) => r.trim() !== '')) {
+          compliance = evaluateCompliance('dual_age', appliedStandard, {
+            average7Days: payload.average7Days as number,
+            average28Days: payload.average28Days as number,
+          });
+        }
+      } else if (isMultiField) {
+        const cleanValues: Record<string, string> = {};
+        for (const f of resultFields) {
+          const v = (resultFieldsValues[f.key] || '').trim();
+          if (v) cleanValues[f.key] = v;
+        }
+        payload.resultFieldsValues = JSON.stringify(cleanValues);
+        payload.results = '';
+        payload.result = '';
+        if (Object.keys(cleanValues).length > 0) {
+          compliance = evaluateCompliance('multi_field', appliedStandard, { resultFieldsValues: cleanValues });
+        }
       } else if (isMultiResult) {
         const valid = cubeResults.filter(r => r.trim() !== '');
         if (!valid.length) { toast.error('أدخل نتيجة واحدة على الأقل'); setSaving(false); return; }
         payload.results = JSON.stringify(valid.map(Number));
         payload.averageResult = parseFloat(calcAvg(valid) || '0');
         payload.result = '';
+        compliance = evaluateCompliance('multi_no_age', appliedStandard, { averageResult: payload.averageResult as number });
+      } else {
+        if (formData.result.trim() !== '') {
+          compliance = evaluateCompliance('single', appliedStandard, { result: formData.result });
+        }
       }
+
+      if (compliance) payload.complianceStatus = compliance;
 
       await updateTest(testId, payload);
       toast.success('تم تحديث الفحص بنجاح');
@@ -190,6 +274,15 @@ export default function EditTestPage() {
             </div>
           )}
 
+          {specProfiles.length > 0 && (
+            <SelectField label="المعيار المطبق" name="appliedStandardName" value={selectedProfileName} onChange={(e) => handleProfileSelect(e.target.value)}>
+              <option value="">بدون معيار محدد</option>
+              {specProfiles.map((p) => (
+                <option key={p.name} value={p.name}>{p.name}{p.specification ? ` (${p.specification})` : ''}</option>
+              ))}
+            </SelectField>
+          )}
+
           <TextField label="اسم الفحص" name="testName" value={formData.testName} onChange={handleChange} required />
 
           {/* ========== فحص مقاومة الضغط ========== */}
@@ -199,7 +292,7 @@ export default function EditTestPage() {
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 7 أيام</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <TextField type="date" id="age7-test-date" label="تاريخ الفحص" value={test7Date} onChange={e => setTest7Date(e.target.value)} />
-                  <TextField id="age7-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
+                  <TextField id="age7-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age7Results.map((val, idx) => (
@@ -217,7 +310,7 @@ export default function EditTestPage() {
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 28 يوم</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <TextField type="date" id="age28-test-date" label="تاريخ الفحص" value={test28Date} onChange={e => setTest28Date(e.target.value)} />
-                  <TextField id="age28-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
+                  <TextField id="age28-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age28Results.map((val, idx) => (
@@ -245,7 +338,7 @@ export default function EditTestPage() {
                 <div key={idx} className="flex items-center gap-2">
                   <span className="text-sm text-concrete-500 w-20">مكعب {idx + 1}</span>
                   <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
-                  <span className="text-sm">{formData.unit || 'kg/cm2'}</span>
+                  <span className="text-sm">{formData.unit || '-'}</span>
                   {cubeResults.length > 1 && <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger"><X size={16} /></button>}
                 </div>
               ))}
@@ -253,8 +346,33 @@ export default function EditTestPage() {
             </div>
           )}
 
+          {/* ========== فحوصات متعددة الحقول (multi_field) ========== */}
+          {isMultiField && (
+            <div className="bg-petrol-soft p-4 rounded-lg space-y-3">
+              <h3 className="font-bold text-petrol">نتائج الفحص</h3>
+              {resultFields.length === 0 ? (
+                <p className="text-sm text-concrete-500">لم تُعرّف حقول نتائج لهذا الفحص.</p>
+              ) : (
+                resultFields.map((f) => (
+                  <div key={f.key} className="flex items-center gap-2">
+                    <span className="text-sm text-concrete-500 w-24 shrink-0">{f.label}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={resultFieldsValues[f.key] || ''}
+                      onChange={(e) => setResultFieldsValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                      className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+                      placeholder="0"
+                    />
+                    <span className="text-sm">{f.unit || formData.unit || '-'}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           {/* ========== فحوصات عادية ========== */}
-          {!isDualAge && !isMultiResult && (
+          {!isDualAge && !isMultiResult && !isMultiField && (
             <div className="grid grid-cols-2 gap-4">
               <TextField label="النتيجة" name="result" value={formData.result} onChange={handleChange} />
               <TextField label="الوحدة" name="unit" value={formData.unit} onChange={handleChange} />

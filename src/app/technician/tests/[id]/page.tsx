@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Test, Sample } from '@/types';
 import { getTest, updateTest, getSample, listEmployees, Query } from '@/lib/services';
@@ -14,9 +14,16 @@ import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import EmptyData from '@/components/EmptyData';
-
-const MULTI_RESULT_TESTS = ['مقاومة الضغط للقلب الخرساني']; // فحوصات متعددة المكعبات (بدون أعمار)
-const DUAL_AGE_TESTS = ['مقاومة الضغط']; // الفحص الذي له عمر 7 و 28 يوم
+import Badge from '@/components/Badge';
+import {
+  getTestResultType,
+  parseResultFields,
+  parseAppliedStandard,
+  evaluateCompliance,
+  type ResultFieldDef,
+  type SpecificationProfile,
+  type TestResultType,
+} from '@/lib/test-config';
 
 export default function TechnicianTestPage() {
   const params = useParams();
@@ -43,10 +50,19 @@ export default function TechnicianTestPage() {
   // --- نتائج متعددة (للقلب الخرساني) ---
   const [cubeResults, setCubeResults] = useState<string[]>(['', '', '']);
 
+  // --- نتائج متعددة الحقول (multi_field) ---
+  const [resultFields, setResultFields] = useState<ResultFieldDef[]>([]);
+  const [resultFieldsValues, setResultFieldsValues] = useState<Record<string, string>>({});
+
+  // --- المواصفة المطبقة (لحساب المطابقة) ---
+  const [appliedStandard, setAppliedStandard] = useState<SpecificationProfile | null>(null);
+
   const [saving, setSaving] = useState(false);
 
-  const isMultiResult = MULTI_RESULT_TESTS.includes(test?.testName || '');
-  const isDualAge = DUAL_AGE_TESTS.includes(test?.testName || '');
+  const resultType: TestResultType = getTestResultType(test?.testName, test?.resultType);
+  const isDualAge = resultType === 'dual_age';
+  const isMultiResult = resultType === 'multi_no_age';
+  const isMultiField = resultType === 'multi_field';
 
   // --- جلب بيانات الفحص ---
   useEffect(() => {
@@ -74,6 +90,13 @@ export default function TechnicianTestPage() {
         // تعبئة نتائج متعددة (القلب) إن وُجدت
         if (t.results) {
           try { setCubeResults(JSON.parse(t.results).map(String)); } catch { setCubeResults(['', '', '']); }
+        }
+
+        // تعبئة حقول multi_field والمواصفة المطبقة
+        setResultFields(parseResultFields(t.resultFields));
+        setAppliedStandard(parseAppliedStandard(t.appliedStandard));
+        if (t.resultFieldsValues) {
+          try { setResultFieldsValues(JSON.parse(t.resultFieldsValues)); } catch { setResultFieldsValues({}); }
         }
 
         // جلب بيانات العينة المرتبطة (لحساب تواريخ الفحص إن لم تكن موجودة)
@@ -111,6 +134,28 @@ export default function TechnicianTestPage() {
     return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
   };
 
+  const hasEnteredValue =
+    isDualAge
+      ? age7Results.some((v) => v.trim() !== '') || age28Results.some((v) => v.trim() !== '')
+      : isMultiResult
+      ? cubeResults.some((v) => v.trim() !== '')
+      : isMultiField
+      ? Object.values(resultFieldsValues).some((v) => v.trim() !== '')
+      : result.trim() !== '';
+
+  const liveCompliance = useMemo(
+    () =>
+      evaluateCompliance(resultType, appliedStandard, {
+        result,
+        average7Days: parseFloat(calcAvg(age7Results) || '0'),
+        average28Days: parseFloat(calcAvg(age28Results) || '0'),
+        averageResult: parseFloat(calcAvg(cubeResults) || '0'),
+        resultFieldsValues,
+      }),
+    [resultType, appliedStandard, result, age7Results, age28Results, cubeResults, resultFieldsValues]
+  );
+  const showLiveCompliance = !!liveCompliance && hasEnteredValue;
+
   // --- حفظ النتيجة ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +170,8 @@ export default function TechnicianTestPage() {
         completedAt: completedAt || new Date().toISOString(),
       };
 
+      let compliance: 'مطابق' | 'غير مطابق' | undefined;
+
       if (isDualAge) {
         // فحص مقاومة الضغط (عمرين)
         const valid7 = age7Results.filter((r) => r.trim() !== '');
@@ -136,6 +183,28 @@ export default function TechnicianTestPage() {
         payload.test7Date = test7Date;
         payload.test28Date = test28Date;
         payload.result = '';
+        compliance = evaluateCompliance('dual_age', appliedStandard, {
+          average7Days: payload.average7Days as number,
+          average28Days: payload.average28Days as number,
+        });
+      } else if (isMultiField) {
+        // فحوصات متعددة الحقول
+        const cleanValues: Record<string, string> = {};
+        for (const f of resultFields) {
+          const value = (resultFieldsValues[f.key] || '').trim();
+          if (value) cleanValues[f.key] = value;
+        }
+        if (resultFields.length > 0 && Object.keys(cleanValues).length === 0) {
+          toast.error('أدخل نتيجة واحدة على الأقل');
+          setSaving(false);
+          return;
+        }
+        payload.resultFieldsValues = JSON.stringify(cleanValues);
+        payload.results = '';
+        payload.result = '';
+        if (Object.keys(cleanValues).length > 0) {
+          compliance = evaluateCompliance('multi_field', appliedStandard, { resultFieldsValues: cleanValues });
+        }
       } else if (isMultiResult) {
         // فحوصات متعددة المكعبات
         const valid = cubeResults.filter(r => r.trim() !== '');
@@ -143,11 +212,15 @@ export default function TechnicianTestPage() {
         payload.results = JSON.stringify(valid.map(Number));
         payload.averageResult = parseFloat(calcAvg(valid) || '0');
         payload.result = '';
+        compliance = evaluateCompliance('multi_no_age', appliedStandard, { averageResult: payload.averageResult as number });
       } else {
         // فحص عادي
         if (!result) { toast.error('الرجاء إدخال النتيجة'); setSaving(false); return; }
         payload.result = result;
+        compliance = evaluateCompliance('single', appliedStandard, { result });
       }
+
+      if (compliance) payload.complianceStatus = compliance;
 
       await updateTest(testId, payload);
 
@@ -156,6 +229,8 @@ export default function TechnicianTestPage() {
         const sampleNumber = sample?.sampleNumber || test.sampleId;
         const resultText = isDualAge
           ? `7 أيام: ${calcAvg(age7Results)} / 28 يوم: ${calcAvg(age28Results)}`
+          : isMultiField
+          ? resultFields.map((f) => `${f.label}: ${resultFieldsValues[f.key] || '-'}`).join(' / ')
           : isMultiResult
           ? `متوسط: ${calcAvg(cubeResults)}`
           : result;
@@ -209,7 +284,14 @@ export default function TechnicianTestPage() {
         <Card className="mb-4 space-y-1 text-sm">
           <p><span className="text-concrete-500">رقم العينة:</span> {sample?.sampleNumber || test.sampleId}</p>
           <p><span className="text-concrete-500">النوع:</span> {sample?.type || '-'}</p>
-          <p><span className="text-concrete-500">المواصفة:</span> {test.specification || '-'}</p>
+          <p><span className="text-concrete-500">المواصفة:</span> {appliedStandard?.specification || test.specification || '-'}</p>
+          {appliedStandard && <p><span className="text-concrete-500">المعيار المطبق:</span> {appliedStandard.name}</p>}
+          {showLiveCompliance && (
+            <div className="flex items-center justify-between pt-2 border-t mt-2">
+              <span className="font-bold text-sm">حالة المطابقة</span>
+              <Badge status={liveCompliance} />
+            </div>
+          )}
         </Card>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -231,17 +313,17 @@ export default function TechnicianTestPage() {
                       className="flex-1"
                       placeholder="0"
                     />
-                    <span className="text-sm">{unit || 'kg/cm2'}</span>
-                    {age7Results.length > 1 && (
-                      <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger p-1"><X size={18} /></button>
-                    )}
+                <span className="text-sm">{unit || '-'}</span>
+                {age7Results.length > 1 && (
+                  <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger p-1"><X size={18} /></button>
+                )}
                   </div>
                 ))}
                 <button type="button" onClick={() => addResult(setAge7Results)} className="mt-2 text-petrol text-sm flex items-center gap-1 font-bold">
                   <Plus size={16} /> إضافة مكعب
                 </button>
                 <div className="mt-3 text-center font-bold text-success">
-                  المتوسط: {calcAvg(age7Results)} {unit || 'kg/cm2'}
+                  المتوسط: {calcAvg(age7Results)}{unit ? ` ${unit}` : ''}
                 </div>
               </div>
 
@@ -260,17 +342,17 @@ export default function TechnicianTestPage() {
                       className="flex-1"
                       placeholder="0"
                     />
-                    <span className="text-sm">{unit || 'kg/cm2'}</span>
-                    {age28Results.length > 1 && (
-                      <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger p-1"><X size={18} /></button>
-                    )}
+                <span className="text-sm">{unit || '-'}</span>
+                {age28Results.length > 1 && (
+                  <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger p-1"><X size={18} /></button>
+                )}
                   </div>
                 ))}
                 <button type="button" onClick={() => addResult(setAge28Results)} className="mt-2 text-petrol text-sm flex items-center gap-1 font-bold">
                   <Plus size={16} /> إضافة مكعب
                 </button>
                 <div className="mt-3 text-center font-bold text-success">
-                  المتوسط: {calcAvg(age28Results)} {unit || 'kg/cm2'}
+                  المتوسط: {calcAvg(age28Results)}{unit ? ` ${unit}` : ''}
                 </div>
               </div>
             </div>
@@ -296,20 +378,47 @@ export default function TechnicianTestPage() {
                     className="flex-1"
                     placeholder="0"
                   />
-                  <span className="text-sm">{unit || 'kg/cm2'}</span>
+                  <span className="text-sm">{unit || '-'}</span>
                   {cubeResults.length > 1 && (
                     <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger p-1"><X size={18} /></button>
                   )}
                 </div>
               ))}
               <div className="text-center font-bold text-success mt-2">
-                المتوسط: {calcAvg(cubeResults)} {unit || 'kg/cm2'}
+                المتوسط: {calcAvg(cubeResults)}{unit ? ` ${unit}` : ''}
               </div>
             </div>
           )}
 
+          {/* ========== فحوصات متعددة الحقول (multi_field) ========== */}
+          {isMultiField && (
+            <div className="bg-petrol-soft p-4 rounded-2xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-petrol">نتائج الفحص</h3>
+              </div>
+              {resultFields.length === 0 ? (
+                <p className="text-sm text-concrete-500">لم تُعرّف حقول نتائج لهذا الفحص.</p>
+              ) : (
+                resultFields.map((f) => (
+                  <div key={f.key} className="flex items-center gap-2">
+                    <span className="text-sm w-24 shrink-0">{f.label}</span>
+                    <TextField
+                      type="number"
+                      step="0.01"
+                      value={resultFieldsValues[f.key] || ''}
+                      onChange={(e) => setResultFieldsValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                      className="flex-1"
+                      placeholder="0"
+                    />
+                    <span className="text-sm">{f.unit || unit || '-'}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           {/* ========== فحص عادي ========== */}
-          {!isDualAge && !isMultiResult && (
+          {!isDualAge && !isMultiResult && !isMultiField && (
             <>
               <Card className="space-y-4">
                 <TextField

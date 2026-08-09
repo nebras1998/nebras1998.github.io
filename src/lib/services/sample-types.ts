@@ -20,6 +20,10 @@ export interface StandardTest {
   specification?: string;
   unit?: string;
   price?: number;
+  // Professionalized samples & tests fields (all stored as JSON strings):
+  resultType?: 'single' | 'dual_age' | 'multi_no_age' | 'multi_field';
+  resultFields?: string; // JSON array of ResultFieldDef
+  specificationProfiles?: string; // JSON array of SpecificationProfile
 }
 
 export async function listSampleTypes(queries: string[] = []): Promise<PaginatedResult<SampleType>> {

@@ -110,6 +110,12 @@ export interface Test {
   reportFileId?: string;
   notes?: string;
   completedAt?: string;
+  // Professionalized samples & tests fields (all stored as JSON strings):
+  resultType?: 'single' | 'dual_age' | 'multi_no_age' | 'multi_field';
+  resultFields?: string; // JSON array of ResultFieldDef, copied from the standard test
+  resultFieldsValues?: string; // JSON object { [fieldKey]: value }
+  appliedStandard?: string; // JSON of the selected SpecificationProfile
+  complianceStatus?: 'مطابق' | 'غير مطابق';
 }
 
 // ===== نموذج الفاتورة =====

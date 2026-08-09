@@ -22,9 +22,17 @@ import { toast } from 'sonner';
 
 import { Plus, X } from 'lucide-react';
 import { generateTestNumber } from '@/lib/helpers';
-
-const MULTI_RESULT_TESTS = ['مقاومة الضغط للقلب الخرساني']; // فحوصات متعددة المكعبات (بدون أعمار)
-const DUAL_AGE_TESTS = ['مقاومة الضغط']; // الفحص الذي له عمر 7 و 28 يوم
+import {
+  getTestResultType,
+  parseResultFields,
+  parseSpecificationProfiles,
+  serializeResultFields,
+  serializeAppliedStandard,
+  evaluateCompliance,
+  type ResultFieldDef,
+  type SpecificationProfile,
+  type TestResultType,
+} from '@/lib/test-config';
 
 export default function NewTestPage() {
   const router = useRouter();
@@ -46,6 +54,7 @@ export default function NewTestPage() {
     specification: '',
     assignedTo: '',
     notes: '',
+    resultType: '',
   });
 
   // --- نتائج الأعمار (للخرسانة) ---
@@ -57,10 +66,21 @@ export default function NewTestPage() {
   // --- نتائج متعددة (للقلب الخرساني) ---
   const [cubeResults, setCubeResults] = useState<string[]>(['', '', '']);
 
+  // --- نتائج متعددة الحقول (multi_field) ---
+  const [resultFields, setResultFields] = useState<ResultFieldDef[]>([]);
+  const [resultFieldsValues, setResultFieldsValues] = useState<Record<string, string>>({});
+
+  // --- معايير المواصفات المتاحة والمعيار المطبق ---
+  const [specProfiles, setSpecProfiles] = useState<SpecificationProfile[]>([]);
+  const [selectedProfileName, setSelectedProfileName] = useState('');
+  const [appliedStandard, setAppliedStandard] = useState<SpecificationProfile | null>(null);
+
   const [loading, setLoading] = useState(false);
 
-  const isMultiResult = MULTI_RESULT_TESTS.includes(formData.testName);
-  const isDualAge = DUAL_AGE_TESTS.includes(formData.testName);
+  const resultType: TestResultType = getTestResultType(formData.testName, formData.resultType);
+  const isDualAge = resultType === 'dual_age';
+  const isMultiResult = resultType === 'multi_no_age';
+  const isMultiField = resultType === 'multi_field';
 
   useEffect(() => {
     (async () => {
@@ -86,7 +106,11 @@ export default function NewTestPage() {
       const sample = samples.find((s) => s.$id === formData.sampleId);
       setSelectedSample(sample ?? null);
       if (!sample) return;
-      setFormData((prev) => ({ ...prev, projectId: sample.projectId ?? '', clientId: sample.clientId ?? '', testName: '' }));
+      setFormData((prev) => ({ ...prev, projectId: sample.projectId ?? '', clientId: sample.clientId ?? '', testName: '', resultType: '' }));
+      setResultFields([]);
+      setSpecProfiles([]);
+      setSelectedProfileName('');
+      setAppliedStandard(null);
       if (sample.samplingDate) {
         const d = new Date(sample.samplingDate);
         const d7 = new Date(d); d7.setDate(d7.getDate() + 7);
@@ -114,7 +138,28 @@ export default function NewTestPage() {
   };
 
   const handleTestSelect = (test: StandardTest) => {
-    setFormData({ ...formData, testName: test.name, specification: test.specification || '', unit: test.unit || '' });
+    setFormData((prev) => ({
+      ...prev,
+      testName: test.name,
+      resultType: test.resultType || '',
+      specification: test.specification || '',
+      unit: test.unit || '',
+    }));
+    setResultFields(parseResultFields(test.resultFields));
+    setSpecProfiles(parseSpecificationProfiles(test.specificationProfiles));
+    setSelectedProfileName('');
+    setAppliedStandard(null);
+    setCubeResults(['', '', '']);
+    setResultFieldsValues({});
+  };
+
+  const handleProfileSelect = (name: string) => {
+    setSelectedProfileName(name);
+    const profile = specProfiles.find((p) => p.name === name);
+    setAppliedStandard(profile ?? null);
+    if (profile) {
+      setFormData((prev) => ({ ...prev, specification: profile.specification || '', unit: profile.unit || '' }));
+    }
   };
 
   // دوال مساعدة لنتائج المكعبات
@@ -135,6 +180,11 @@ export default function NewTestPage() {
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...formData };
+      payload.resultType = resultType;
+      if (resultFields.length > 0) payload.resultFields = serializeResultFields(resultFields);
+      if (appliedStandard) payload.appliedStandard = serializeAppliedStandard(appliedStandard);
+
+      let compliance: 'مطابق' | 'غير مطابق' | undefined;
 
       if (isDualAge) {
         // فحص مقاومة الضغط
@@ -147,6 +197,25 @@ export default function NewTestPage() {
         payload.test7Date = test7Date;
         payload.test28Date = test28Date;
         payload.result = '';
+        if (age7Results.some((r) => r.trim() !== '') || age28Results.some((r) => r.trim() !== '')) {
+          compliance = evaluateCompliance('dual_age', appliedStandard, {
+            average7Days: payload.average7Days as number,
+            average28Days: payload.average28Days as number,
+          });
+        }
+      } else if (isMultiField) {
+        // فحوصات متعددة الحقول
+        const cleanValues: Record<string, string> = {};
+        for (const f of resultFields) {
+          const v = (resultFieldsValues[f.key] || '').trim();
+          if (v) cleanValues[f.key] = v;
+        }
+        payload.resultFieldsValues = JSON.stringify(cleanValues);
+        payload.results = '';
+        payload.result = '';
+        if (Object.keys(cleanValues).length > 0) {
+          compliance = evaluateCompliance('multi_field', appliedStandard, { resultFieldsValues: cleanValues });
+        }
       } else if (isMultiResult) {
         // فحوصات متعددة المكعبات (القلب الخرساني)
         const valid = cubeResults.filter(r => r.trim() !== '');
@@ -154,10 +223,16 @@ export default function NewTestPage() {
         payload.results = JSON.stringify(valid.map(Number));
         payload.averageResult = parseFloat(calcAvg(valid) || '0');
         payload.result = '';
+        compliance = evaluateCompliance('multi_no_age', appliedStandard, { averageResult: payload.averageResult as number });
       } else {
         // فحوصات عادية
         payload.result = formData.result;
+        if (formData.result.trim() !== '') {
+          compliance = evaluateCompliance('single', appliedStandard, { result: formData.result });
+        }
       }
+
+      if (compliance) payload.complianceStatus = compliance;
 
       let isSuccess = false;
       let nextNumberStr = formData.testNumber;
@@ -224,6 +299,15 @@ export default function NewTestPage() {
             </div>
           )}
 
+          {specProfiles.length > 0 && (
+            <SelectField label="المعيار المطبق" name="appliedStandardName" value={selectedProfileName} onChange={(e) => handleProfileSelect(e.target.value)}>
+              <option value="">بدون معيار محدد</option>
+              {specProfiles.map((p) => (
+                <option key={p.name} value={p.name}>{p.name}{p.specification ? ` (${p.specification})` : ''}</option>
+              ))}
+            </SelectField>
+          )}
+
           <TextField label="اسم الفحص" name="testName" value={formData.testName} onChange={handleChange} required />
 
           {/* ========== فحص مقاومة الضغط (عمرين) ========== */}
@@ -234,7 +318,7 @@ export default function NewTestPage() {
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 7 أيام</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <TextField type="date" id="age7-test-date" label="تاريخ الفحص" value={test7Date} onChange={e => setTest7Date(e.target.value)} />
-                  <TextField id="age7-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
+                  <TextField id="age7-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age7Results.map((val, idx) => (
@@ -254,7 +338,7 @@ export default function NewTestPage() {
                 <h3 className="font-bold text-petrol mb-2">نتائج عمر 28 يوم</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <TextField type="date" id="age28-test-date" label="تاريخ الفحص" value={test28Date} onChange={e => setTest28Date(e.target.value)} />
-                  <TextField id="age28-unit" label="الوحدة" value={formData.unit || 'kg/cm2'} readOnly inputClassName="bg-concrete-100" />
+                  <TextField id="age28-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
                 </div>
                 <div className="space-y-2">
                   {age28Results.map((val, idx) => (
@@ -282,7 +366,7 @@ export default function NewTestPage() {
                 <div key={idx} className="flex items-center gap-2">
                   <span className="text-sm text-concrete-500 w-20">مكعب {idx + 1}</span>
                   <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
-                  <span className="text-sm">{formData.unit || 'kg/cm2'}</span>
+                  <span className="text-sm">{formData.unit || '-'}</span>
                   {cubeResults.length > 1 && <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger"><X size={16} /></button>}
                 </div>
               ))}
@@ -290,8 +374,33 @@ export default function NewTestPage() {
             </div>
           )}
 
+          {/* ========== فحوصات متعددة الحقول (multi_field) ========== */}
+          {isMultiField && (
+            <div className="bg-petrol-soft p-4 rounded-lg space-y-3">
+              <h3 className="font-bold text-petrol">نتائج الفحص</h3>
+              {resultFields.length === 0 ? (
+                <p className="text-sm text-concrete-500">لم تُعرّف حقول نتائج لهذا الفحص.</p>
+              ) : (
+                resultFields.map((f) => (
+                  <div key={f.key} className="flex items-center gap-2">
+                    <span className="text-sm text-concrete-500 w-24 shrink-0">{f.label}</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={resultFieldsValues[f.key] || ''}
+                      onChange={(e) => setResultFieldsValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                      className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+                      placeholder="0"
+                    />
+                    <span className="text-sm">{f.unit || formData.unit || '-'}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           {/* ========== فحوصات عادية ========== */}
-          {!isDualAge && !isMultiResult && (
+          {!isDualAge && !isMultiResult && !isMultiField && (
             <div className="grid grid-cols-2 gap-4">
               <TextField label="النتيجة" name="result" value={formData.result} onChange={handleChange} />
               <TextField label="الوحدة" name="unit" value={formData.unit} onChange={handleChange} />

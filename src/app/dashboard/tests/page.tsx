@@ -20,6 +20,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import Pagination from '@/components/Pagination';
 import Badge from '@/components/Badge';
+import { parseResultFields } from '@/lib/test-config';
 
 const PAGE_SIZE = 15;
 
@@ -111,6 +112,16 @@ export default function TestsPage() {
 
   // دالة لتنسيق عرض النتيجة في الجدول
   const renderResult = (test: Test) => {
+    if (test.resultFieldsValues && test.resultFields) {
+      const fields = parseResultFields(test.resultFields);
+      if (fields.length > 0) {
+        try {
+          const values = JSON.parse(test.resultFieldsValues);
+          const summary = fields.map((f) => `${f.label}: ${values[f.key] || '-'}`).join('، ');
+          return <span title={summary}>نتائج متعددة</span>;
+        } catch {}
+      }
+    }
     if (test.averageResult) {
       return <span title={`المتوسط: ${test.averageResult}`}>{test.averageResult}</span>;
     }
@@ -171,6 +182,7 @@ export default function TestsPage() {
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوحدة</th>
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المسؤول</th>
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
+                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المطابقة</th>
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الإنشاء</th>
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ النتيجة</th>
                     <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
@@ -178,7 +190,7 @@ export default function TestsPage() {
                 </thead>
                 <tbody>
                   {tests.length === 0 ? (
-                    <tr><td colSpan={10}><EmptyData title="لا يوجد فحوصات مطابقة" className="py-8" /></td></tr>
+                    <tr><td colSpan={11}><EmptyData title="لا يوجد فحوصات مطابقة" className="py-8" /></td></tr>
                   ) : (
                     tests.map(test => (
                       <tr key={test.$id} className="border-b hover:bg-concrete-50">
@@ -189,6 +201,7 @@ export default function TestsPage() {
                         <td className="p-3">{test.unit || '-'}</td>
                         <td className="p-3">{employeesMap[test.assignedTo ?? ''] || '-'}</td>
                         <td className="p-3"><Badge status={test.status} /></td>
+                        <td className="p-3">{test.complianceStatus ? <Badge status={test.complianceStatus} size="sm" /> : '-'}</td>
                         <td className="p-3 text-sm">{formatDate(test.$createdAt)}</td>
                         <td className="p-3 text-sm">{test.completedAt ? formatDate(test.completedAt) : '-'}</td>
                         <td className="p-3 flex gap-2">
