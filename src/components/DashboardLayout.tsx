@@ -30,6 +30,7 @@ import {
   CalendarCheck,
   Clock,
   CalendarOff,
+  BookOpen,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import SessionManager from '@/components/SessionManager';
@@ -49,6 +50,7 @@ const OPERATIONS: NavGroup = {
     { href: '/dashboard/projects', label: 'المشاريع', icon: FolderKanban },
     { href: '/dashboard/samples', label: 'العينات', icon: FlaskConical },
     { href: '/dashboard/tests', label: 'الفحوصات', icon: ClipboardCheck },
+    { href: '/dashboard/catalog', label: 'كتالوج الفحوصات', icon: BookOpen },
     { href: '/dashboard/equipment', label: 'الأجهزة', icon: Wrench },
     { href: '/dashboard/bookings', label: 'الحجوزات', icon: Calendar },
   ],

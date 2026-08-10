@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { listSamples, createSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listEmployees } from '@/lib/services/employees';
@@ -287,6 +288,15 @@ export default function NewSamplePage() {
                     </label>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {standardTests.length === 0 && (
+              <div className="bg-concrete-50 p-4 rounded-lg text-sm text-concrete-500">
+                لا توجد فحوصات قياسية معرّفة لهذا النوع.{' '}
+                <Link href="/dashboard/catalog" className="text-petrol font-medium hover:underline">
+                  إدارة كتالوج الفحوصات
+                </Link>
               </div>
             )}
 

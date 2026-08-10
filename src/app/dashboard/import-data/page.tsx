@@ -30,7 +30,7 @@ export default function ImportDataPage() {
           setResult(`إنشاء نوع عينة: ${type.name}...`);
           const doc = await createSampleType(
             ID.unique(),
-            { name: type.name, category: type.category || '' }
+            { name: type.name, code: type.code || '', description: type.description || '' }
           );
           typeIds[type.name] = doc.$id;
         }
