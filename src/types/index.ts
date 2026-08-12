@@ -138,9 +138,12 @@ export interface Invoice {
 }
 
 export interface InvoiceItem {
-  description: string;
+  testId: string;
+  testName: string;
+  unit?: string;
+  specification?: string;
+  price: number;
   quantity: number;
-  unitPrice: number;
   total: number;
 }
 

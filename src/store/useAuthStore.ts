@@ -15,6 +15,13 @@ interface AuthState {
   checkSession: () => Promise<void>;
 }
 
+// الحالات التي تمنع الموظف من الدخول (مستقيل)
+const INACTIVE_EMPLOYEE_ERROR = 'هذا الحساب غير نشط، يرجى مراجعة الإدارة';
+
+function isEmployeeActive(employee: Employee | null): boolean {
+  return !!employee && employee.status !== 'مستقيل';
+}
+
 // دالة مساعدة لمسح كوكيز جلسات Appwrite فقط
 const clearAppwriteCookies = () => {
   if (typeof document === 'undefined') return;
@@ -113,6 +120,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('لا يوجد موظف مرتبط بهذا البريد الإلكتروني. تواصل مع المدير.');
       }
 
+      if (!isEmployeeActive(employee)) {
+        try { await account.deleteSession('current'); } catch {}
+        throw new Error(INACTIVE_EMPLOYEE_ERROR);
+      }
+
       if (!role) {
         try { await account.deleteSession('current'); } catch {}
         throw new Error('ملف الموظف غير مكتمل (بدون دور محدد). تواصل مع المدير.');
@@ -140,6 +152,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       if (empRes.documents.length > 0) {
         const emp = empRes.documents[0] as unknown as Employee;
+        if (!isEmployeeActive(emp)) {
+          await account.deleteSession('current');
+          throw new Error(INACTIVE_EMPLOYEE_ERROR);
+        }
         if (emp.role !== 'فني' && emp.role !== 'مدير') {
           await account.deleteSession('current');
           throw new Error('هذا الحساب غير مصرح له باستخدام تطبيق الفنيين. تواصل مع المدير.');
@@ -182,6 +198,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       } catch (e) {
         console.error('فشل في جلب بيانات الموظف أثناء فحص الجلسة:', e);
       }
+
+      // قطع الجلسة فوراً إذا كان الموظف مستقيلاً/غير نشط
+      if (employee && !isEmployeeActive(employee)) {
+        try { await account.deleteSession('current'); } catch {}
+        clearAppwriteCookies();
+        client.setSession('');
+        set({ user: null, employee: null, role: null, loading: false });
+        return;
+      }
+
       set({ user, employee, role, loading: false });
     } catch {
       try { await account.deleteSession('current'); } catch {}

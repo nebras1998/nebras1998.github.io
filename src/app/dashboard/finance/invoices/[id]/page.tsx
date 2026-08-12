@@ -178,7 +178,7 @@ export default function InvoiceDetailPage() {
               <thead><tr className="border-b odd:bg-concrete-50"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الخدمة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الكمية</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السعر</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th></tr></thead>
               <tbody>
                 {items.map((item: InvoiceItem, idx: number) => (
-                  <tr key={idx} className="border-b"><td className="p-3">{item.description}</td><td className="p-3">{item.quantity}</td><td className="p-3">{item.unitPrice} ₪</td><td className="p-3 font-bold">{item.total} ₪</td></tr>
+                  <tr key={idx} className="border-b"><td className="p-3">{item.testName}</td><td className="p-3">{item.quantity}</td><td className="p-3">{item.price} ₪</td><td className="p-3 font-bold">{item.total} ₪</td></tr>
                 ))}
               </tbody>
             </table>
