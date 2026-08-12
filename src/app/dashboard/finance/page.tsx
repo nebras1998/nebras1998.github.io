@@ -2,24 +2,14 @@ import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import Card from '@/components/Card';
 import Link from 'next/link';
-import { List, FileText, CreditCard, Receipt } from 'lucide-react';
+import { FileText, CreditCard, Receipt } from 'lucide-react';
 
 export default function FinancePage() {
   return (
     <AuthGuard>
       <DashboardLayout>
         <h1 className="text-3xl font-bold mb-8">المالية</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-md transition-shadow">
-            <Link href="/dashboard/finance/services" className="flex items-center gap-4 h-full">
-              <List size={32} className="text-petrol" />
-              <div>
-                <h2 className="text-xl font-bold">الخدمات والأسعار</h2>
-                <p className="text-concrete-500">إدارة قائمة الخدمات وتسعيرها</p>
-              </div>
-            </Link>
-          </Card>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="hover:shadow-md transition-shadow">
             <Link href="/dashboard/finance/invoices" className="flex items-center gap-4 h-full">
               <FileText size={32} className="text-petrol" />

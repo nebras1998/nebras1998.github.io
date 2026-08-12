@@ -23,7 +23,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  List,
   FileText,
   CreditCard,
   Receipt,
@@ -77,7 +76,6 @@ const GROUPS: NavGroup[] = [
     label: 'المالية',
     icon: Banknote,
     items: [
-      { href: '/dashboard/finance/services', label: 'الخدمات والأسعار', icon: List },
       { href: '/dashboard/finance/invoices', label: 'الفواتير', icon: FileText },
       { href: '/dashboard/finance/payments', label: 'المدفوعات', icon: CreditCard },
       { href: '/dashboard/finance/expenses', label: 'المصروفات', icon: Receipt },

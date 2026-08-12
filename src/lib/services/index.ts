@@ -13,7 +13,6 @@ export * from './overtime';
 export * from './invoices';
 export * from './payments';
 export * from './expenses';
-export * from './services-catalog';
 export * from './bookings';
 export * from './notifications';
 export * from './files';

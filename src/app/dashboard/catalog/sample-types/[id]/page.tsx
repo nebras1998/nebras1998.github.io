@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getSampleType, listStandardTests, deleteSampleType, deleteStandardTest } from '@/lib/services/sample-types';
+import { getSampleType, listStandardTests, deleteSampleType, deleteStandardTest, updateStandardTest } from '@/lib/services/sample-types';
 import type { SampleType, StandardTest } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import { RESULT_TYPE_LABELS } from '@/lib/test-config';
@@ -15,7 +15,7 @@ import TableSkeleton from '@/components/TableSkeleton';
 import EmptyData from '@/components/EmptyData';
 import ConfirmModal from '@/components/ConfirmModal';
 import Breadcrumb from '@/components/Breadcrumb';
-import { Plus, Edit, Copy, Trash2, ArrowRight, Loader2, ClipboardCheck } from 'lucide-react';
+import { Plus, Edit, Copy, Trash2, ArrowRight, Loader2, ClipboardCheck, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 type DeleteTarget = { kind: 'type' | 'test'; id: string; label: string } | null;
@@ -31,6 +31,7 @@ export default function SampleTypeDetailPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<{ testId: string; price: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -73,6 +74,19 @@ export default function SampleTypeDetailPage() {
       setDeleting(false);
       setModalOpen(false);
       setDeleteTarget(null);
+    }
+  };
+
+  const savePrice = async (testId: string) => {
+    if (!editingPrice || editingPrice.testId !== testId) return;
+    try {
+      const newPrice = parseFloat(editingPrice.price) || 0;
+      await updateStandardTest(testId, { price: newPrice });
+      toast.success('تم تحديث السعر');
+      setTests(prev => prev.map(t => (t.$id === testId ? { ...t, price: newPrice } : t)));
+      setEditingPrice(null);
+    } catch (err: unknown) {
+      toast.error('فشل تحديث السعر: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -137,6 +151,7 @@ export default function SampleTypeDetailPage() {
                     <th className="text-right p-3 text-sm font-semibold">المدة</th>
                     <th className="text-right p-3 text-sm font-semibold">المرجع المعياري</th>
                     <th className="text-right p-3 text-sm font-semibold">نوع النتيجة</th>
+                    <th className="text-right p-3 text-sm font-semibold">السعر (₪)</th>
                     <th className="text-right p-3 text-sm font-semibold">الإجراءات</th>
                   </tr>
                 </thead>
@@ -147,6 +162,30 @@ export default function SampleTypeDetailPage() {
                       <td className="p-3 text-sm">{test.duration || '-'}</td>
                       <td className="p-3 text-sm">{test.standard || '-'}</td>
                       <td className="p-3 text-sm">{RESULT_TYPE_LABELS[(test.resultType || 'single') as TestResultType]}</td>
+                      <td className="p-3">
+                        {editingPrice?.testId === test.$id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editingPrice.price}
+                              onChange={(e) => setEditingPrice({ testId: test.$id, price: e.target.value })}
+                              className="w-24 border border-concrete-200 p-1.5 rounded-lg bg-concrete-0 text-sm"
+                              autoFocus
+                            />
+                            <button onClick={() => savePrice(test.$id)} className="text-petrol hover:text-success" title="حفظ">
+                              <Save size={16} />
+                            </button>
+                            <button onClick={() => setEditingPrice(null)} className="text-danger" title="إلغاء">
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setEditingPrice({ testId: test.$id, price: String(test.price || 0) })} className="text-petrol hover:underline text-sm" title="تعديل السعر">
+                            {(test.price || 0).toFixed(2)}
+                          </button>
+                        )}
+                      </td>
                       <td className="p-3">
                         <div className="flex flex-wrap gap-3">
                           <Link href={`/dashboard/catalog/tests/${test.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1 text-sm">
