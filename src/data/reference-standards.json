@@ -1,0 +1,131 @@
+{
+  "standards": [
+    { "id": "concrete-slump-astm", "testNameHint": "فحص الهطول", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C143", "unit": "mm", "limits": null },
+    { "id": "concrete-slump-aashto", "testNameHint": "فحص الهطول", "category": "خرسانة", "body": "AASHTO", "ref": "AASHTO T119", "unit": "mm", "limits": null },
+
+    { "id": "concrete-compressive-astm", "testNameHint": "مقاومة الضغط للمكعبات الخرسانية", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C39/C39M", "unit": "MPa", "limits": { "min": 25, "max": 99 } },
+    { "id": "concrete-compressive-cylinder-astm", "testNameHint": "مقاومة الضغط للاسطوانات الخرسانية", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C39/C39M", "unit": "MPa", "limits": { "min": 20, "max": 80 } },
+    { "id": "concrete-compressive-aashto", "testNameHint": "مقاومة الضغط للخرسانة", "category": "خرسانة", "body": "AASHTO", "ref": "AASHTO T22", "unit": "MPa", "limits": null },
+
+    { "id": "concrete-splitting-tensile-astm", "testNameHint": "مقاومة الشد غير المباشر (البرازيلي)", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C496", "unit": "MPa", "limits": { "min": 2.0, "max": 5.0 } },
+    { "id": "concrete-splitting-tensile-aashto", "testNameHint": "مقاومة الشد غير المباشر (البرازيلي)", "category": "خرسانة", "body": "AASHTO", "ref": "AASHTO T198", "unit": "MPa", "limits": null },
+
+    { "id": "concrete-water-absorption-astm", "testNameHint": "امتصاص الماء للخرسانة", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C642", "unit": "%", "limits": { "min": 0, "max": 5.0 } },
+
+    { "id": "concrete-modulus-elasticity-astm", "testNameHint": "معامل المرونة", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C469", "unit": "GPa", "limits": null },
+
+    { "id": "concrete-core-astm", "testNameHint": "مقاومة الضغط للكور المستخرج", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C42", "unit": "MPa", "limits": null },
+    { "id": "concrete-core-aashto", "testNameHint": "مقاومة الضغط للكور المستخرج", "category": "خرسانة", "body": "AASHTO", "ref": "AASHTO T24", "unit": "MPa", "limits": null },
+
+    { "id": "concrete-rebound-hammer-astm", "testNameHint": "فحص المطرقة الارتدادية", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C805", "unit": "", "limits": null },
+    { "id": "concrete-upv-astm", "testNameHint": "فحص سرعة الموجات فوق الصوتية", "category": "خرسانة", "body": "ASTM", "ref": "ASTM C597", "unit": "km/s", "limits": null },
+
+    { "id": "soil-moisture-astm", "testNameHint": "المحتوى الرطوبي الطبيعي", "category": "تربة", "body": "ASTM", "ref": "ASTM D2216", "unit": "%", "limits": null },
+    { "id": "soil-moisture-aashto", "testNameHint": "المحتوى الرطوبي الطبيعي", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T265", "unit": "%", "limits": null },
+
+    { "id": "soil-ll-astm", "testNameHint": "حد السيولة", "category": "تربة", "body": "ASTM", "ref": "ASTM D4318", "unit": "%", "limits": { "min": 0, "max": 100 } },
+    { "id": "soil-ll-aashto", "testNameHint": "حد السيولة", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T89", "unit": "%", "limits": null },
+
+    { "id": "soil-pl-astm", "testNameHint": "حد اللدونة", "category": "تربة", "body": "ASTM", "ref": "ASTM D4318", "unit": "%", "limits": { "min": 0, "max": 100 } },
+    { "id": "soil-pl-aashto", "testNameHint": "حد اللدونة", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T90", "unit": "%", "limits": null },
+
+    { "id": "soil-sieve-astm", "testNameHint": "التحليل المنخلي", "category": "تربة", "body": "ASTM", "ref": "ASTM D422", "unit": "%", "limits": { "min": 0, "max": 100 } },
+    { "id": "soil-sieve-aashto", "testNameHint": "التحليل المنخلي", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T27", "unit": "%", "limits": null },
+    { "id": "soil-hydrometer-aashto", "testNameHint": "التحليل الهيدروميتري", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T88", "unit": "%", "limits": null },
+
+    { "id": "soil-proctor-std-astm", "testNameHint": "بروكتور قياسي", "category": "تربة", "body": "ASTM", "ref": "ASTM D698", "unit": "kg/m³", "limits": { "min": 1500, "max": 2200 } },
+    { "id": "soil-proctor-std-aashto", "testNameHint": "بروكتور قياسي", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T99", "unit": "kg/m³", "limits": null },
+
+    { "id": "soil-proctor-mod-astm", "testNameHint": "بروكتور معدل", "category": "تربة", "body": "ASTM", "ref": "ASTM D1557", "unit": "kg/m³", "limits": { "min": 1600, "max": 2400 } },
+    { "id": "soil-proctor-mod-aashto", "testNameHint": "بروكتور معدل", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T180", "unit": "kg/m³", "limits": null },
+
+    { "id": "soil-cbr-astm", "testNameHint": "سيبر (CBR)", "category": "تربة", "body": "ASTM", "ref": "ASTM D1883", "unit": "%", "limits": { "min": 5, "max": 100 } },
+    { "id": "soil-cbr-aashto", "testNameHint": "سيبر (CBR)", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T193", "unit": "%", "limits": null },
+
+    { "id": "soil-specific-gravity-astm", "testNameHint": "الوزن النوعي للتربة", "category": "تربة", "body": "ASTM", "ref": "ASTM D854", "unit": "", "limits": { "min": 2.4, "max": 2.9 } },
+    { "id": "soil-specific-gravity-aashto", "testNameHint": "الوزن النوعي للتربة", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T100", "unit": "", "limits": null },
+
+    { "id": "soil-direct-shear-astm", "testNameHint": "فحص القص المباشر", "category": "تربة", "body": "ASTM", "ref": "ASTM D3080", "unit": "kPa", "limits": null },
+    { "id": "soil-unconfined-astm", "testNameHint": "الانضغاط غير المحصور", "category": "تربة", "body": "ASTM", "ref": "ASTM D2166", "unit": "kPa", "limits": null },
+
+    { "id": "soil-field-density-astm", "testNameHint": "الكثافة الحقلية (مخروط الرمل)", "category": "تربة", "body": "ASTM", "ref": "ASTM D1556", "unit": "kg/m³", "limits": null },
+    { "id": "soil-field-density-aashto", "testNameHint": "الكثافة الحقلية (مخروط الرمل)", "category": "تربة", "body": "AASHTO", "ref": "AASHTO T191", "unit": "kg/m³", "limits": null },
+
+    { "id": "soil-organic-content-astm", "testNameHint": "المحتوى العضوي", "category": "تربة", "body": "ASTM", "ref": "ASTM D2974", "unit": "%", "limits": null },
+
+    { "id": "aggregate-sieve-astm", "testNameHint": "التحليل المنخلي للركام", "category": "ركام", "body": "ASTM", "ref": "ASTM C136", "unit": "%", "limits": null },
+    { "id": "aggregate-sieve-aashto", "testNameHint": "التحليل المنخلي للركام", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T27", "unit": "%", "limits": null },
+
+    { "id": "aggregate-sg-coarse-astm", "testNameHint": "الوزن النوعي والامتصاص - ركام خشن", "category": "ركام", "body": "ASTM", "ref": "ASTM C127", "unit": "%", "limits": null },
+    { "id": "aggregate-sg-coarse-aashto", "testNameHint": "الوزن النوعي والامتصاص - ركام خشن", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T85", "unit": "%", "limits": null },
+
+    { "id": "aggregate-sg-fine-astm", "testNameHint": "الوزن النوعي والامتصاص - ركام ناعم", "category": "ركام", "body": "ASTM", "ref": "ASTM C128", "unit": "%", "limits": null },
+    { "id": "aggregate-sg-fine-aashto", "testNameHint": "الوزن النوعي والامتصاص - ركام ناعم", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T84", "unit": "%", "limits": null },
+
+    { "id": "aggregate-unit-weight-astm", "testNameHint": "الوزن الحجمي", "category": "ركام", "body": "ASTM", "ref": "ASTM C29", "unit": "kg/m³", "limits": null },
+    { "id": "aggregate-unit-weight-aashto", "testNameHint": "الوزن الحجمي", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T19", "unit": "kg/m³", "limits": null },
+
+    { "id": "aggregate-sand-equivalent-astm", "testNameHint": "مكافئ الرمل", "category": "ركام", "body": "ASTM", "ref": "ASTM D2419", "unit": "%", "limits": null },
+    { "id": "aggregate-sand-equivalent-aashto", "testNameHint": "مكافئ الرمل", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T176", "unit": "%", "limits": null },
+
+    { "id": "aggregate-la-abrasion-astm", "testNameHint": "التآكل بلوس أنجلوس", "category": "ركام", "body": "ASTM", "ref": "ASTM C131", "unit": "%", "limits": null },
+    { "id": "aggregate-la-abrasion-aashto", "testNameHint": "التآكل بلوس أنجلوس", "category": "ركام", "body": "AASHTO", "ref": "AASHTO T96", "unit": "%", "limits": null },
+
+    { "id": "aggregate-organic-impurities-astm", "testNameHint": "الشوائب العضوية", "category": "ركام", "body": "ASTM", "ref": "ASTM C40", "unit": "", "limits": null },
+    { "id": "aggregate-clay-lumps-astm", "testNameHint": "الكتل الطينية والحبيبات القابلة للتفتت", "category": "ركام", "body": "ASTM", "ref": "ASTM C142", "unit": "%", "limits": null },
+
+    { "id": "asphalt-marshall-astm", "testNameHint": "ثبات مارشال والجريان", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D6927", "unit": "kN", "limits": null },
+    { "id": "asphalt-marshall-aashto", "testNameHint": "ثبات مارشال والجريان", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T245", "unit": "kN", "limits": null },
+
+    { "id": "asphalt-gmm-astm", "testNameHint": "الوزن النوعي الأقصى (Gmm)", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D2041", "unit": "", "limits": null },
+    { "id": "asphalt-gmm-aashto", "testNameHint": "الوزن النوعي الأقصى (Gmm)", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T209", "unit": "", "limits": null },
+
+    { "id": "asphalt-gmb-astm", "testNameHint": "الوزن النوعي الظاهري (Gmb)", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D2726", "unit": "", "limits": null },
+    { "id": "asphalt-gmb-aashto", "testNameHint": "الوزن النوعي الظاهري (Gmb)", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T166", "unit": "", "limits": null },
+
+    { "id": "asphalt-extraction-astm", "testNameHint": "استخلاص الإسفلت", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D2172", "unit": "%", "limits": null },
+    { "id": "asphalt-extraction-aashto", "testNameHint": "استخلاص الإسفلت", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T164", "unit": "%", "limits": null },
+
+    { "id": "bitumen-penetration-astm", "testNameHint": "درجة الاختراق", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D5", "unit": "0.1mm", "limits": null },
+    { "id": "bitumen-penetration-aashto", "testNameHint": "درجة الاختراق", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T49", "unit": "0.1mm", "limits": null },
+
+    { "id": "bitumen-softening-astm", "testNameHint": "نقطة الليونة", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D36", "unit": "°C", "limits": null },
+    { "id": "bitumen-softening-aashto", "testNameHint": "نقطة الليونة", "category": "أسفلت", "body": "AASHTO", "ref": "AASHTO T53", "unit": "°C", "limits": null },
+
+    { "id": "bitumen-flash-astm", "testNameHint": "نقطة الوميض", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D92", "unit": "°C", "limits": null },
+    { "id": "bitumen-viscosity-astm", "testNameHint": "اللزوجة", "category": "أسفلت", "body": "ASTM", "ref": "ASTM D2170", "unit": "cSt", "limits": null },
+
+    { "id": "steel-tensile-astm", "testNameHint": "مقاومة الشد لحديد التسليح", "category": "حديد", "body": "ASTM", "ref": "ASTM A615/A615M", "unit": "MPa", "limits": { "min": 420, "max": 720 } },
+    { "id": "steel-tensile-aashto", "testNameHint": "مقاومة الشد لحديد التسليح", "category": "حديد", "body": "AASHTO", "ref": "AASHTO M31", "unit": "MPa", "limits": null },
+
+    { "id": "steel-elongation-astm", "testNameHint": "استطالة حديد التسليح", "category": "حديد", "body": "ASTM", "ref": "ASTM A615/A615M", "unit": "%", "limits": { "min": 10, "max": 30 } },
+
+    { "id": "steel-bend-astm", "testNameHint": "اختبار الثني لحديد التسليح", "category": "حديد", "body": "ASTM", "ref": "ASTM A615/A615M", "unit": "°", "limits": { "min": 90, "max": 180 } },
+
+    { "id": "steel-mass-per-length-astm", "testNameHint": "الوزن لكل متر طولي", "category": "حديد", "body": "ASTM", "ref": "ASTM A615/A615M", "unit": "kg/m", "limits": null },
+
+    { "id": "cement-setting-time-astm", "testNameHint": "زمن الشك (فيكات)", "category": "إسمنت", "body": "ASTM", "ref": "ASTM C191", "unit": "min", "limits": null },
+    { "id": "cement-fineness-astm", "testNameHint": "النعومة (بلين)", "category": "إسمنت", "body": "ASTM", "ref": "ASTM C204", "unit": "m²/kg", "limits": null },
+    { "id": "cement-soundness-astm", "testNameHint": "السلامة (لوشاتيليه)", "category": "إسمنت", "body": "ASTM", "ref": "ASTM C151", "unit": "mm", "limits": null },
+    { "id": "cement-mortar-compressive-astm", "testNameHint": "مقاومة الضغط لمكعبات المونة", "category": "إسمنت", "body": "ASTM", "ref": "ASTM C109", "unit": "MPa", "limits": null },
+    { "id": "cement-specific-gravity-astm", "testNameHint": "الوزن النوعي للإسمنت", "category": "إسمنت", "body": "ASTM", "ref": "ASTM C188", "unit": "", "limits": null },
+
+    { "id": "block-compressive-astm", "testNameHint": "مقاومة ضغط البلوك الخرساني", "category": "بلوك", "body": "ASTM", "ref": "ASTM C140", "unit": "MPa", "limits": { "min": 5, "max": 40 } },
+    { "id": "block-water-absorption-astm", "testNameHint": "امتصاص الماء للبلوك", "category": "بلوك", "body": "ASTM", "ref": "ASTM C140", "unit": "%", "limits": null },
+
+    { "id": "brick-water-absorption-astm", "testNameHint": "امتصاص الماء للطوب", "category": "طوب", "body": "ASTM", "ref": "ASTM C67", "unit": "%", "limits": { "min": 0, "max": 15 } },
+    { "id": "brick-compressive-astm", "testNameHint": "مقاومة الضغط للطوب", "category": "طوب", "body": "ASTM", "ref": "ASTM C67", "unit": "MPa", "limits": null },
+
+    { "id": "tile-water-absorption-iso", "testNameHint": "امتصاص الماء للبلاط", "category": "بلاط", "body": "ISO", "ref": "ISO 10545-3", "unit": "%", "limits": null },
+    { "id": "tile-breaking-strength-iso", "testNameHint": "مقاومة الكسر للبلاط", "category": "بلاط", "body": "ISO", "ref": "ISO 10545-4", "unit": "N", "limits": null },
+
+    { "id": "stone-compressive-astm", "testNameHint": "مقاومة الضغط للحجر", "category": "حجر", "body": "ASTM", "ref": "ASTM C170", "unit": "MPa", "limits": null },
+    { "id": "stone-water-absorption-astm", "testNameHint": "امتصاص الماء للحجر", "category": "حجر", "body": "ASTM", "ref": "ASTM C97", "unit": "%", "limits": null },
+
+    { "id": "gypsum-adhesion-astm", "testNameHint": "قوة الالتصاق (Pull-off)", "category": "جبس", "body": "ASTM", "ref": "ASTM D4541", "unit": "MPa", "limits": null },
+
+    { "id": "pipe-pressure-astm", "testNameHint": "فحص الضغط الهيدروستاتيكي", "category": "أنابيب", "body": "ASTM", "ref": "ASTM D1599", "unit": "bar", "limits": null },
+
+    { "id": "paint-thickness-astm", "testNameHint": "سماكة الطلاء", "category": "طلاء", "body": "ASTM", "ref": "ASTM D7091", "unit": "micron", "limits": null }
+  ]
+}

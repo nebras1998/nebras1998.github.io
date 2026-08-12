@@ -18,3 +18,4 @@ export * from './bookings';
 export * from './notifications';
 export * from './files';
 export * from './sample-types';
+export * from './reports';

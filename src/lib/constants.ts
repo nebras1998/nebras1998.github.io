@@ -26,3 +26,5 @@ export const SAMPLE_TYPES_COLLECTION_ID = 'sampletypes';
 export const STANDARD_TESTS_COLLECTION_ID = 'standardtests';
 export const NOTIFICATIONS_COLLECTION_ID = 'notifications';
 export const BOOKINGS_COLLECTION_ID = 'bookings';
+export const REPORT_TEMPLATES_COLLECTION_ID = 'reporttemplates';
+export const REPORTS_COLLECTION_ID = 'reports';

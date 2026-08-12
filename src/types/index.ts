@@ -257,11 +257,64 @@ export interface Booking {
   notes?: string;
 }
 
+// ===== قالب التقرير =====
+export interface ReportTemplate {
+  $id: string;
+  $createdAt: string;
+  labName: string;
+  labNameEn?: string;
+  logoFileId?: string;
+  addressLine?: string;
+  phone?: string;
+  email?: string;
+  accreditationText?: string;
+  footerText?: string;
+  signatureLabel?: string;
+  primaryColor?: string;
+  showQrCode: boolean;
+}
+
+// ===== لقطة بيانات التقرير (تُلتقط عند إنشاء المسودة ولا تتغير) =====
+export interface ReportSnapshot {
+  testName: string;
+  testNumber: string;
+  standard?: string;
+  sampleNumber?: string;
+  sampleType?: string;
+  clientName?: string;
+  projectName?: string;
+  completedAt?: string;
+  resultType: 'single' | 'dual_age' | 'multi_no_age' | 'multi_field';
+  resultRows: { label: string; value: string; unit?: string }[];
+  appliedStandardName?: string;
+  complianceStatus?: 'مطابق' | 'غير مطابق';
+  technicianName?: string;
+}
+
+// ===== التقرير =====
+export interface Report {
+  $id: string;
+  $createdAt: string;
+  testId: string;
+  reportNumber: string;
+  status: 'مسودة' | 'معتمد';
+  snapshotData: string;
+  additionalNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reportHash?: string;
+  pdfFileId?: string;
+}
+
 // ===== إحصائيات لوحة التحكم (محسوبة على الخادم) =====
 export interface DashboardStats {
   totalRevenue: number;
   samplesByType: { name: string; value: number }[];
   monthlyRevenue: { month: string; revenue: number }[];
+  compliance: {
+    nonCompliantTests: number;
+    dueComplianceSamples: number;
+  };
   generatedAt: string;
 }
 

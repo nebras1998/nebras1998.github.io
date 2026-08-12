@@ -234,7 +234,7 @@ export default function StandardTestEditor({
         {/* 4.4 معايير المواصفات */}
         <div className="border-t pt-4">
           <h3 className="font-bold mb-2">معايير المواصفات</h3>
-          <SpecificationProfilesEditor profiles={profiles} resultType={resultType} resultFields={resultFields} onChange={setProfiles} />
+          <SpecificationProfilesEditor profiles={profiles} resultType={resultType} resultFields={resultFields} standardTestName={form.name} onChange={setProfiles} />
         </div>
 
         {/* 4.5 معاينة حية */}

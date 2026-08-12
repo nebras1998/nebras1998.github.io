@@ -4,6 +4,7 @@ import {
   DATABASE_ID,
   INVOICES_COLLECTION_ID,
   SAMPLES_COLLECTION_ID,
+  TESTS_COLLECTION_ID,
 } from '@/lib/constants';
 import type { DashboardStats } from '@/types';
 
@@ -12,7 +13,8 @@ const PAGE_SIZE = 100;
 export const CACHE_TTL_MS = 5 * 60 * 1000;
 
 type InvoiceAggregate = { paidAmount?: number; issueDate?: string };
-type SampleAggregate = { type: string };
+type SampleAggregate = { type: string; test7DaysDate?: string; test28DaysDate?: string };
+type TestAggregate = { complianceStatus?: string };
 
 // قرار التصميم بخصوص التخزين المؤقت:
 // التخزين المؤقت داخل الذاكرة هو "أفضل جهد" لكل مثيل خادم. في حالة النشر على منصات
@@ -54,9 +56,14 @@ async function fetchAllDocuments<T>(
 export async function computeDashboardStats(sessionCookie: string): Promise<DashboardStats> {
   const databases = createDatabases(sessionCookie);
 
-  const [invoices, samples] = await Promise.all([
+  const [invoices, samples, tests] = await Promise.all([
     fetchAllDocuments<InvoiceAggregate>(databases, INVOICES_COLLECTION_ID, ['paidAmount', 'issueDate']),
-    fetchAllDocuments<SampleAggregate>(databases, SAMPLES_COLLECTION_ID, ['type']),
+    fetchAllDocuments<SampleAggregate>(databases, SAMPLES_COLLECTION_ID, [
+      'type',
+      'test7DaysDate',
+      'test28DaysDate',
+    ]),
+    fetchAllDocuments<TestAggregate>(databases, TESTS_COLLECTION_ID, ['complianceStatus']),
   ]);
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
@@ -78,7 +85,25 @@ export async function computeDashboardStats(sessionCookie: string): Promise<Dash
   });
   const samplesByType = Object.entries(typeCount).map(([name, value]) => ({ name, value }));
 
-  return { totalRevenue, samplesByType, monthlyRevenue, generatedAt: new Date().toISOString() };
+  // تنبيهات الالتزام: فحوصات غير مطابقة للمواصفة، وعينات تستحق فحص 7/28 يوم قريباً
+  const nonCompliantTests = tests.filter((t) => t.complianceStatus === 'غير مطابق').length;
+  const today = new Date().toISOString().split('T')[0];
+  const dueLimit = new Date();
+  dueLimit.setDate(dueLimit.getDate() + 14);
+  const dueLimitISO = dueLimit.toISOString().split('T')[0];
+  const dueComplianceSamples = samples.filter(
+    (s) =>
+      (s.test7DaysDate && s.test7DaysDate >= today && s.test7DaysDate <= dueLimitISO) ||
+      (s.test28DaysDate && s.test28DaysDate >= today && s.test28DaysDate <= dueLimitISO)
+  ).length;
+
+  return {
+    totalRevenue,
+    samplesByType,
+    monthlyRevenue,
+    compliance: { nonCompliantTests, dueComplianceSamples },
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 export async function getDashboardStats(sessionCookie: string): Promise<DashboardStats> {

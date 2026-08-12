@@ -1,11 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import type { Test, Sample } from '@/types';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import type { Test, Sample, Report } from '@/types';
 import { getTest } from '@/lib/services/tests';
 import { getSample } from '@/lib/services/samples';
+import { getClient } from '@/lib/services/clients';
+import { getProject } from '@/lib/services/projects';
+import { getReportByTestId, createReportDraft, generateReportNumber } from '@/lib/services/reports';
 import { getFileViewUrl } from '@/lib/services/files';
+import { buildReportSnapshot } from '@/lib/report-snapshot';
+import { ID } from 'appwrite';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -14,7 +20,7 @@ import EmptyData from '@/components/EmptyData';
 import TableSkeleton from '@/components/TableSkeleton';
 
 import { toast } from 'sonner';
-import { FileDown } from 'lucide-react';
+import { FileDown, FilePlus2, FileText, Loader2 } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import Badge from '@/components/Badge';
 import {
@@ -26,12 +32,15 @@ import {
 } from '@/lib/test-config';
 
 export default function TestDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const testId = params.id as string;
 
   const [test, setTest] = useState<Test | null>(null);
   const [sample, setSample] = useState<Sample | null>(null);
+  const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,6 +54,9 @@ export default function TestDetailPage() {
           setSample(sampleDoc);
         }
 
+        const existingReport = await getReportByTestId(testId);
+        if (existingReport) setReport(existingReport);
+
         if (testDoc.reportFileId) {
           setFileUrl(getFileViewUrl(testDoc.reportFileId));
         }
@@ -55,6 +67,46 @@ export default function TestDetailPage() {
       }
     })();
   }, [testId]);
+
+  const handleGenerateReport = async () => {
+    if (!test) return;
+    setGenerating(true);
+    try {
+      if (report) {
+        router.push(`/dashboard/reports/${report.$id}`);
+        return;
+      }
+
+      let sampleDoc = sample;
+      if (!sampleDoc && test.sampleId) {
+        try { sampleDoc = await getSample(test.sampleId); } catch {}
+      }
+      let clientDoc = null;
+      const clientId = sampleDoc?.clientId || test.clientId;
+      if (clientId) {
+        try { clientDoc = await getClient(clientId); } catch {}
+      }
+      let projectDoc = null;
+      const projectId = sampleDoc?.projectId || test.projectId;
+      if (projectId) {
+        try { projectDoc = await getProject(projectId); } catch {}
+      }
+
+      const snapshot = buildReportSnapshot(test, sampleDoc, clientDoc, projectDoc);
+      const reportNumber = await generateReportNumber();
+      const doc = await createReportDraft(ID.unique(), {
+        testId: test.$id,
+        reportNumber,
+        status: 'مسودة',
+        snapshotData: JSON.stringify(snapshot),
+      });
+      toast.success('تم إنشاء مسودة التقرير');
+      router.push(`/dashboard/reports/${doc.$id}`);
+    } catch (err: unknown) {
+      toast.error('فشل إنشاء التقرير: ' + (err instanceof Error ? err.message : String(err)));
+      setGenerating(false);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
@@ -213,9 +265,43 @@ export default function TestDetailPage() {
             </div>
           )}
 
-          {/* قسم التقرير */}
+          {/* قسم التقرير (نظام التقارير) */}
+          <div className="border-t pt-4 space-y-3">
+            <h2 className="font-bold text-lg mb-2">التقرير</h2>
+            {report ? (
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-concrete-50 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <FileText size={18} className="text-petrol" />
+                  <div>
+                    <p className="font-bold" dir="ltr">{report.reportNumber}</p>
+                    <Badge status={report.status} size="sm" />
+                  </div>
+                </div>
+                <Link
+                  href={`/dashboard/reports/${report.$id}`}
+                  className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark flex items-center gap-1 text-sm font-bold"
+                >
+                  <FileText size={16} />
+                  {report.status === 'معتمد' ? 'عرض التقرير المعتمد' : 'فتح مسودة التقرير'}
+                </Link>
+              </div>
+            ) : test.status === 'مكتمل' ? (
+              <button
+                onClick={handleGenerateReport}
+                disabled={generating}
+                className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark flex items-center gap-1 disabled:opacity-50"
+              >
+                {generating ? <Loader2 size={18} className="animate-spin" /> : <FilePlus2 size={18} />}
+                {generating ? 'جارٍ إنشاء التقرير...' : 'إنشاء التقرير'}
+              </button>
+            ) : (
+              <p className="text-sm text-concrete-500">يُنشأ التقرير تلقائيًا بعد اكتمال الفحص.</p>
+            )}
+          </div>
+
+          {/* قسم التقرير المرفوع يدويًا (تأريخي) */}
           <div className="border-t pt-4">
-            <h2 className="font-bold text-lg mb-2">تقرير الفحص</h2>
+            <h2 className="font-bold text-lg mb-2">التقرير المرفوع (PDF يدوي)</h2>
             {fileUrl ? (
               <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark" download>
                 <FileDown size={18} /> تحميل التقرير (PDF)

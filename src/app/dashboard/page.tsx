@@ -28,6 +28,8 @@ import {
   Receipt,
   UserPlus,
   ArrowLeft,
+  ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import ChartCard from '@/components/ChartCard';
@@ -118,6 +120,8 @@ export default function DashboardPage() {
     readyVehicles: 0,
     vehiclesInUse: 0,
     todayBookings: 0,
+    nonCompliantTests: 0,
+    dueComplianceSamples: 0,
   });
   const [basicLoading, setBasicLoading] = useState(true);
   const [basicDone, setBasicDone] = useState(false);
@@ -186,6 +190,8 @@ export default function DashboardPage() {
           readyVehicles,
           vehiclesInUse: inUse,
           todayBookings: todayBookingsRes.total,
+          nonCompliantTests: stats.compliance?.nonCompliantTests ?? 0,
+          dueComplianceSamples: stats.compliance?.dueComplianceSamples ?? 0,
         });
 
         // توزيع العينات حسب النوع والإيرادات الشهرية تُحسب مرة واحدة على الخادم
@@ -370,7 +376,7 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="space-y-8">
+        <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-concrete-800">لوحة التحكم</h1>
@@ -408,11 +414,11 @@ export default function DashboardPage() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-                <StatCard title="فحوصات معلقة" value={basicStats.pendingTests} icon={<AlertCircle size={24} />} bgColor="bg-danger-bg" iconColor="text-danger" />
-                <StatCard title="فواتير غير مدفوعة" value={basicStats.unpaidInvoices} icon={<FileText size={24} />} bgColor="bg-warning-bg" iconColor="text-warning" />
-                <StatCard title="إجمالي الإيرادات" value={`${basicStats.totalRevenue.toFixed(0)} ₪`} icon={<Banknote size={24} />} bgColor="bg-success-bg" iconColor="text-success" valueClass="whitespace-nowrap" />
-                <StatCard title="عينات اليوم" value={basicStats.todaySamples} icon={<Hammer size={24} />} bgColor="bg-warning-bg" iconColor="text-warning" />
-                <StatCard title="مشاريع نشطة" value={basicStats.activeProjects} icon={<FolderKanban size={24} />} bgColor="bg-success-bg" iconColor="text-petrol" />
+                <StatCard title="فحوصات معلقة" value={basicStats.pendingTests} icon={<AlertCircle size={24} />} tone="danger" />
+                <StatCard title="فواتير غير مدفوعة" value={basicStats.unpaidInvoices} icon={<FileText size={24} />} tone="warning" />
+                <StatCard title="إجمالي الإيرادات" value={`${basicStats.totalRevenue.toFixed(0)} ₪`} icon={<Banknote size={24} />} tone="success" valueClass="whitespace-nowrap" />
+                <StatCard title="عينات اليوم" value={basicStats.todaySamples} icon={<Hammer size={24} />} tone="warning" />
+                <StatCard title="مشاريع نشطة" value={basicStats.activeProjects} icon={<FolderKanban size={24} />} tone="success" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard size="sm" title="مركبات جاهزة" value={basicStats.readyVehicles} icon={<Car size={18} />} bgColor="bg-petrol-soft" iconColor="text-petrol" />
@@ -427,7 +433,7 @@ export default function DashboardPage() {
           <section>
             <SectionLabel icon={<AlertCircle size={16} className="text-warning" />}>يحتاج إلى انتباهك اليوم</SectionLabel>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               {/* فواتير غير مدفوعة */}
               <div className="bg-warning-bg border border-warning rounded-xl p-5">
                 <div className="flex items-center justify-between gap-3">
@@ -476,6 +482,45 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* تنبيهات الالتزام */}
+              <div className="bg-concrete-0 border border-concrete-200 rounded-xl p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-full bg-white shadow-sm text-danger"><ShieldAlert size={22} /></div>
+                    <div>
+                      <p className="text-sm text-concrete-500">تنبيهات الالتزام</p>
+                      {basicLoading ? (
+                        <div className="h-7 w-16 bg-concrete-200 rounded animate-pulse mt-1"></div>
+                      ) : (
+                        <p className="text-2xl font-bold text-concrete-800">
+                          {basicStats.nonCompliantTests + basicStats.dueComplianceSamples}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Link href="/dashboard/tests" className="text-sm text-petrol hover:underline flex items-center gap-1 shrink-0">
+                    عرض الكل <ArrowLeft size={14} />
+                  </Link>
+                </div>
+                {!basicLoading &&
+                  (basicStats.nonCompliantTests + basicStats.dueComplianceSamples === 0 ? (
+                    <div className="mt-3 flex items-center gap-2 text-sm text-success">
+                      <ShieldCheck size={16} /> لا توجد تنبيهات التزام حالياً
+                    </div>
+                  ) : (
+                    <div className="mt-3 space-y-1.5 text-sm">
+                      <p className="flex items-center justify-between gap-3">
+                        <span className="text-concrete-500">فحوصات غير مطابقة للمواصفة</span>
+                        <span className="font-bold text-danger">{basicStats.nonCompliantTests}</span>
+                      </p>
+                      <p className="flex items-center justify-between gap-3">
+                        <span className="text-concrete-500">عينات تستحق فحص 7/28 يوم (خلال 14 يوماً)</span>
+                        <span className="font-bold text-warning">{basicStats.dueComplianceSamples}</span>
+                      </p>
+                    </div>
+                  ))}
               </div>
             </div>
 
@@ -639,53 +684,69 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <ChartCard title="توزيع العينات حسب النوع" icon={<FlaskConical size={20} className="text-petrol" />}>
+                <ChartCard title="العينات حسب النوع" icon={<FlaskConical size={20} className="text-petrol" />}>
                   {samplesByType.length === 0 ? <EmptyData /> : (
-                    <ResponsiveContainer width="100%" height={280}>
-                      <PieChart>
-                        <Pie data={samplesByType} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" paddingAngle={3}>
-                          {samplesByType.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />)}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    {samplesByType.map((item, idx) => (
-                      <div key={item.name} className="flex items-center gap-1 text-sm">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                        <span className="text-concrete-500">{item.name}</span>
+                    <>
+                      <div className="relative">
+                        <ResponsiveContainer width="100%" height={280}>
+                          <PieChart>
+                            <Pie data={samplesByType} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" nameKey="name" paddingAngle={3} stroke="none">
+                              {samplesByType.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-2xl font-bold text-concrete-800">
+                            {samplesByType.reduce((sum, s) => sum + s.value, 0)}
+                          </span>
+                          <span className="text-xs text-concrete-500">عينة</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex flex-wrap gap-3 mt-4">
+                        {samplesByType.map((item, idx) => (
+                          <div key={item.name} className="flex items-center gap-1 text-sm">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                            <span className="text-concrete-500">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </ChartCard>
 
                 <ChartCard title="الإيرادات الشهرية" icon={<TrendingUp size={20} className="text-petrol" />}>
                   <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={monthlyRevenue}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="revenue" fill="#0F4C5C" radius={[4, 4, 0, 0]} name="الإيرادات (₪)" />
+                    <BarChart data={monthlyRevenue} margin={{ top: 4 }}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#12708A" />
+                          <stop offset="100%" stopColor="#0F4C5C" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: 'rgba(15, 76, 92, 0.06)' }} />
+                      <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} name="الإيرادات (₪)" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartCard>
 
                 <ChartCard title="الفحوصات اليومية (آخر 7 أيام)" icon={<ClipboardCheck size={20} className="text-petrol" />}>
                   <ResponsiveContainer width="100%" height={280}>
-                    <AreaChart data={weeklyTests}>
+                    <AreaChart data={weeklyTests} margin={{ top: 4 }}>
                       <defs>
                         <linearGradient id="colorTests" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#0F4C5C" stopOpacity={0.3} />
                           <stop offset="95%" stopColor="#0F4C5C" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="count" stroke="#0F4C5C" fill="url(#colorTests)" name="عدد الفحوصات" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                      <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ stroke: '#0F4C5C', strokeDasharray: '3 3' }} />
+                      <Area type="monotone" dataKey="count" stroke="#0F4C5C" strokeWidth={2} fill="url(#colorTests)" name="عدد الفحوصات" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </ChartCard>
