@@ -14,6 +14,7 @@ import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
 import { createOvertime } from '@/lib/services/overtime';
 import { Query } from '@/lib/services';
+import { computeWorkHours } from '@/lib/work-time';
 
 export default function NewOvertimePage() {
   const router = useRouter();
@@ -43,22 +44,12 @@ export default function NewOvertimePage() {
   }, []);
 
   // حساب الساعات تلقائياً عند تغيير الوقت
-  const calculateHours = (start: string, end: string) => {
-    if (!start || !end) return 0;
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    const startMin = sh * 60 + sm;
-    const endMin = eh * 60 + em;
-    if (endMin <= startMin) return 0;
-    return parseFloat(((endMin - startMin) / 60).toFixed(2));
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => {
       const newForm = { ...prev, [name]: value };
       if (name === 'startTime' || name === 'endTime') {
-        newForm.hours = calculateHours(
+        newForm.hours = computeWorkHours(
           name === 'startTime' ? value : prev.startTime,
           name === 'endTime' ? value : prev.endTime
         );

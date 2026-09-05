@@ -18,6 +18,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Running Tests
+
+The project uses [Vitest](https://vitest.dev) for the automated test layer (unit + API-route integration tests; no e2e suite).
+
+```bash
+npm test          # run the suite once
+npm run test:watch  # watch mode
+```
+
+The suite covers the pure calculation/formatting helpers (`src/lib/__tests__/*`) and the public report-verification endpoint (`src/app/api/reports/verify/route.test.ts`, which mocks `node-appwrite`). Appwrite env vars are not required — `vitest.setup.ts` provides safe test defaults.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

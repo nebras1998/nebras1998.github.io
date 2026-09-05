@@ -6,6 +6,7 @@ import { Query } from '@/lib/services';
 import { getInvoice, updateInvoice } from '@/lib/services/invoices';
 import { getClient } from '@/lib/services/clients';
 import { listPayments, createPayment, deletePayment } from '@/lib/services/payments';
+import { computeRemainingAmount } from '@/lib/invoice-math';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
@@ -62,7 +63,7 @@ export default function InvoiceDetailPage() {
   }, [invoiceId]);
 
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-  const remaining = invoice ? invoice.total - totalPaid : 0;
+  const remaining = invoice ? computeRemainingAmount(invoice.total, totalPaid) : 0;
 
   const updateInvoiceAmounts = async (paid: number, rem: number) => {
     await updateInvoice(invoiceId, {

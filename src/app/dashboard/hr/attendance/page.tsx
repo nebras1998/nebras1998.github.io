@@ -16,6 +16,7 @@ import type { AttendanceRecord, Employee } from '@/types';
 import { listAttendance, updateAttendance, deleteAttendance } from '@/lib/services/attendance';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { computeWorkHours } from '@/lib/work-time';
 
 const PAGE_SIZE = 25;
 
@@ -96,18 +97,9 @@ export default function AttendancePage() {
     })();
   }, []);
 
-  const calculateHours = (checkIn?: string, checkOut?: string) => {
-    if (!checkIn || !checkOut) return null;
-    const [h1, m1] = checkIn.split(':').map(Number);
-    const [h2, m2] = checkOut.split(':').map(Number);
-    const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-    if (diff <= 0) return null;
-    return (diff / 60).toFixed(2);
-  };
-
   const totalHours = filtered.reduce((sum, r) => {
-    const h = calculateHours(r.checkIn, r.checkOut);
-    return sum + (h ? parseFloat(h) : 0);
+    const h = computeWorkHours(r.checkIn, r.checkOut);
+    return sum + h;
   }, 0);
 
   const toggleApproval = async (id: string, current: boolean) => {
@@ -188,14 +180,14 @@ export default function AttendancePage() {
                     <tr><td colSpan={9}><EmptyData title="لا توجد سجلات" className="py-8" /></td></tr>
                   ) : (
                     paginated.map(rec => {
-                      const hours = calculateHours(rec.checkIn, rec.checkOut);
+                      const hours = computeWorkHours(rec.checkIn, rec.checkOut);
                       return (
                         <tr key={rec.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                           <td className="p-3">{employeesMap[rec.employeeId] || rec.employeeId}</td>
                           <td className="p-3">{rec.date}</td>
                           <td className="p-3">{rec.checkIn || '-'}</td>
                           <td className="p-3">{rec.checkOut || '-'}</td>
-                          <td className="p-3 font-mono">{hours || '-'}</td>
+                          <td className="p-3 font-mono">{hours > 0 ? hours.toFixed(2) : '-'}</td>
                           <td className="p-3">
                             <Badge status={rec.status} />
                           </td>

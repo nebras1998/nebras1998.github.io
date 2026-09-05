@@ -5,6 +5,7 @@ import { Query } from '@/lib/services';
 import { listPayments, deletePayment } from '@/lib/services/payments';
 import { listInvoices, updateInvoice } from '@/lib/services/invoices';
 import { listClients } from '@/lib/services/clients';
+import { computeRemainingAmount } from '@/lib/invoice-math';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import EmptyData from '@/components/EmptyData';
@@ -153,7 +154,7 @@ export default function PaymentsPage() {
       const inv = invoicesMap[payment.invoiceId];
       if (inv) {
         const newPaid = (inv.paidAmount ?? 0) - payment.amount;
-        const newRemaining = inv.total - newPaid;
+        const newRemaining = computeRemainingAmount(inv.total, newPaid);
         await updateInvoice(payment.invoiceId, {
           paidAmount: newPaid,
           remainingAmount: newRemaining,

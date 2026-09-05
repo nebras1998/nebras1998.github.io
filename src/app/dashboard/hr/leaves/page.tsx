@@ -16,6 +16,7 @@ import type { LeaveRequest, Employee } from '@/types';
 import { listLeaveRequests, updateLeaveRequest, deleteLeaveRequest } from '@/lib/services/leaves';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { computeLeaveDays } from '@/lib/work-time';
 
 const PAGE_SIZE = 20;
 
@@ -125,14 +126,6 @@ export default function LeavesPage() {
     }
   };
 
-  const getDays = (start: string, end: string) => {
-    if (!start || !end) return 0;
-    const s = new Date(start);
-    const e = new Date(end);
-    const diff = Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    return diff > 0 ? diff : 0;
-  };
-
   const typeLabel = (t: string) => {
     const labels: Record<string, string> = { 'سنوي': 'سنوية', 'مرضي': 'مرضية', 'طارئ': 'طارئة', 'بدون راتب': 'بدون راتب' };
     return labels[t] || t;
@@ -140,7 +133,7 @@ export default function LeavesPage() {
 
   const totalApprovedDays = filtered
     .filter((l) => l.status === 'موافق')
-    .reduce((sum, l) => sum + getDays(l.startDate, l.endDate), 0);
+    .reduce((sum, l) => sum + computeLeaveDays(l.startDate, l.endDate), 0);
 
   const employeeOptions = Object.entries(employeesMap);
 
@@ -203,7 +196,7 @@ export default function LeavesPage() {
                         <td className="p-3">{typeLabel(leave.type)}</td>
                         <td className="p-3">{leave.startDate}</td>
                         <td className="p-3">{leave.endDate}</td>
-                        <td className="p-3 font-bold">{getDays(leave.startDate, leave.endDate)}</td>
+                        <td className="p-3 font-bold">{computeLeaveDays(leave.startDate, leave.endDate)}</td>
                         <td className="p-3">
                           <Badge status={leave.status} />
                         </td>

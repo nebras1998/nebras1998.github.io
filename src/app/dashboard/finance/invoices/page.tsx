@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Query } from '@/lib/services';
 import { listInvoices, deleteInvoice } from '@/lib/services/invoices';
 import { listClients } from '@/lib/services/clients';
+import { computeRemainingAmount } from '@/lib/invoice-math';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -124,7 +125,7 @@ export default function InvoicesPage() {
                   ) : (
                     invoices.map(inv => {
                       const paid = inv.paidAmount ?? 0;
-                      const remaining = inv.remainingAmount ?? (inv.total - paid);
+                      const remaining = inv.remainingAmount ?? computeRemainingAmount(inv.total, paid);
                       return (
                         <tr key={inv.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                           <td className="p-3 font-mono">{inv.invoiceNumber}</td>

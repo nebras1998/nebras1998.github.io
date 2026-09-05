@@ -17,6 +17,7 @@ import { listClients } from '@/lib/services/clients';
 import { listProjects } from '@/lib/services/projects';
 import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
 import { listInvoices, createInvoice } from '@/lib/services/invoices';
+import { computeInvoiceTotals } from '@/lib/invoice-math';
 import { toast } from 'sonner';
 import { Plus, X } from 'lucide-react';
 
@@ -72,10 +73,7 @@ export default function NewInvoicePage() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const taxRate = 0.16;
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
+  const { subtotal, tax, total } = computeInvoiceTotals(items);
 
   const generateInvoiceNumber = async () => {
     try {
