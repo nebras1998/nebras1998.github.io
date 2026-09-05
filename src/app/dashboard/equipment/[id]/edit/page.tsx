@@ -11,6 +11,7 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
+import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 export default function EditEquipmentPage() {
@@ -66,6 +67,9 @@ export default function EditEquipmentPage() {
 
   return (
     <AuthGuard><DashboardLayout>
+      <div className="max-w-2xl mx-auto mb-4">
+        <Breadcrumb items={[{ href: '/dashboard/equipment', label: 'المعدات' }, { label: 'تعديل بيانات الجهاز' }]} />
+      </div>
       <FormCard title="تعديل بيانات الجهاز" maxWidth="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* نفس حقول صفحة الإضافة */}
