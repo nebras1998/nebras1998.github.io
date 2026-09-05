@@ -149,20 +149,20 @@ export default function LeavesPage() {
       <DashboardLayout>
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold">إدارة الإجازات</h1>
-          <Link href="/dashboard/hr/leaves/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+          <Link href="/dashboard/hr/leaves/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
             <Plus size={18} /> طلب إجازة جديد
           </Link>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
-            <input type="text" placeholder="ابحث باسم الموظف أو نوع الإجازة..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border p-2 pr-10 rounded" />
+            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" placeholder="ابحث باسم الموظف أو نوع الإجازة..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200" />
           </div>
           <select
             value={selectedEmployee}
             onChange={(e) => { setSelectedEmployee(e.target.value); setCurrentPage(1); }}
-            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+            className="border border-border p-2 rounded-xl bg-surface"
           >
             <option value="">كل الموظفين</option>
             {employeeOptions.map(([id, name]) => (
@@ -172,10 +172,10 @@ export default function LeavesPage() {
         </div>
 
         {selectedEmployee && (
-          <div className="bg-white p-4 rounded-lg shadow mb-4 flex items-center gap-4">
+          <Card className="mb-4 flex items-center gap-4">
             <span className="font-bold text-lg">إجمالي أيام الإجازات المقبولة:</span>
-            <span className="text-2xl font-bold text-petrol">{totalApprovedDays} يوم</span>
-          </div>
+            <span className="text-2xl font-bold text-primary">{totalApprovedDays} يوم</span>
+          </Card>
         )}
 
         {loading ? <TableSkeleton rows={5} cols={7} /> : (
@@ -183,14 +183,14 @@ export default function LeavesPage() {
             <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموظف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">من</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">إلى</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">عدد الأيام</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الموظف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النوع</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">من</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">إلى</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">عدد الأيام</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,7 +198,7 @@ export default function LeavesPage() {
                     <tr><td colSpan={7}><EmptyData title="لا توجد طلبات إجازة" className="py-8" /></td></tr>
                   ) : (
                     paginated.map(leave => (
-                      <tr key={leave.$id} className="border-b hover:bg-concrete-50">
+                      <tr key={leave.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                         <td className="p-3">{employeesMap[leave.employeeId] || leave.employeeId}</td>
                         <td className="p-3">{typeLabel(leave.type)}</td>
                         <td className="p-3">{leave.startDate}</td>
@@ -210,13 +210,13 @@ export default function LeavesPage() {
                         <td className="p-3 flex gap-2">
                           {leave.status === 'معلق' && (
                             <>
-                              <button onClick={() => updateStatus(leave.$id, 'موافق')} className="text-petrol hover:underline flex items-center gap-1"><Check size={16} /> قبول</button>
-                              <button onClick={() => updateStatus(leave.$id, 'مرفوض')} className="text-danger hover:underline flex items-center gap-1"><XIcon size={16} /> رفض</button>
+                              <button onClick={() => updateStatus(leave.$id, 'موافق')} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><Check size={16} /> قبول</button>
+                              <button onClick={() => updateStatus(leave.$id, 'مرفوض')} className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"><XIcon size={16} /> رفض</button>
                             </>
                           )}
                           <button
                             onClick={() => openDeleteModal(leave.$id, employeesMap[leave.employeeId] || '')}
-                            className="text-danger hover:underline flex items-center gap-1"
+                            className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                           >
                             <Trash2 size={16} /> حذف
                           </button>
@@ -227,7 +227,7 @@ export default function LeavesPage() {
                 </tbody>
               </table>
             </Card>
-            <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
+            <div className="flex items-center justify-between mt-2 text-sm text-text-muted">
               <span>إجمالي النتائج: {filtered.length} طلب</span>
             </div>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

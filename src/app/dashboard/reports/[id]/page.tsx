@@ -7,6 +7,7 @@ import { getReport, updateReportDraft, getActiveReportTemplate } from '@/lib/ser
 import { getFileViewUrl } from '@/lib/services/files';
 import type { Report, ReportSnapshot, ReportTemplate } from '@/types';
 import { parseReportSnapshot } from '@/lib/report-snapshot';
+import { getReportSectionPlan, hasLimits, rowPass, complianceLabel } from '@/lib/report-sections';
 import { useAuthStore } from '@/store/useAuthStore';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -17,7 +18,6 @@ import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import EmptyData from '@/components/EmptyData';
 import TextAreaField from '@/components/TextAreaField';
-import TextField from '@/components/TextField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { Save, Lock, FileDown, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
@@ -86,16 +86,12 @@ export default function ReportDetailPage() {
   };
 
   const handleApprove = async () => {
-    if (!reviewerName.trim()) {
-      toast.error('أدخل اسم المعتمِد');
-      return;
-    }
     setApproving(true);
     try {
       const res = await fetch(`/api/reports/${reportId}/pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewedBy: reviewerName.trim() }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل توليد PDF التقرير');
@@ -104,7 +100,7 @@ export default function ReportDetailPage() {
           ? {
               ...prev,
               status: 'معتمد',
-              reviewedBy: reviewerName.trim(),
+              reviewedBy: data.reviewedBy,
               reviewedAt: data.reviewedAt,
               reportHash: data.reportHash,
               pdfFileId: data.pdfFileId,
@@ -127,18 +123,9 @@ export default function ReportDetailPage() {
 
   const isApproved = report.status === 'معتمد';
 
-  const metaRows: [string, string][] = [
-    ['اسم الفحص', snapshot.testName],
-    ['رقم الفحص', snapshot.testNumber],
-    ['رقم العينة', snapshot.sampleNumber || '-'],
-    ['نوع العينة', snapshot.sampleType || '-'],
-    ['العميل', snapshot.clientName || '-'],
-    ['المشروع', snapshot.projectName || '-'],
-    ['المواصفة / المرجع المعياري', snapshot.standard || '-'],
-    ['المعيار المطبق', snapshot.appliedStandardName || '-'],
-    ['الفني المسؤول', snapshot.technicianName || '-'],
-    ['تاريخ إنجاز الفحص', formatDate(snapshot.completedAt)],
-  ];
+  const plan = getReportSectionPlan(snapshot);
+  const showLimits = hasLimits(snapshot);
+  const metaRows = plan.metaRows;
 
   return (
     <AuthGuard>
@@ -162,14 +149,14 @@ export default function ReportDetailPage() {
                 )}
                 <div className="min-w-0">
                   <h1 className="text-xl font-bold" style={{ color: primaryColor }}>{template?.labName || 'مختبرات الشمال'}</h1>
-                  {template?.labNameEn && <p className="text-xs text-concrete-500 text-left" dir="ltr">{template.labNameEn}</p>}
-                  {template?.accreditationText && <p className="text-xs text-concrete-500 mt-1">{template.accreditationText}</p>}
+                  {template?.labNameEn && <p className="text-xs text-text-muted text-left" dir="ltr">{template.labNameEn}</p>}
+                  {template?.accreditationText && <p className="text-xs text-text-muted mt-1">{template.accreditationText}</p>}
                 </div>
               </div>
               <div className="text-center border rounded-lg px-3 py-2 flex-shrink-0" style={{ borderColor: primaryColor }}>
-                <p className="text-xs text-concrete-500">رقم التقرير</p>
+                <p className="text-xs text-text-muted">رقم التقرير</p>
                 <p className="font-bold" style={{ color: primaryColor }} dir="ltr">{report.reportNumber}</p>
-                <p className="text-xs text-concrete-500">{formatDate(report.$createdAt)}</p>
+                <p className="text-xs text-text-muted">{formatDate(report.$createdAt)}</p>
               </div>
             </div>
 
@@ -180,7 +167,7 @@ export default function ReportDetailPage() {
             )}
 
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-concrete-500">الحالة:</span>
+              <span className="text-sm text-text-muted">الحالة:</span>
               <Badge status={report.status} />
               {isApproved && (
                 <span className="text-sm text-success flex items-center gap-1">
@@ -192,11 +179,11 @@ export default function ReportDetailPage() {
 
           {/* بيانات الفحص */}
           <Card>
-            <h2 className="font-bold text-lg mb-3 flex items-center gap-2"><FileText size={18} className="text-petrol" /> بيانات الفحص</h2>
+            <h2 className="font-bold text-lg mb-3 flex items-center gap-2"><FileText size={18} className="text-primary" /> بيانات الفحص</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
               {metaRows.map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-2 text-sm border-b border-concrete-100 py-1.5">
-                  <span className="text-concrete-500">{label}</span>
+                <div key={label} className="flex justify-between gap-2 text-sm border-b border-border/50 py-1.5">
+                  <span className="text-text-muted">{label}</span>
                   <span className="font-medium text-left">{value}</span>
                 </div>
               ))}
@@ -205,34 +192,62 @@ export default function ReportDetailPage() {
 
           {/* النتائج */}
           <Card>
-            <h2 className="font-bold text-lg mb-3">نتائج الفحص</h2>
+            <h2 className="font-bold text-lg mb-3">{plan.resultsTitle}</h2>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
+                  <tr className="bg-surface-dim border-b border-border">
                     <th className="text-right p-3 text-sm font-semibold">البند</th>
                     <th className="text-right p-3 text-sm font-semibold">النتيجة</th>
                     <th className="text-right p-3 text-sm font-semibold">الوحدة</th>
+                    {showLimits && (
+                      <>
+                        <th className="text-right p-3 text-sm font-semibold">الحد الأدنى</th>
+                        <th className="text-right p-3 text-sm font-semibold">الحد الأقصى</th>
+                        <th className="text-right p-3 text-sm font-semibold">المطابقة</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {snapshot.resultRows.map((row, idx) => (
-                    <tr key={idx} className="border-b">
-                      <td className="p-3">{row.label}</td>
-                      <td className="p-3 font-bold">{row.value || '-'}</td>
-                      <td className="p-3 text-sm">{row.unit || '-'}</td>
-                    </tr>
-                  ))}
+                  {snapshot.resultRows.map((row, idx) => {
+                    const pass = showLimits ? rowPass(row) : undefined;
+                    return (
+                      <tr key={idx} className="border-b">
+                        <td className="p-3">{row.label}</td>
+                        <td className="p-3 font-bold">{row.value || '-'}</td>
+                        <td className="p-3 text-sm">{row.unit || '-'}</td>
+                        {showLimits && (
+                          <>
+                            <td className="p-3 text-sm">{row.min ?? '—'}</td>
+                            <td className="p-3 text-sm">{row.max ?? '—'}</td>
+                            <td className="p-3">
+                              {pass === true ? <Badge status="مطابق" /> : pass === false ? <Badge status="غير مطابق" /> : <span className="text-text-muted">—</span>}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })}
                   {snapshot.resultRows.length === 0 && (
-                    <tr><td colSpan={3} className="p-3 text-concrete-500">لا توجد نتائج مسجلة.</td></tr>
+                    <tr><td colSpan={showLimits ? 6 : 3}><EmptyData title="لا توجد نتائج مسجلة" className="py-8" /></td></tr>
                   )}
                 </tbody>
               </table>
             </div>
+            {showLimits && (
+              <p className="mt-2 text-xs text-text-muted">تُقارن النتائج بحدود القبول الواردة في المعيار المطبق.</p>
+            )}
             <p className="mt-3 text-sm">
-              <span className="text-concrete-500">حالة المطابقة: </span>
-              {snapshot.complianceStatus ? <Badge status={snapshot.complianceStatus} /> : <span className="text-concrete-500">لم يُقيّم</span>}
+              <span className="text-text-muted">حالة المطابقة: </span>
+              {complianceLabel(snapshot) === 'مطابق' ? <Badge status="مطابق" /> : complianceLabel(snapshot) === 'غير مطابق' ? <Badge status="غير مطابق" /> : <span className="text-text-muted">لم يُقيَّم</span>}
             </p>
+            {plan.methodNote && (
+              <p className="mt-3 text-xs text-text-muted border-r-2 pr-3" style={{ borderColor: primaryColor }}>
+                <span className="font-semibold">ملاحظة المنهجية: </span>
+                {plan.methodNote}
+              </p>
+            )}
           </Card>
 
           {/* الملاحظات + القفل */}
@@ -240,20 +255,20 @@ export default function ReportDetailPage() {
             <>
               <Card>
                 <h2 className="font-bold text-lg mb-2">الملاحظات</h2>
-                <p className="text-sm whitespace-pre-wrap border border-concrete-200 rounded-lg p-3 bg-concrete-50">
+                <p className="text-sm whitespace-pre-wrap border border-border rounded-lg p-3 bg-surface-dim">
                   {notes || 'لا توجد ملاحظات.'}
                 </p>
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between border-b border-concrete-100 py-1.5">
-                    <span className="text-concrete-500">اعتمده:</span>
+                  <div className="flex justify-between border-b border-border/50 py-1.5">
+                    <span className="text-text-muted">اعتمده:</span>
                     <span className="font-medium">{report.reviewedBy || '-'}</span>
                   </div>
-                  <div className="flex justify-between border-b border-concrete-100 py-1.5">
-                    <span className="text-concrete-500">تاريخ الاعتماد:</span>
+                  <div className="flex justify-between border-b border-border/50 py-1.5">
+                    <span className="text-text-muted">تاريخ الاعتماد:</span>
                     <span className="font-medium">{formatDate(report.reviewedAt)}</span>
                   </div>
-                  <div className="sm:col-span-2 flex justify-between border-b border-concrete-100 py-1.5">
-                    <span className="text-concrete-500">بصمة التقرير (SHA-256):</span>
+                  <div className="sm:col-span-2 flex justify-between border-b border-border/50 py-1.5">
+                    <span className="text-text-muted">بصمة التقرير (SHA-256):</span>
                     <span className="font-mono text-xs" dir="ltr">{shortHash(report.reportHash)}</span>
                   </div>
                 </div>
@@ -268,7 +283,7 @@ export default function ReportDetailPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     download
-                    className="bg-petrol text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-petrol-dark font-bold"
+                    className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:from-primary-dark hover:to-primary font-bold"
                   >
                     <FileDown size={18} /> تحميل PDF النهائي
                   </a>
@@ -279,7 +294,7 @@ export default function ReportDetailPage() {
             <>
               <Card className="space-y-4">
                 <h2 className="font-bold text-lg mb-2">الملاحظات الإضافية</h2>
-                <p className="text-xs text-concrete-500 -mt-3">الحقل الوحيد القابل للتعديل — بقية البيانات لقطة ثابتة من الفحص الأصلي ولا تُعدّل.</p>
+                <p className="text-xs text-text-muted -mt-3">الحقل الوحيد القابل للتعديل — بقية البيانات لقطة ثابتة من الفحص الأصلي ولا تُعدّل.</p>
                 <TextAreaField
                   label="ملاحظات إضافية"
                   value={notes}
@@ -297,7 +312,10 @@ export default function ReportDetailPage() {
                 <p className="text-sm text-danger/90">
                   عند الاعتماد سيُولَّد PDF نهائي من بيانات التقرير، وتُحسب بصمة SHA-256، ويُقفل التقرير نهائيًا ولا يمكن تعديله أو فتحه مرة أخرى.
                 </p>
-                <TextField label="اسم المعتمِد" value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} placeholder="اسم المدير المسؤول" />
+                <p className="text-sm">
+                  <span className="text-text-muted">سيُسجَّل اسم المعتمِد الحالي من حسابك: </span>
+                  <span className="font-bold">{reviewerName || '-'}</span>
+                </p>
                 <button
                   onClick={() => setApproveOpen(true)}
                   className="bg-danger-solid text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-danger-dark font-bold"
@@ -308,7 +326,7 @@ export default function ReportDetailPage() {
             </>
           )}
 
-          <Link href={`/dashboard/tests/${report.testId}`} className="inline-flex items-center gap-1 text-petrol text-sm hover:underline">
+          <Link href={`/dashboard/tests/${report.testId}`} className="inline-flex items-center gap-1 text-primary text-sm hover:underline">
             العودة إلى تفاصيل الفحص
           </Link>
 

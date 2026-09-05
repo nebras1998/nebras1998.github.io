@@ -145,15 +145,15 @@ export default function TestDetailPage() {
             <h1 className="text-2xl font-bold">{test.testName}</h1>
 
           <div className="grid grid-cols-2 gap-4">
-            <div><span className="text-concrete-500">رقم الفحص:</span> {test.testNumber || '-'}</div>
-            <div><span className="text-concrete-500">العينة:</span> {sample?.sampleNumber || test.sampleId}</div>
-            <div><span className="text-concrete-500">الحالة:</span> <Badge status={test.status} /></div>
-            <div><span className="text-concrete-500">المواصفة:</span> {appliedStandard?.specification || test.specification || '-'}</div>
-            <div><span className="text-concrete-500">المعيار المطبق:</span> {appliedStandard?.name || '-'}</div>
-            <div><span className="text-concrete-500">حالة المطابقة:</span> {test.complianceStatus ? <Badge status={test.complianceStatus} /> : '-'}</div>
-            <div><span className="text-concrete-500">المسؤول:</span> {test.assignedTo || '-'}</div>
-            <div><span className="text-concrete-500">تاريخ الإنشاء:</span> {formatDate(test.$createdAt)}</div>
-            <div><span className="text-concrete-500">تاريخ النتيجة:</span> {test.completedAt ? formatDate(test.completedAt) : '-'}</div>
+            <div><span className="text-text-muted">رقم الفحص:</span> {test.testNumber || '-'}</div>
+            <div><span className="text-text-muted">العينة:</span> {sample?.sampleNumber || test.sampleId}</div>
+            <div><span className="text-text-muted">الحالة:</span> <Badge status={test.status} /></div>
+            <div><span className="text-text-muted">المواصفة:</span> {appliedStandard?.specification || test.specification || '-'}</div>
+            <div><span className="text-text-muted">المعيار المطبق:</span> {appliedStandard?.name || '-'}</div>
+            <div><span className="text-text-muted">حالة المطابقة:</span> {test.complianceStatus ? <Badge status={test.complianceStatus} /> : '-'}</div>
+            <div><span className="text-text-muted">المسؤول:</span> {test.assignedTo || '-'}</div>
+            <div><span className="text-text-muted">تاريخ الإنشاء:</span> {formatDate(test.$createdAt)}</div>
+            <div><span className="text-text-muted">تاريخ النتيجة:</span> {test.completedAt ? formatDate(test.completedAt) : '-'}</div>
           </div>
 
           {/* ========== عرض نتائج مقاومة الضغط (عمر 7 و 28 يوم) ========== */}
@@ -162,13 +162,13 @@ export default function TestDetailPage() {
               <h2 className="font-bold text-lg mb-2">نتائج الأعمار</h2>
               
               {age7Array.length > 0 && (
-                <div className="bg-petrol-soft p-4 rounded-lg">
-                  <h3 className="font-bold text-petrol mb-2">عمر 7 أيام</h3>
-                  {test.test7Date && <p className="text-sm text-concrete-500 mb-2">تاريخ الفحص: {test.test7Date}</p>}
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-primary mb-2">عمر 7 أيام</h3>
+                  {test.test7Date && <p className="text-sm text-text-muted mb-2">تاريخ الفحص: {test.test7Date}</p>}
                   <div className="grid grid-cols-3 gap-2">
                     {age7Array.map((val, idx) => (
                       <div key={idx} className="bg-white p-3 rounded text-center shadow-sm">
-                        <p className="text-xs text-concrete-500">مكعب {idx + 1}</p>
+                        <p className="text-xs text-text-muted">مكعب {idx + 1}</p>
                         <p className="font-bold text-lg">{val}</p>
                         <p className="text-xs">{test.unit || '-'}</p>
                       </div>
@@ -183,13 +183,13 @@ export default function TestDetailPage() {
               )}
 
               {age28Array.length > 0 && (
-                <div className="bg-petrol-soft p-4 rounded-lg">
-                  <h3 className="font-bold text-petrol mb-2">عمر 28 يوم</h3>
-                  {test.test28Date && <p className="text-sm text-concrete-500 mb-2">تاريخ الفحص: {test.test28Date}</p>}
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-primary mb-2">عمر 28 يوم</h3>
+                  {test.test28Date && <p className="text-sm text-text-muted mb-2">تاريخ الفحص: {test.test28Date}</p>}
                   <div className="grid grid-cols-3 gap-2">
                     {age28Array.map((val, idx) => (
                       <div key={idx} className="bg-white p-3 rounded text-center shadow-sm">
-                        <p className="text-xs text-concrete-500">مكعب {idx + 1}</p>
+                        <p className="text-xs text-text-muted">مكعب {idx + 1}</p>
                         <p className="font-bold text-lg">{val}</p>
                         <p className="text-xs">{test.unit || '-'}</p>
                       </div>
@@ -211,8 +211,8 @@ export default function TestDetailPage() {
               <h2 className="font-bold text-lg mb-2">نتائج المكعبات</h2>
               <div className="grid grid-cols-3 gap-2">
                 {resultsArray.map((val, idx) => (
-                  <div key={idx} className="bg-concrete-50 p-3 rounded text-center">
-                    <p className="text-xs text-concrete-500">مكعب {idx + 1}</p>
+                  <div key={idx} className="bg-surface-dim p-3 rounded text-center">
+                    <p className="text-xs text-text-muted">مكعب {idx + 1}</p>
                     <p className="font-bold text-lg">{val}</p>
                     <p className="text-xs">{test.unit || '-'}</p>
                   </div>
@@ -231,12 +231,12 @@ export default function TestDetailPage() {
             <div className="border-t pt-4">
               <h2 className="font-bold text-lg mb-2">نتائج الفحص</h2>
               {resultFields.length === 0 ? (
-                <p className="text-concrete-500">لا توجد بيانات.</p>
+                <EmptyData title="لا توجد بيانات." className="py-8" />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-concrete-50 border-b text-sm">
+                      <tr className="bg-surface-dim border-b border-border text-sm">
                         <th className="text-right p-3 font-semibold">الحقل</th>
                         <th className="text-right p-3 font-semibold">النتيجة</th>
                         <th className="text-right p-3 font-semibold">الوحدة</th>
@@ -261,7 +261,7 @@ export default function TestDetailPage() {
           {!isDualAge && !isMultiResult && !isMultiField && (
             <div className="border-t pt-4">
               <h2 className="font-bold text-lg mb-2">النتيجة</h2>
-              <p className="text-concrete-500">النتيجة: {test.result || '-'} {test.unit || ''}</p>
+              <p className="text-text-muted">النتيجة: {test.result || '-'} {test.unit || ''}</p>
             </div>
           )}
 
@@ -269,9 +269,9 @@ export default function TestDetailPage() {
           <div className="border-t pt-4 space-y-3">
             <h2 className="font-bold text-lg mb-2">التقرير</h2>
             {report ? (
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-concrete-50 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-surface-dim rounded-lg p-4">
                 <div className="flex items-center gap-3">
-                  <FileText size={18} className="text-petrol" />
+                  <FileText size={18} className="text-primary" />
                   <div>
                     <p className="font-bold" dir="ltr">{report.reportNumber}</p>
                     <Badge status={report.status} size="sm" />
@@ -279,7 +279,7 @@ export default function TestDetailPage() {
                 </div>
                 <Link
                   href={`/dashboard/reports/${report.$id}`}
-                  className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark flex items-center gap-1 text-sm font-bold"
+                  className="bg-primary text-white px-4 py-2 rounded hover:from-primary-dark hover:to-primary flex items-center gap-1 text-sm font-bold"
                 >
                   <FileText size={16} />
                   {report.status === 'معتمد' ? 'عرض التقرير المعتمد' : 'فتح مسودة التقرير'}
@@ -289,13 +289,13 @@ export default function TestDetailPage() {
               <button
                 onClick={handleGenerateReport}
                 disabled={generating}
-                className="bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark flex items-center gap-1 disabled:opacity-50"
+                className="bg-primary text-white px-4 py-2 rounded hover:from-primary-dark hover:to-primary flex items-center gap-1 disabled:opacity-50"
               >
                 {generating ? <Loader2 size={18} className="animate-spin" /> : <FilePlus2 size={18} />}
                 {generating ? 'جارٍ إنشاء التقرير...' : 'إنشاء التقرير'}
               </button>
             ) : (
-              <p className="text-sm text-concrete-500">يُنشأ التقرير تلقائيًا بعد اكتمال الفحص.</p>
+              <p className="text-sm text-text-muted">يُنشأ التقرير تلقائيًا بعد اكتمال الفحص.</p>
             )}
           </div>
 
@@ -303,7 +303,7 @@ export default function TestDetailPage() {
           <div className="border-t pt-4">
             <h2 className="font-bold text-lg mb-2">التقرير المرفوع (PDF يدوي)</h2>
             {fileUrl ? (
-              <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-petrol text-white px-4 py-2 rounded hover:bg-petrol-dark" download>
+              <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded hover:from-primary-dark hover:to-primary" download>
                 <FileDown size={18} /> تحميل التقرير (PDF)
               </a>
             ) : (

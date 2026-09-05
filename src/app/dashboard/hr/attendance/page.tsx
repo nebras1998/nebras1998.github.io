@@ -147,23 +147,23 @@ export default function AttendancePage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">الحضور والانصراف</h1>
-          <Link href="/dashboard/hr/attendance/check-in" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">الحضور والانصراف</h1>
+          <Link href="/dashboard/hr/attendance/check-in" className="bg-primary text-white px-4 py-2 rounded flex items-center gap-1">
             <Plus size={18} /> تسجيل حضور جماعي
           </Link>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
-            <input type="text" placeholder="ابحث باسم الموظف..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border p-2 pr-10 rounded" />
+            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" placeholder="ابحث باسم الموظف..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200" />
           </div>
-          <select value={selectedEmployee} onChange={e => { setSelectedEmployee(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0">
+          <select value={selectedEmployee} onChange={e => { setSelectedEmployee(e.target.value); setCurrentPage(1); }} className="border border-border p-2 rounded-xl bg-surface">
             <option value="">كل الموظفين</option>
             {employeeOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
           </select>
-          <input type="date" value={filterDate} onChange={e => { setFilterDate(e.target.value); setFilterMonth(''); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
-          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setFilterDate(''); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
+          <input type="date" value={filterDate} onChange={e => { setFilterDate(e.target.value); setFilterMonth(''); setCurrentPage(1); }} className="border border-border p-2 rounded-xl bg-surface" />
+          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setFilterDate(''); setCurrentPage(1); }} className="border border-border p-2 rounded-xl bg-surface" />
         </div>
 
         {loading ? <TableSkeleton rows={5} cols={9} /> : (
@@ -171,16 +171,16 @@ export default function AttendancePage() {
             <Card className="overflow-x-auto mb-4">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموظف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">وقت الحضور</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">وقت الانصراف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">ساعات العمل</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">معتمد</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">ملاحظات</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الموظف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">وقت الحضور</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">وقت الانصراف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">ساعات العمل</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">معتمد</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">ملاحظات</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -190,7 +190,7 @@ export default function AttendancePage() {
                     paginated.map(rec => {
                       const hours = calculateHours(rec.checkIn, rec.checkOut);
                       return (
-                        <tr key={rec.$id} className="border-b hover:bg-concrete-50">
+                        <tr key={rec.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                           <td className="p-3">{employeesMap[rec.employeeId] || rec.employeeId}</td>
                           <td className="p-3">{rec.date}</td>
                           <td className="p-3">{rec.checkIn || '-'}</td>
@@ -202,18 +202,18 @@ export default function AttendancePage() {
                           <td className="p-3 text-center">
                             <button onClick={() => toggleApproval(rec.$id, rec.approved ?? false)} title={rec.approved ? 'إلغاء الاعتماد' : 'اعتماد'}>
                               {rec.approved ? (
-                                <CheckCircle size={20} className="text-petrol" />
+                                <CheckCircle size={20} className="text-primary" />
                               ) : (
-                                <XCircle size={20} className="text-concrete-500 hover:text-petrol" />
+                                <XCircle size={20} className="text-text-muted hover:text-primary-dark" />
                               )}
                             </button>
                           </td>
                           <td className="p-3 text-sm">{rec.notes || '-'}</td>
                           <td className="p-3 flex gap-2">
-                            <Link href={`/dashboard/hr/attendance/${rec.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1">
+                            <Link href={`/dashboard/hr/attendance/${rec.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1">
                               <Edit size={16} /> تعديل
                             </Link>
-                            <button onClick={() => openDeleteModal(rec.$id)} className="text-danger hover:underline flex items-center gap-1">
+                            <button onClick={() => openDeleteModal(rec.$id)} className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1">
                               <Trash2 size={16} /> حذف
                             </button>
                           </td>
@@ -225,15 +225,15 @@ export default function AttendancePage() {
               </table>
             </Card>
 
-            <div className="flex items-center justify-between text-sm text-concrete-500">
+            <div className="flex items-center justify-between text-sm text-text-muted">
               <span>إجمالي النتائج: {filtered.length} سجل</span>
             </div>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
             {filtered.length > 0 && (
-              <div className="text-left text-lg font-bold bg-white p-4 rounded-lg shadow mt-4">
+              <Card className="text-left text-lg font-bold mt-4">
                 إجمالي ساعات العمل: {totalHours.toFixed(2)} ساعة
-              </div>
+              </Card>
             )}
           </>
         )}

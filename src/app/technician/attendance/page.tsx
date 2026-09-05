@@ -11,6 +11,7 @@ import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { createNotification } from '@/lib/notifications';
 import Card from '@/components/Card';
 import TextField from '@/components/TextField';
+import SubmitButton from '@/components/SubmitButton';
 
 export default function TechnicianAttendance() {
   const { employee } = useAuthStore();
@@ -76,21 +77,21 @@ export default function TechnicianAttendance() {
   };
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+      <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white"><ArrowRight size={24} /></button>
         <h1 className="text-lg font-bold">تسجيل الحضور</h1>
       </header>
       <main className="p-4">
         <Card>
           <div className="text-center mb-6">
-            <CalendarCheck size={56} className="mx-auto text-petrol mb-3" />
+            <CalendarCheck size={56} className="mx-auto text-primary mb-3" />
             <p className="text-xl font-bold">{employee?.name}</p>
-            <p className="text-concrete-500">{today}</p>
+            <p className="text-text-muted">{today}</p>
           </div>
           <div className="flex gap-2 mb-6">
-            <button onClick={() => setMode('in')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'in' ? 'bg-petrol text-white' : 'bg-concrete-200'}`}>تسجيل حضور</button>
-            <button onClick={() => setMode('out')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'out' ? 'bg-warning-solid text-white' : 'bg-concrete-200'}`}>تسجيل انصراف</button>
+            <button onClick={() => setMode('in')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'in' ? 'bg-primary text-white' : 'bg-border'}`}>تسجيل حضور</button>
+            <button onClick={() => setMode('out')} className={`flex-1 py-3 rounded-xl font-bold text-base ${mode === 'out' ? 'bg-warning-solid text-white' : 'bg-border'}`}>تسجيل انصراف</button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <TextField
@@ -100,10 +101,13 @@ export default function TechnicianAttendance() {
               onChange={e => mode === 'in' ? setCheckIn(e.target.value) : setCheckOut(e.target.value)}
               inputClassName="text-lg text-center"
             />
-            <button type="submit" disabled={loading}
-              className={`w-full text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 ${mode === 'in' ? 'bg-petrol hover:bg-petrol-dark' : 'bg-warning-solid hover:bg-warning-solid'}`}>
-              {loading ? 'جارٍ التسجيل...' : mode === 'in' ? 'تسجيل حضور' : 'تسجيل انصراف'}
-            </button>
+            <SubmitButton
+              loading={loading}
+              loadingText="جارٍ التسجيل..."
+              className={`w-full text-lg ${mode === 'in' ? '' : '!bg-warning-solid !from-warning-solid !to-warning-solid hover:!from-warning-solid hover:!to-warning-solid'}`}
+            >
+              {mode === 'in' ? 'تسجيل حضور' : 'تسجيل انصراف'}
+            </SubmitButton>
           </form>
         </Card>
       </main>

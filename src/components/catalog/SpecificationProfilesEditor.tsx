@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Search, X, ChevronDown, ChevronUp } from 'lucide-react';
 import TextField from '@/components/TextField';
+import ConfirmModal from '@/components/ConfirmModal';
 import type { ResultFieldDef, SpecificationProfile, TestLimit, TestResultType } from '@/lib/test-config';
 import { initialLimits, numOrUndef } from './limit-utils';
 import referenceStandardsData from '@/data/reference-standards.json';
@@ -58,6 +59,7 @@ export default function SpecificationProfilesEditor({
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [noLimitNoteIndices, setNoLimitNoteIndices] = useState<Set<number>>(() => new Set());
+  const [pendingDuplicate, setPendingDuplicate] = useState<ReferenceStandard | null>(null);
   const comboboxRef = useRef<HTMLDivElement>(null);
 
   const updateProfile = (i: number, patch: Partial<SpecificationProfile>) =>
@@ -93,7 +95,10 @@ export default function SpecificationProfilesEditor({
   const addProfile = (entry?: ReferenceStandard) => {
     if (entry) {
       const exists = profiles.some((p) => (p.specification || '').toLowerCase() === entry.ref.toLowerCase());
-      if (exists && !window.confirm('هذا المعيار مضاف مسبقًا، هل تريد إضافته مرة أخرى؟')) return;
+      if (exists) {
+        setPendingDuplicate(entry);
+        return;
+      }
     }
     const nextIndex = profiles.length;
     const newProfile: SpecificationProfile = entry
@@ -108,6 +113,11 @@ export default function SpecificationProfilesEditor({
     if (entry && !entry.limits) {
       setNoLimitNoteIndices((prev) => new Set(prev).add(nextIndex));
     }
+  };
+
+  const handleDuplicateConfirm = () => {
+    if (pendingDuplicate) addProfile(pendingDuplicate);
+    setPendingDuplicate(null);
   };
 
   const handleLibrarySelect = (entry: ReferenceStandard) => {
@@ -159,7 +169,7 @@ export default function SpecificationProfilesEditor({
           {labels.map(({ key, title }, li) => {
             const l = p.limits[li];
             return (
-              <div key={key} className="border border-concrete-100 rounded-lg p-3">
+              <div key={key} className="border border-border/50 rounded-lg p-3">
                 <p className="text-sm font-bold mb-2">{title}</p>
                 <div className="flex gap-2">
                   {limitField(i, li, 'الحد الأدنى', l?.min, (v) => updateLimit(i, li, { min: v }))}
@@ -176,14 +186,14 @@ export default function SpecificationProfilesEditor({
       return (
         <div className="space-y-2">
           {resultFields.length === 0 && (
-            <p className="text-sm text-concrete-500">أضف حقول النتائج أولًا لتحديد حدود المطابقة لكل حقل.</p>
+            <p className="text-sm text-text-muted">أضف حقول النتائج أولًا لتحديد حدود المطابقة لكل حقل.</p>
           )}
           {resultFields.map((f, li) => {
             const l = p.limits[li];
             return (
-              <div key={f.key} className="border border-concrete-100 rounded-lg p-3">
+              <div key={f.key} className="border border-border/50 rounded-lg p-3">
                 <p className="text-sm font-medium mb-2">
-                  {f.label || f.key} <span className="text-concrete-400 text-xs font-mono">({f.key})</span>
+                  {f.label || f.key} <span className="text-text-muted text-xs font-mono">({f.key})</span>
                 </p>
                 <div className="flex gap-2">
                   {limitField(i, li, 'الحد الأدنى', l?.min, (v) => updateLimit(i, li, { min: v }))}
@@ -207,10 +217,10 @@ export default function SpecificationProfilesEditor({
 
   return (
     <div className="space-y-3">
-      <div className="border border-concrete-200 rounded-xl p-3 bg-concrete-50">
-        <label className="block mb-1.5 text-concrete-800 font-medium text-sm">اختر معيارًا من المكتبة</label>
+      <div className="border border-border rounded-xl p-3 bg-surface-dim">
+        <label className="block mb-1.5 text-text-primary font-medium text-sm">اختر معيارًا من المكتبة</label>
         <div ref={comboboxRef} className="relative">
-          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500 pointer-events-none" />
+          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <input
             value={query}
             onChange={(e) => {
@@ -219,56 +229,56 @@ export default function SpecificationProfilesEditor({
             }}
             onFocus={() => setOpen(true)}
             placeholder="ابحث: ASTM، AASHTO، رقم المواصفة، أو اسم الفحص"
-            className="w-full border border-concrete-200 bg-white pl-3 pr-9 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-petrol"
+            className="w-full border border-border bg-white pl-3 pr-9 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-petrol"
           />
           {open && (
-            <div className="absolute z-30 mt-1 w-full max-h-64 overflow-y-auto rounded-xl border border-concrete-200 bg-white shadow-lg">
+            <div className="absolute z-30 mt-1 w-full max-h-64 overflow-y-auto rounded-xl border border-border bg-white shadow-lg">
               {filteredStandards.length === 0 ? (
-                <p className="px-3 py-2.5 text-sm text-concrete-500">
+                <p className="px-3 py-2.5 text-sm text-text-muted">
                   {query ? 'لا توجد نتائج مطابقة' : 'المكتبة فارغة حاليًا'}
                 </p>
               ) : (
-                filteredStandards.map((s) => (
+                filteredStandards.map((s, idx) => (
                   <button
-                    key={s.ref}
+                    key={`${s.ref}-${idx}`}
                     type="button"
                     onClick={() => handleLibrarySelect(s)}
-                    className="w-full text-right px-3 py-2 border-b border-concrete-100 last:border-b-0 hover:bg-petrol-soft transition-colors"
+                    className="w-full text-right px-3 py-2 border-b border-border/50 last:border-b-0 hover:bg-primary-50 transition-colors"
                   >
                     <span className="block text-sm">
-                      <span className="font-bold text-petrol">{s.body}</span>
-                      <span className="mx-1 text-concrete-500">—</span>
-                      <span className="font-mono text-concrete-800">{s.ref}</span>
-                      {s.unit && <span className="ml-2 text-xs text-concrete-500 font-mono">{s.unit}</span>}
+                      <span className="font-bold text-primary">{s.body}</span>
+                      <span className="mx-1 text-text-muted">—</span>
+                      <span className="font-mono text-text-primary">{s.ref}</span>
+                      {s.unit && <span className="ml-2 text-xs text-text-muted font-mono">{s.unit}</span>}
                     </span>
-                    <span className="block text-xs text-concrete-500 truncate mt-0.5">{s.testNameHint}</span>
+                    <span className="block text-xs text-text-muted truncate mt-0.5">{s.testNameHint}</span>
                   </button>
                 ))
               )}
             </div>
           )}
         </div>
-        <p className="mt-1.5 text-xs text-concrete-500">
+        <p className="mt-1.5 text-xs text-text-muted">
           تُعبأ اسم المواصفة ورقمها ووحدتها تلقائيًا عند الاختيار، ويمكنك تعديلها لاحقًا. للمواصفات غير المتوفرة بالمكتبة
           استخدم «إضافة مواصفة» أدناه.
         </p>
       </div>
       {profiles.length === 0 && (
-        <p className="text-sm text-concrete-500">
+        <p className="text-sm text-text-muted">
           أضف مواصفات (مثل «تصميم C25») مع حدود المطابقة ليُقيّم الفحص تلقائيًا كـ «مطابق» أو «غير مطابق».
         </p>
       )}
       {profiles.map((p, i) => {
         const isOpen = openIndex === i;
         return (
-          <div key={i} className="border border-concrete-200 rounded-xl overflow-hidden bg-white">
+          <div key={i} className="border border-border rounded-xl overflow-hidden bg-white">
             <div
               className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
               onClick={() => setOpenIndex(isOpen ? -1 : i)}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-bold truncate">{p.name || `المواصفة ${i + 1}`}</span>
-                {p.specification && <span className="text-sm text-concrete-500 truncate">({p.specification})</span>}
+                {p.specification && <span className="text-sm text-text-muted truncate">({p.specification})</span>}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -306,9 +316,19 @@ export default function SpecificationProfilesEditor({
           </div>
         );
       })}
-      <button type="button" onClick={() => addProfile()} className="text-petrol text-sm flex items-center gap-1 hover:underline">
+      <button type="button" onClick={() => addProfile()} className="text-primary text-sm flex items-center gap-1 hover:underline">
         <Plus size={14} /> إضافة مواصفة
       </button>
+
+      <ConfirmModal
+        isOpen={pendingDuplicate !== null}
+        onClose={() => setPendingDuplicate(null)}
+        onConfirm={handleDuplicateConfirm}
+        title="إضافة مواصفة مكررة"
+        message="هذا المعيار مضاف مسبقًا، هل تريد إضافته مرة أخرى؟"
+        confirmText="إضافة"
+        cancelText="إلغاء"
+      />
     </div>
   );
 }
