@@ -9,13 +9,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { existsSync } from 'fs';
-import { Client, Databases, Storage, ID, Query } from 'appwrite';
+import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
 import { createHash } from 'node:crypto';
+import QRCode from 'qrcode';
 import {
   DATABASE_ID,
   REPORTS_COLLECTION_ID,
   REPORT_TEMPLATES_COLLECTION_ID,
   REPORTS_BUCKET_ID,
+  EMPLOYEES_COLLECTION_ID,
 } from '@/lib/constants';
 import type { Report, ReportTemplate, ReportSnapshot } from '@/types';
 import { buildReportHtml } from '@/lib/report-pdf';
@@ -54,12 +56,33 @@ function buildSessionCookie(request: NextRequest): string {
     .join('; ');
 }
 
-function createServerClient(sessionCookie: string): { databases: Databases; storage: Storage } {
+function createServerClient(sessionCookie: string): { account: Account; databases: Databases; storage: Storage } {
   const client = new Client()
     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
     .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
     .setCookie(sessionCookie);
-  return { databases: new Databases(client), storage: new Storage(client) };
+  return { account: new Account(client), databases: new Databases(client), storage: new Storage(client) };
+}
+
+// Resolve the approver's display name from the authenticated Appwrite session
+// instead of trusting a client-supplied value. Prefers the linked Employee
+// record, falling back to the Appwrite account's name, then its email.
+async function resolveApprover(account: Account, databases: Databases): Promise<string> {
+  const user = await account.get();
+  try {
+    const empRes = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [
+      Query.equal('email', user.email),
+      Query.limit(1),
+      Query.select(['name']),
+    ]);
+    const empName = (empRes.documents[0]?.name as string | undefined)?.trim();
+    if (empName) return empName;
+  } catch {
+    // fall through to account-level info
+  }
+  const accountName = (user.name as string | undefined)?.trim();
+  if (accountName) return accountName;
+  return user.email;
 }
 
 async function fetchLogoDataUrl(storage: Storage, fileId: string, sessionCookie: string): Promise<string | null> {
@@ -81,18 +104,26 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
   }
 
+  const { id: reportId } = await context.params;
+  const client_ = createServerClient(sessionCookie);
+
   let reviewedBy = '';
   try {
-    const body = (await request.json()) as { reviewedBy?: string };
-    reviewedBy = (body.reviewedBy || '').trim();
-  } catch {}
-
-  if (!reviewedBy) {
-    return NextResponse.json({ error: 'اسم المعتمِد مطلوب' }, { status: 400 });
+    reviewedBy = await resolveApprover(client_.account, client_.databases);
+  } catch (err) {
+    const code = (err as { code?: number } | null)?.code;
+    if (code === 401) {
+      return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    }
+    console.error('فشل تحديد المعتمِد من الجلسة:', err);
+    return NextResponse.json({ error: 'تعذر تحديد اسم المعتمِد من الجلسة' }, { status: 500 });
   }
 
-  const { id: reportId } = await context.params;
-  const { databases, storage } = createServerClient(sessionCookie);
+  if (!reviewedBy) {
+    return NextResponse.json({ error: 'تعذر تحديد اسم المعتمِد من الجلسة' }, { status: 400 });
+  }
+
+  const { databases, storage } = client_;
 
   try {
     let report: Report;
@@ -119,7 +150,37 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
     const logoDataUrl = template?.logoFileId ? await fetchLogoDataUrl(storage, template.logoFileId, sessionCookie) : null;
 
-    const html = buildReportHtml({ report, snapshot, template, logoDataUrl });
+    // Compute the lock hash first so the same value is both stored and embedded
+    // in the verification QR (the QR must encode the final, locked hash).
+    const reviewedAt = new Date().toISOString();
+    const snapshotObj = snapshot as ReportSnapshot;
+    const reportHash = createHash('sha256')
+      .update(JSON.stringify(snapshotObj) + report.reportNumber + reviewedAt)
+      .digest('hex');
+
+    // QR verification payload (deterministic, no server state needed at scan time).
+    let qrDataUrl: string | null = null;
+    if (template?.showQrCode) {
+      try {
+        const origin = request.headers.get('origin') || new URL(request.url).origin;
+        const verifyUrl = `${origin}/reports/verify?hash=${reportHash}&no=${encodeURIComponent(report.reportNumber)}`;
+        qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 180, margin: 1, errorCorrectionLevel: 'M' });
+      } catch (err) {
+        console.error('فشل توليد QR:', err);
+        qrDataUrl = null;
+      }
+    }
+
+    const html = buildReportHtml({
+      report,
+      snapshot,
+      template,
+      logoDataUrl,
+      reviewedBy,
+      reviewedAt,
+      qrDataUrl,
+      showQr: Boolean(template?.showQrCode),
+    });
 
     const executablePath = resolveExecutablePath();
     if (!executablePath) {
@@ -151,12 +212,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       new File([pdfBytes], `report-${report.reportNumber}.pdf`, { type: 'application/pdf' })
     );
 
-    const reviewedAt = new Date().toISOString();
-    const snapshotObj = snapshot as ReportSnapshot;
-    const reportHash = createHash('sha256')
-      .update(JSON.stringify(snapshotObj) + report.reportNumber + reviewedAt)
-      .digest('hex');
-
+    const reviewedAt2 = reviewedAt; // (kept serialization simple; see update below)
     await databases.updateDocument(DATABASE_ID, REPORTS_COLLECTION_ID, reportId, {
       status: 'معتمد',
       reviewedBy,
@@ -165,7 +221,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       reportHash,
     });
 
-    return NextResponse.json({ pdfFileId: uploaded.$id, reportHash, reviewedAt });
+    void reviewedAt2;
+    return NextResponse.json({ pdfFileId: uploaded.$id, reportHash, reviewedAt, reviewedBy });
   } catch (err) {
     console.error('خطأ في توليد PDF التقرير:', err);
     const code = (err as { code?: number } | null)?.code;
