@@ -7,7 +7,7 @@ import { listSamples, createSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listEmployees } from '@/lib/services/employees';
 import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
-import { listTests, createTest } from '@/lib/services/tests';
+import { createTest } from '@/lib/services/tests';
 import { Query } from '@/lib/services';
 import type { Project, Employee } from '@/types';
 import type { SampleType, StandardTest } from '@/lib/services';
@@ -20,7 +20,6 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
-import { Plus, X } from 'lucide-react';
 
 export default function NewSamplePage() {
   const router = useRouter();
@@ -207,7 +206,7 @@ export default function NewSamplePage() {
                   status: 'قيد الانتظار',
                   unit: stdTest.unit || '',
                   specification: stdTest.specification || '',
-                  assignedTo: formData.preparerId || formData.samplerId || '',
+                  assignedTo: formData.samplerId || formData.preparerId || '',
                   notes: '',
                 });
               } catch (err: unknown) {
@@ -248,8 +247,8 @@ export default function NewSamplePage() {
                 ))}
               </SelectField>
               <div>
-                <TextField label="رقم العينة" value={formData.sampleNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
-                {generatingNumber && <p className="text-sm text-concrete-500">جارٍ توليد الرقم...</p>}
+                <TextField label="رقم العينة" value={formData.sampleNumber} readOnly inputClassName="bg-surface-muted font-mono" />
+                {generatingNumber && <p className="text-sm text-text-muted">جارٍ توليد الرقم...</p>}
               </div>
             </div>
 
@@ -258,7 +257,7 @@ export default function NewSamplePage() {
               {projects.map((p) => (<option key={p.$id} value={p.$id}>{p.name}</option>))}
             </SelectField>
 
-            <TextField label="العميل" value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly inputClassName="bg-concrete-100 text-concrete-500" />
+            <TextField label="العميل" value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly inputClassName="bg-surface-muted text-text-muted" />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <TextField type="date" label="تاريخ أخذ العينة" name="samplingDate" value={formData.samplingDate} onChange={handleChange} />
@@ -267,7 +266,7 @@ export default function NewSamplePage() {
             </div>
 
             {formData.type === 'خرسانة' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-petrol-soft p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-primary-50 p-4 rounded-lg">
                 <TextField type="date" label="تاريخ فحص 7 أيام (تلقائي)" name="test7DaysDate" value={formData.test7DaysDate} onChange={handleChange} />
                 <TextField type="date" label="تاريخ فحص 28 يوم (تلقائي)" name="test28DaysDate" value={formData.test28DaysDate} onChange={handleChange} />
               </div>
@@ -292,9 +291,9 @@ export default function NewSamplePage() {
             )}
 
             {standardTests.length === 0 && (
-              <div className="bg-concrete-50 p-4 rounded-lg text-sm text-concrete-500">
+              <div className="bg-surface-dim p-4 rounded-lg text-sm text-text-muted">
                 لا توجد فحوصات قياسية معرّفة لهذا النوع.{' '}
-                <Link href="/dashboard/catalog" className="text-petrol font-medium hover:underline">
+                <Link href="/dashboard/catalog" className="text-primary font-medium hover:underline">
                   إدارة كتالوج الفحوصات
                 </Link>
               </div>

@@ -100,17 +100,17 @@ export default function EditSamplePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SelectField label="نوع العينة" name="type" value={formData.type} onChange={handleChange} required>{Object.keys(TYPE_CODES).map((t) => (<option key={t} value={t}>{t}</option>))}</SelectField>
-            <TextField label="رقم العينة" value={formData.sampleNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
+            <TextField label="رقم العينة" value={formData.sampleNumber} readOnly inputClassName="bg-surface-muted font-mono" />
           </div>
           <SelectField label="المشروع" name="projectId" value={formData.projectId} onChange={handleChange} required><option value="">اختر المشروع</option>{projects.map((p) => (<option key={p.$id} value={p.$id}>{p.name}</option>))}</SelectField>
-          <TextField label="العميل" value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly inputClassName="bg-concrete-100 text-concrete-500" />
+          <TextField label="العميل" value={selectedProject ? (selectedProject.clientId || 'غير معروف') : ''} readOnly inputClassName="bg-surface-muted text-text-muted" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TextField type="date" label="تاريخ أخذ العينة" name="samplingDate" value={formData.samplingDate} onChange={handleChange} />
             <TextField type="date" label="تاريخ تحضير العينة" name="preparationDate" value={formData.preparationDate} onChange={handleChange} />
             <TextField type="date" label="تاريخ إحضار العينة للمختبر" name="deliveryDate" value={formData.deliveryDate} onChange={handleChange} />
           </div>
           {formData.type === 'خرسانة' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-petrol-soft p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-primary-50 p-4 rounded-lg">
               <TextField type="date" label="تاريخ فحص 7 أيام (تلقائي)" name="test7DaysDate" value={formData.test7DaysDate} onChange={handleChange} />
               <TextField type="date" label="تاريخ فحص 28 يوم (تلقائي)" name="test28DaysDate" value={formData.test28DaysDate} onChange={handleChange} />
             </div>

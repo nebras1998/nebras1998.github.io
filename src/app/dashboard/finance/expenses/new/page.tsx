@@ -106,7 +106,7 @@ export default function NewExpensePage() {
     <AuthGuard><DashboardLayout>
       <FormCard title="إضافة مصروف جديد" maxWidth="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <TextField label="رقم المصروف" value={form.expenseNumber} disabled inputClassName="bg-concrete-100 font-mono" />
+          <TextField label="رقم المصروف" value={form.expenseNumber} disabled inputClassName="bg-surface-muted font-mono" />
           <div className="grid grid-cols-2 gap-4">
             <SelectField label="النوع" name="type" value={form.type} onChange={handleChange} required><option value="سولار">سولار</option><option value="صيانة">صيانة</option><option value="شراء مواد">شراء مواد</option><option value="رواتب">رواتب</option><option value="إيجار">إيجار</option><option value="أخرى">أخرى</option></SelectField>
             <TextField label="المبلغ" type="number" step="0.01" name="amount" value={form.amount} onChange={handleChange} required />

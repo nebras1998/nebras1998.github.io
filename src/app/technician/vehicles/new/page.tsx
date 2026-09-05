@@ -77,8 +77,8 @@ export default function NewTripPage() {
   };
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-surface-dim pb-16" dir="rtl">
+      <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white">
           <ArrowRight size={20} />
         </button>
@@ -95,7 +95,7 @@ export default function NewTripPage() {
             ))}
           </SelectField>
 
-          <TextField label="السائق (أنت)" type="text" value={employee?.name || ''} disabled inputClassName="bg-concrete-100" />
+          <TextField label="السائق (أنت)" type="text" value={employee?.name || ''} disabled inputClassName="bg-surface-muted" />
 
           <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} onChange={handleChange} required />
 

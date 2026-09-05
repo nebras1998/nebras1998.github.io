@@ -35,7 +35,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-concrete-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-surface-dim p-4">
         <div className="w-full max-w-3xl">
           <TableSkeleton rows={3} cols={3} />
         </div>

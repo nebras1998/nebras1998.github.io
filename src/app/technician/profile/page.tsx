@@ -20,7 +20,7 @@ export default function TechnicianProfilePage() {
   // إذا لم تكن بيانات الموظف محملة بعد، نعرض مؤشر تحميل
   if (!employee) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-concrete-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-surface-dim p-4">
         <div className="w-full max-w-3xl">
           <TableSkeleton rows={4} cols={3} />
         </div>
@@ -29,9 +29,9 @@ export default function TechnicianProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">
+    <div className="min-h-screen bg-surface-dim pb-16" dir="rtl">
       {/* الهيدر */}
-      <header className="bg-petrol text-white p-4 shadow">
+      <header className="bg-primary text-white p-4 shadow">
         <h1 className="text-lg font-bold">الملف الشخصي</h1>
       </header>
 
@@ -39,54 +39,54 @@ export default function TechnicianProfilePage() {
         {/* بطاقة الاسم والمسمى */}
         <Card className="text-center">
           <div className="w-20 h-20 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-3">
-            <User size={36} className="text-petrol" />
+            <User size={36} className="text-primary" />
           </div>
           <h2 className="text-xl font-bold">{employee.name}</h2>
-          <p className="text-concrete-500">{employee.jobTitle}</p>
+          <p className="text-text-muted">{employee.jobTitle}</p>
           <Badge status={employee.status} />
         </Card>
 
         {/* تفاصيل الموظف */}
         <Card className="space-y-3">
-          <h3 className="font-bold text-concrete-800 mb-2">معلومات الحساب</h3>
+          <h3 className="font-bold text-text-primary mb-2">معلومات الحساب</h3>
 
           <div className="flex items-center gap-3">
-            <Mail size={18} className="text-concrete-500" />
+            <Mail size={18} className="text-text-muted" />
             <div>
-              <p className="text-sm text-concrete-500">البريد الإلكتروني</p>
+              <p className="text-sm text-text-muted">البريد الإلكتروني</p>
               <p className="font-medium">{employee.email || '-'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Phone size={18} className="text-concrete-500" />
+            <Phone size={18} className="text-text-muted" />
             <div>
-              <p className="text-sm text-concrete-500">الهاتف</p>
+              <p className="text-sm text-text-muted">الهاتف</p>
               <p className="font-medium">{employee.phone || '-'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Briefcase size={18} className="text-concrete-500" />
+            <Briefcase size={18} className="text-text-muted" />
             <div>
-              <p className="text-sm text-concrete-500">المسمى الوظيفي</p>
+              <p className="text-sm text-text-muted">المسمى الوظيفي</p>
               <p className="font-medium">{employee.jobTitle || '-'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Building size={18} className="text-concrete-500" />
+            <Building size={18} className="text-text-muted" />
             <div>
-              <p className="text-sm text-concrete-500">القسم</p>
+              <p className="text-sm text-text-muted">القسم</p>
               <p className="font-medium">{employee.department || '-'}</p>
             </div>
           </div>
 
           {employee.qualification && (
             <div className="flex items-center gap-3">
-              <GraduationCap size={18} className="text-concrete-500" />
+              <GraduationCap size={18} className="text-text-muted" />
               <div>
-                <p className="text-sm text-concrete-500">المؤهل العلمي</p>
+                <p className="text-sm text-text-muted">المؤهل العلمي</p>
                 <p className="font-medium">{employee.qualification}</p>
               </div>
             </div>
@@ -94,9 +94,9 @@ export default function TechnicianProfilePage() {
 
           {employee.certifications && (
             <div className="flex items-center gap-3">
-              <Award size={18} className="text-concrete-500" />
+              <Award size={18} className="text-text-muted" />
               <div>
-                <p className="text-sm text-concrete-500">الشهادات المهنية</p>
+                <p className="text-sm text-text-muted">الشهادات المهنية</p>
                 <p className="font-medium">{employee.certifications}</p>
               </div>
             </div>

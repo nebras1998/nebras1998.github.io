@@ -89,14 +89,14 @@ export default function EditTripPage() {
         </div>
         <FormCard title="تعديل الرحلة" maxWidth="max-w-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} disabled inputClassName="bg-concrete-100" />
+            <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" name="departureTime" value={form.departureTime} disabled inputClassName="bg-surface-muted" />
             <TextField label="تاريخ ووقت العودة" type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} />
             <div className="grid grid-cols-2 gap-4">
               <TextField label="الوجهة" name="destination" value={form.destination} onChange={handleChange} />
               <TextField label="الغرض" name="purpose" value={form.purpose} onChange={handleChange} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <TextField label="عداد الانطلاق" type="number" name="startMileage" value={form.startMileage} disabled inputClassName="bg-concrete-100" />
+              <TextField label="عداد الانطلاق" type="number" name="startMileage" value={form.startMileage} disabled inputClassName="bg-surface-muted" />
               <TextField label="عداد العودة" type="number" name="endMileage" value={form.endMileage} onChange={handleChange} />
             </div>
             <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />

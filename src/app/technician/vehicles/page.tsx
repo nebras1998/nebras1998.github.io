@@ -64,14 +64,14 @@ export default function TechnicianVehiclesPage() {
   }, [employee]);
 
   if (loading) return (
-    <div className="min-h-screen bg-concrete-50 p-4" dir="rtl">
+    <div className="min-h-screen bg-surface-dim p-4" dir="rtl">
       <TableSkeleton rows={5} cols={3} />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
-      <header className="bg-petrol text-white p-4 shadow">
+    <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+      <header className="bg-primary text-white p-4 shadow">
         <h1 className="text-lg font-bold">المركبات والرحلات</h1>
       </header>
 
@@ -79,7 +79,7 @@ export default function TechnicianVehiclesPage() {
         {/* زر بدء رحلة جديدة */}
         <Link
           href="/technician/vehicles/new"
-          className="bg-petrol text-white p-5 rounded-2xl shadow flex items-center justify-center gap-3 font-bold text-lg hover:bg-petrol-dark active:scale-95 transition-transform"
+          className="bg-primary text-white p-5 rounded-2xl shadow flex items-center justify-center gap-3 font-bold text-lg hover:from-primary-dark hover:to-primary active:scale-95 transition-transform"
         >
           <Plus size={24} /> بدء رحلة جديدة
         </Link>
@@ -102,8 +102,8 @@ export default function TechnicianVehiclesPage() {
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
                       <p className="font-bold text-lg">{vehiclesMap[trip.vehicleId] || 'مركبة'}</p>
-                      <p className="text-sm text-concrete-500">{trip.destination || 'بدون وجهة'}</p>
-                      <p className="text-xs text-concrete-500">انطلاق: {trip.departureTime}</p>
+                      <p className="text-sm text-text-muted">{trip.destination || 'بدون وجهة'}</p>
+                      <p className="text-xs text-text-muted">انطلاق: {trip.departureTime}</p>
                     </div>
                     <ArrowRight size={24} className="text-warning" />
                   </div>
@@ -124,9 +124,9 @@ export default function TechnicianVehiclesPage() {
                 <Card key={trip.$id}>
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-base">{vehiclesMap[trip.vehicleId] || 'مركبة'}</span>
-                    <span className="text-sm text-concrete-500">{trip.destination || '-'}</span>
+                    <span className="text-sm text-text-muted">{trip.destination || '-'}</span>
                   </div>
-                  <div className="text-xs text-concrete-500 mt-1">
+                  <div className="text-xs text-text-muted mt-1">
                     {trip.departureTime} {trip.returnTime ? `→ ${trip.returnTime}` : ''}
                   </div>
                 </Card>

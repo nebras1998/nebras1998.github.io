@@ -220,7 +220,7 @@ export default function StandardTestEditor({
               <option key={k} value={k}>{RESULT_TYPE_LABELS[k]}</option>
             ))}
           </SelectField>
-          <p className="mt-1 text-sm text-concrete-500">{RESULT_TYPE_HINTS[resultType]}</p>
+          <p className="mt-1 text-sm text-text-muted">{RESULT_TYPE_HINTS[resultType]}</p>
         </div>
 
         {/* 4.3 حقول النتائج (multi_field فقط) */}
@@ -243,20 +243,20 @@ export default function StandardTestEditor({
             <h3 className="font-bold mb-2 flex items-center gap-2">
               <Eye size={16} /> معاينة تعريف الفحص
             </h3>
-            <div className="bg-concrete-50 rounded-lg p-4 text-sm space-y-1">
+            <div className="bg-surface-dim rounded-lg p-4 text-sm space-y-1">
               <p>
-                <span className="text-concrete-500">نوع النتيجة:</span>{' '}
+                <span className="text-text-muted">نوع النتيجة:</span>{' '}
                 {RESULT_TYPE_LABELS[resultType]}
               </p>
               {resultType === 'multi_field' && previewFields.length > 0 && (
                 <p>
-                  <span className="text-concrete-500">الحقول:</span>{' '}
+                  <span className="text-text-muted">الحقول:</span>{' '}
                   {previewFields.map((f) => `${f.label}${f.unit ? ` (${f.unit})` : ''}`).join('، ')}
                 </p>
               )}
               {previewProfiles.length > 0 && (
                 <p>
-                  <span className="text-concrete-500">المواصفات:</span>{' '}
+                  <span className="text-text-muted">المواصفات:</span>{' '}
                   {previewProfiles.map((p) => `${p.name}${p.specification ? ` (${p.specification})` : ''}`).join('، ')}
                 </p>
               )}

@@ -79,17 +79,17 @@ export default function VehicleDetailPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h1 className="text-2xl font-bold">{vehicle.plateNumber}</h1>
-                <p className="text-concrete-500">{vehicle.brand} {vehicle.model}</p>
+                <p className="text-text-muted">{vehicle.brand} {vehicle.model}</p>
               </div>
-              <Link href={`/dashboard/vehicles/${vehicle.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1">
+              <Link href={`/dashboard/vehicles/${vehicle.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1">
                 <Edit size={16} /> تعديل
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div><span className="text-concrete-500">النوع:</span> {vehicle.type || '-'}</div>
-              <div><span className="text-concrete-500">اللون:</span> {vehicle.color || '-'}</div>
-              <div><span className="text-concrete-500">السنة:</span> {vehicle.year || '-'}</div>
-              <div><span className="text-concrete-500">الحالة:</span> <Badge status={vehicle.status} /></div>
+              <div><span className="text-text-muted">النوع:</span> {vehicle.type || '-'}</div>
+              <div><span className="text-text-muted">اللون:</span> {vehicle.color || '-'}</div>
+              <div><span className="text-text-muted">السنة:</span> {vehicle.year || '-'}</div>
+              <div><span className="text-text-muted">الحالة:</span> <Badge status={vehicle.status} /></div>
             </div>
           </Card>
 
@@ -99,7 +99,7 @@ export default function VehicleDetailPage() {
               <h2 className="text-lg font-bold">سجل الرحلات</h2>
               <Link
                 href={`/dashboard/vehicles/${vehicle.$id}/trips/new`}
-                className="bg-petrol text-white px-3 py-1 rounded flex items-center gap-1 text-sm"
+                className="bg-primary text-white px-3 py-1 rounded flex items-center gap-1 text-sm"
               >
                 <Plus size={16} /> رحلة جديدة
               </Link>
@@ -110,15 +110,15 @@ export default function VehicleDetailPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-concrete-50 border-b">
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ والوقت</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السائق</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المرافق</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوجهة</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الغرض</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العداد</th>
-                      <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                      <th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th>
+                    <tr className="bg-surface-dim border-b border-border">
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ والوقت</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">السائق</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المرافق</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الوجهة</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الغرض</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العداد</th>
+                      <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                      <th className="p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -136,7 +136,7 @@ export default function VehicleDetailPage() {
                         <td className="p-3">
                           <Link
                             href={`/dashboard/vehicles/${vehicle.$id}/trips/${trip.$id}/edit`}
-                            className="text-petrol hover:underline text-sm"
+                            className="text-primary hover:text-primary-dark font-medium transition-colors text-sm"
                           >
                             تعديل
                           </Link>

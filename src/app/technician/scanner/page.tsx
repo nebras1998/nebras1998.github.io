@@ -72,7 +72,7 @@ export default function ScannerPage() {
 
   return (
     <div className="min-h-screen bg-black pb-20" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+      <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.push('/technician/dashboard')} className="text-white">
           <ArrowRight size={24} />
         </button>
@@ -91,7 +91,7 @@ export default function ScannerPage() {
         {!scanning && error && (
           <button
             onClick={() => setScanKey(k => k + 1)}
-            className="mt-4 bg-petrol text-white px-6 py-3 rounded-xl flex items-center gap-2"
+            className="mt-4 bg-primary text-white px-6 py-3 rounded-xl flex items-center gap-2"
           >
             <Camera size={20} /> إعادة المحاولة
           </button>

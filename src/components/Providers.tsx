@@ -14,7 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl text-concrete-500">
+      <div className="min-h-screen flex items-center justify-center text-xl text-text-muted">
         جارٍ التحقق من الجلسة...
       </div>
     );

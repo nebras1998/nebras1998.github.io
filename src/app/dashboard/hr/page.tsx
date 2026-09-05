@@ -14,20 +14,20 @@ export default function HRPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link href="/dashboard/hr/employees" className="block">
             <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
-              <Users size={32} className="text-petrol" />
+              <Users size={32} className="text-primary" />
               <div>
                 <h2 className="text-xl font-bold">الموظفون</h2>
-                <p className="text-concrete-500">إدارة بيانات الموظفين</p>
+                <p className="text-text-muted">إدارة بيانات الموظفين</p>
               </div>
             </Card>
           </Link>
 
           <Link href="/dashboard/hr/attendance" className="block">
             <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
-              <CalendarCheck size={32} className="text-petrol" />
+              <CalendarCheck size={32} className="text-primary" />
               <div>
                 <h2 className="text-xl font-bold">الحضور والانصراف</h2>
-                <p className="text-concrete-500">تسجيل ومتابعة الحضور اليومي</p>
+                <p className="text-text-muted">تسجيل ومتابعة الحضور اليومي</p>
               </div>
             </Card>
           </Link>
@@ -37,17 +37,17 @@ export default function HRPage() {
               <UserCheck size={32} className="text-warning" />
               <div>
                 <h2 className="text-xl font-bold">الإجازات</h2>
-                <p className="text-concrete-500">إدارة طلبات الإجازة</p>
+                <p className="text-text-muted">إدارة طلبات الإجازة</p>
               </div>
             </Card>
           </Link>
 
           <Link href="/dashboard/hr/overtime" className="block">
             <Card className="flex items-center gap-4 hover:shadow-md transition-shadow">
-              <Clock size={32} className="text-petrol" />
+              <Clock size={32} className="text-primary" />
               <div>
                 <h2 className="text-xl font-bold">العمل الإضافي</h2>
-                <p className="text-concrete-500">إدارة طلبات وساعات العمل الإضافي</p>
+                <p className="text-text-muted">إدارة طلبات وساعات العمل الإضافي</p>
               </div>
             </Card>
           </Link>

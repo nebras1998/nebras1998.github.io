@@ -26,14 +26,12 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // إغلاق النافذة عند الضغط خارجها
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) {
       onClose();
     }
   };
 
-  // إغلاق عند ضغط Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -48,36 +46,38 @@ export default function ConfirmModal({
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden">
-        {/* رأس النافذة */}
-        <div className="flex items-center justify-between p-4 border-b bg-danger-bg">
-          <div className="flex items-center gap-2 text-danger">
-            <AlertTriangle size={20} />
-            <h3 className="font-bold text-lg">{title}</h3>
+      <div className="bg-surface rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-slide-up">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-danger-bg">
+              <AlertTriangle size={20} className="text-danger" />
+            </div>
+            <h3 className="font-bold text-lg text-text-primary">{title}</h3>
           </div>
-          <button onClick={onClose} className="text-concrete-500 hover:text-concrete-500">
-            <X size={20} />
+          <button onClick={onClose} className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors">
+            <X size={18} />
           </button>
         </div>
 
-        {/* المحتوى */}
-        <div className="p-4 text-concrete-800">{message}</div>
+        {/* Content */}
+        <div className="p-5 text-text-secondary leading-relaxed">{message}</div>
 
-        {/* الأزرار */}
-        <div className="flex justify-end gap-3 p-4 border-t bg-concrete-50">
+        {/* Actions */}
+        <div className="flex justify-end gap-3 p-5 border-t border-border bg-surface-dim">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 rounded border border-concrete-200 text-concrete-800 hover:bg-concrete-100 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl border border-border bg-surface text-text-primary font-semibold hover:bg-surface-dim hover:border-border-strong disabled:opacity-50 transition-all duration-200"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 rounded bg-danger-solid text-white hover:bg-danger-dark disabled:opacity-50 flex items-center gap-1"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-l from-danger-solid to-danger-dark text-white font-semibold hover:from-danger-dark hover:to-danger-solid disabled:opacity-50 flex items-center gap-2 transition-all duration-200 active:scale-[0.98]"
           >
             {loading && (
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

@@ -177,17 +177,17 @@ export default function PaymentsPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">سجل المدفوعات</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">سجل المدفوعات</h1>
         </div>
 
         <div className="mb-4 relative">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="ابحث برقم الفاتورة أو العميل..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="w-full border border-concrete-200 p-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-petrol"
+            className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
           />
         </div>
 
@@ -198,13 +198,13 @@ export default function PaymentsPage() {
             <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المبلغ</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الطريقة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الفاتورة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المبلغ</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الطريقة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم الفاتورة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العميل</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,7 +219,7 @@ export default function PaymentsPage() {
                       const inv = invoicesMap[p.invoiceId];
                       const clientName = clientsMap[inv?.clientId ?? ''] || '-';
                       return (
-                        <tr key={p.$id} className="border-b hover:bg-concrete-50">
+                        <tr key={p.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                           <td className="p-3 font-bold">{p.amount.toFixed(2)} ₪</td>
                           <td className="p-3">{p.paymentDate}</td>
                           <td className="p-3">{p.method || '-'}</td>
@@ -228,7 +228,7 @@ export default function PaymentsPage() {
                           <td className="p-3">
                             <button
                               onClick={() => openDeleteModal(p.$id)}
-                              className="text-danger hover:underline flex items-center gap-1"
+                              className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                             >
                               <Trash2 size={16} /> حذف
                             </button>
@@ -241,7 +241,7 @@ export default function PaymentsPage() {
               </table>
             </Card>
 
-            <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
+            <div className="flex items-center justify-between mt-2 text-sm text-text-muted">
               <span>إجمالي النتائج: {filtered.length} دفعة</span>
             </div>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

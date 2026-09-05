@@ -54,7 +54,7 @@ export default function NotificationsPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Bell size={24} /> التنبيهات
             </h1>
-            <button onClick={markAllRead} className="text-petrol hover:underline flex items-center gap-1">
+            <button onClick={markAllRead} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1">
               <Check size={16} /> تعليم الكل مقروء
             </button>
           </div>
@@ -67,14 +67,14 @@ export default function NotificationsPage() {
                 notifs.map(n => (
                   <div
                     key={n.$id}
-                    className={`p-4 rounded-lg border cursor-pointer ${n.isRead ? 'bg-concrete-0 border-concrete-200' : 'bg-petrol-soft border-petrol'}`}
+                    className={`p-4 rounded-lg border cursor-pointer ${n.isRead ? 'bg-surface border-border' : 'bg-primary-50 border-petrol'}`}
                     onClick={() => toggleRead(n.$id, n.isRead)}
                   >
                     <div className="flex justify-between">
                       <p className="font-medium">{n.message}</p>
-                      {n.isRead ? <Check size={16} className="text-petrol" /> : <span className="w-2 h-2 rounded-full bg-petrol mt-2" />}
+                      {n.isRead ? <Check size={16} className="text-primary" /> : <span className="w-2 h-2 rounded-full bg-primary mt-2" />}
                     </div>
-                    <p className="text-xs text-concrete-500 mt-1">
+                    <p className="text-xs text-text-muted mt-1">
                       {n.employeeName} - {new Date(n.$createdAt).toLocaleString('ar-EG')}
                     </p>
                   </div>

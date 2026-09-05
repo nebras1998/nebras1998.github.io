@@ -124,15 +124,15 @@ export default function BookSamplePage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-concrete-100 p-4" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center bg-surface-muted p-4" dir="rtl">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center space-y-4">
-          <CheckCircle size={64} className="mx-auto text-petrol" />
-          <h1 className="text-2xl font-bold">تم إرسال طلبك بنجاح!</h1>
-          <p className="text-concrete-500">رقم الحجز: <span className="font-mono font-bold text-lg">{bookingNumber}</span></p>
-          <p className="text-concrete-500">سنقوم بمراجعة طلبك والتواصل معك قريباً.</p>
+          <CheckCircle size={64} className="mx-auto text-primary" />
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">تم إرسال طلبك بنجاح!</h1>
+          <p className="text-text-muted">رقم الحجز: <span className="font-mono font-bold text-lg">{bookingNumber}</span></p>
+          <p className="text-text-muted">سنقوم بمراجعة طلبك والتواصل معك قريباً.</p>
           <button
             onClick={() => router.push('/portal/book')}
-            className="bg-petrol text-white px-6 py-2 rounded-xl hover:bg-petrol-dark"
+            className="bg-primary text-white px-6 py-2 rounded-xl hover:from-primary-dark hover:to-primary"
           >
             حجز جديد
           </button>
@@ -142,7 +142,7 @@ export default function BookSamplePage() {
   }
 
   return (
-    <div className="min-h-screen bg-concrete-100 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4" dir="rtl">
       <FormCard title="حجز موعد فحص" maxWidth="max-w-lg">
         {/* حالة فشل تحميل أنواع العينات */}
         {loadError && (
@@ -151,7 +151,7 @@ export default function BookSamplePage() {
             <p>{loadError}</p>
             <button
               onClick={loadSampleTypes}
-              className="bg-petrol text-white px-4 py-2 rounded-xl font-bold hover:bg-petrol-dark"
+              className="bg-primary text-white px-4 py-2 rounded-xl font-bold hover:from-primary-dark hover:to-primary"
             >
               إعادة المحاولة
             </button>
@@ -162,9 +162,9 @@ export default function BookSamplePage() {
         {!loadError && (
           <>
             <div className="flex justify-center mb-6">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 1 ? 'bg-petrol text-white' : 'bg-concrete-200'}`}>1</div>
-              <div className="w-16 h-1 mt-4 bg-concrete-200 mx-2"></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 2 ? 'bg-petrol text-white' : 'bg-concrete-200'}`}>2</div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 1 ? 'bg-primary text-white' : 'bg-border'}`}>1</div>
+              <div className="w-16 h-1 mt-4 bg-border mx-2"></div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 2 ? 'bg-primary text-white' : 'bg-border'}`}>2</div>
             </div>
 
             {step === 1 ? (
@@ -186,7 +186,7 @@ export default function BookSamplePage() {
                   </div>
                 )}
                 {standardTests.length > 0 && (
-                  <div className="bg-concrete-50 p-4 rounded-xl">
+                  <div className="bg-surface-dim p-4 rounded-xl">
                     <p className="font-bold mb-2">الفحوصات المطلوبة:</p>
                     <div className="space-y-2">
                       {standardTests.map((test: StandardTest) => (
@@ -206,7 +206,7 @@ export default function BookSamplePage() {
                 <button
                   onClick={() => setStep(2)}
                   disabled={!form.sampleType}
-                  className="w-full bg-petrol text-white py-3 rounded-xl font-bold hover:bg-petrol-dark disabled:opacity-50"
+                  className="w-full bg-primary text-white py-3 rounded-xl font-bold hover:from-primary-dark hover:to-primary disabled:opacity-50"
                 >
                   التالي
                 </button>
@@ -255,7 +255,7 @@ export default function BookSamplePage() {
                   rows={2}
                 />
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep(1)} className="flex-1 bg-concrete-200 text-concrete-800 py-3 rounded-xl font-bold hover:bg-concrete-100">السابق</button>
+                  <button type="button" onClick={() => setStep(1)} className="flex-1 bg-border text-text-primary py-3 rounded-xl font-bold hover:bg-surface-muted">السابق</button>
                   <SubmitButton loading={loading} loadingText="جارٍ الإرسال..." className="flex-1">إرسال الطلب</SubmitButton>
                 </div>
               </form>

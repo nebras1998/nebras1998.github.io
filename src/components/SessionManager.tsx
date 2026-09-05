@@ -6,9 +6,9 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { LogOut, Clock } from 'lucide-react';
 
 interface SessionManagerProps {
-  timeoutMinutes?: number;        // مدة الجلسة (افتراضياً 30)
-  warningMinutes?: number;        // قبل كم دقيقة يظهر التنبيه (افتراضياً 5)
-  logoutRedirect?: string;        // إلى أين يذهب بعد الخروج (افتراضياً '/login')
+  timeoutMinutes?: number;
+  warningMinutes?: number;
+  logoutRedirect?: string;
 }
 
 export default function SessionManager({
@@ -21,13 +21,12 @@ export default function SessionManager({
   const { logout } = useAuthStore();
 
   const [showWarning, setShowWarning] = useState(false);
-  const [remaining, setRemaining] = useState(timeoutMinutes * 60); // بالثواني
+  const [remaining, setRemaining] = useState(timeoutMinutes * 60);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // تسجيل الخروج
   const handleLogout = async () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
@@ -63,19 +62,16 @@ export default function SessionManager({
     }, 1000);
   }, [timeoutMinutes, warningMinutes]);
 
-  // إعادة تعيين المؤقت (يُستدعى من النشاط وتمديد الجلسة)
   const resetTimer = useCallback(() => {
     setShowWarning(false);
     setRemaining(timeoutMinutes * 60);
     setupTimers();
   }, [timeoutMinutes, setupTimers]);
 
-  // تمديد الجلسة
   const handleExtend = () => {
     resetTimer();
   };
 
-  // بدء المؤقت عند تحميل المكون
   useEffect(() => {
     setupTimers();
 
@@ -94,7 +90,6 @@ export default function SessionManager({
     };
   }, [setupTimers, resetTimer]);
 
-  // صياغة الوقت المتبقي
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -103,28 +98,29 @@ export default function SessionManager({
 
   return (
     <>
-      {/* نافذة التحذير */}
       {showWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 text-center">
-            <Clock size={48} className="mx-auto text-warning mb-4" />
-            <h2 className="text-xl font-bold mb-2">الجلسة على وشك الانتهاء</h2>
-            <p className="text-concrete-500 mb-4">
-              ستنتهي جلستك خلال 5 دقائق. هل تريد تمديد الوقت؟
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center animate-slide-up">
+            <div className="w-16 h-16 rounded-2xl bg-warning-bg flex items-center justify-center mx-auto mb-5">
+              <Clock size={32} className="text-warning" />
+            </div>
+            <h2 className="text-xl font-bold text-text-primary mb-2">الجلسة على وشك الانتهاء</h2>
+            <p className="text-text-secondary mb-2">
+              ستنتهي جلستك خلال {warningMinutes} دقائق. هل تريد تمديد الوقت؟
             </p>
-            <p className="text-sm text-concrete-500 mb-6">
+            <p className="text-sm text-text-muted mb-6 font-mono">
               الوقت المتبقي: {formatTime(remaining)}
             </p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleExtend}
-                className="bg-petrol text-white px-6 py-2 rounded-lg hover:bg-petrol-dark font-bold"
+                className="bg-gradient-to-l from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl hover:from-primary-dark hover:to-primary font-bold transition-all duration-200 active:scale-[0.98]"
               >
                 تمديد الجلسة
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-danger-solid text-white px-6 py-2 rounded-lg hover:bg-danger-dark flex items-center gap-1"
+                className="bg-danger-solid text-white px-6 py-2.5 rounded-xl hover:bg-danger-dark flex items-center gap-1.5 font-semibold transition-all duration-200 active:scale-[0.98]"
               >
                 <LogOut size={16} />
                 تسجيل الخروج

@@ -99,8 +99,8 @@ export default function EditTripPage() {
   if (loading) return <div className="p-4"><TableSkeleton rows={5} cols={2} /></div>;
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-16" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-surface-dim pb-16" dir="rtl">
+      <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white">
           <ArrowRight size={20} />
         </button>
@@ -110,7 +110,7 @@ export default function EditTripPage() {
       <main className="p-4">
         <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" value={form.departureTime} disabled inputClassName="bg-concrete-100" />
+          <TextField label="تاريخ ووقت الانطلاق" type="datetime-local" value={form.departureTime} disabled inputClassName="bg-surface-muted" />
 
           <TextField label="تاريخ ووقت العودة" type="datetime-local" name="returnTime" value={form.returnTime} onChange={handleChange} required />
 
@@ -120,7 +120,7 @@ export default function EditTripPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <TextField label="عداد الانطلاق" type="number" value={form.startMileage} disabled inputClassName="bg-concrete-100" />
+            <TextField label="عداد الانطلاق" type="number" value={form.startMileage} disabled inputClassName="bg-surface-muted" />
             <TextField label="عداد العودة" type="number" name="endMileage" value={form.endMileage} onChange={handleChange} required />
           </div>
 

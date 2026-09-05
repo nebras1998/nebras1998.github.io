@@ -67,26 +67,26 @@ export default function EquipmentPage() {
   return (
     <AuthGuard><DashboardLayout>
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold">الأجهزة والمعدات</h1>
-        <Link href="/dashboard/equipment/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark"><Plus size={18} /> إضافة جهاز جديد</Link>
+        <h1 className="text-2xl font-bold text-text-primary tracking-tight">الأجهزة والمعدات</h1>
+        <Link href="/dashboard/equipment/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2"><Plus size={18} /> إضافة جهاز جديد</Link>
       </div>
       <div className="mb-4 relative">
-        <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
-        <input type="text" placeholder="ابحث عن جهاز..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border border-concrete-200 rounded p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-petrol" />
+        <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
+        <input type="text" placeholder="ابحث عن جهاز..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border border-border rounded p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-petrol" />
       </div>
       {loading ? <TableSkeleton rows={10} cols={6} /> :
       <Card className="overflow-x-auto">
         <table className="w-full border-collapse">
-          <thead><tr className="bg-concrete-50 border-b">
-            <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الاسم</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموديل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الرقم التسلسلي</th>
-            <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المعايرة القادمة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+          <thead><tr className="bg-surface-dim border-b border-border">
+            <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الاسم</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الموديل</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الرقم التسلسلي</th>
+            <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المعايرة القادمة</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
           </tr></thead>
           <tbody>
             {equipmentFiltered.length === 0 ? <tr><td colSpan={6}><EmptyData title="لا يوجد أجهزة مطابقة" className="py-8" /></td></tr> :
               equipmentFiltered.map(eq => {
                 const nearCalibration = eq.nextCalibrationDate ? isNearDate(eq.nextCalibrationDate) : false;
                 return (
-                  <tr key={eq.$id} className={`border-b hover:bg-concrete-50 ${nearCalibration ? 'bg-warning-bg' : ''}`}>
+                  <tr key={eq.$id} className={`border-b hover:bg-surface-dim ${nearCalibration ? 'bg-warning-bg' : ''}`}>
                     <td className="p-3 font-bold">{eq.name}</td>
                     <td className="p-3">{eq.model || '-'}</td>
                     <td className="p-3 font-mono text-sm">{eq.serialNumber || '-'}</td>
@@ -100,8 +100,8 @@ export default function EquipmentPage() {
                     </td>
                     <td className="p-3"><Badge status={eq.status} /></td>
                     <td className="p-3 flex gap-2">
-                      <Link href={`/dashboard/equipment/${eq.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1"><Edit size={16} /> تعديل</Link>
-                      <button onClick={() => openDeleteModal(eq.$id, eq.name)} className="text-danger hover:underline flex items-center gap-1"><Trash2 size={16} /> حذف</button>
+                      <Link href={`/dashboard/equipment/${eq.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><Edit size={16} /> تعديل</Link>
+                      <button onClick={() => openDeleteModal(eq.$id, eq.name)} className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"><Trash2 size={16} /> حذف</button>
                     </td>
                   </tr>
                 );

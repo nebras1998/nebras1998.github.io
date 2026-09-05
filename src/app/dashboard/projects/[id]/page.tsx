@@ -84,17 +84,17 @@ export default function ProjectDetailPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h1 className="text-2xl font-bold">{project.name}</h1>
-                <p className="text-concrete-500">رقم المشروع: {project.projectNumber}</p>
+                <p className="text-text-muted">رقم المشروع: {project.projectNumber}</p>
               </div>
-              <Link href={`/dashboard/projects/${project.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1">
+              <Link href={`/dashboard/projects/${project.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1">
                 <Edit size={16} /> تعديل
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div><span className="text-concrete-500">العميل:</span> {clientName || '-'}</div>
-              <div><span className="text-concrete-500">الموقع:</span> {project.location || '-'}</div>
-              <div><span className="text-concrete-500">تاريخ البداية:</span> {project.startDate || '-'}</div>
-              <div><span className="text-concrete-500">الحالة:</span> <Badge status={project.status} /></div>
+              <div><span className="text-text-muted">العميل:</span> {clientName || '-'}</div>
+              <div><span className="text-text-muted">الموقع:</span> {project.location || '-'}</div>
+              <div><span className="text-text-muted">تاريخ البداية:</span> {project.startDate || '-'}</div>
+              <div><span className="text-text-muted">الحالة:</span> <Badge status={project.status} /></div>
             </div>
           </Card>
 
@@ -104,7 +104,7 @@ export default function ProjectDetailPage() {
             {samples.length === 0 ? <EmptyData title="لا توجد عينات" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم العينة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الاستلام</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
+                  <thead><tr className="bg-surface-dim border-b border-border"><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم العينة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النوع</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">تاريخ الاستلام</th><th className="p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim"></th></tr></thead>
                   <tbody>
                     {samples.map(s => (
                       <tr key={s.$id} className="border-b">
@@ -112,7 +112,7 @@ export default function ProjectDetailPage() {
                         <td className="p-3">{s.type}</td>
                         <td className="p-3"><Badge status={s.status} size="sm" /></td>
                         <td className="p-3">{s.samplingDate || '-'}</td>
-                        <td className="p-3"><Link href={`/dashboard/samples/${s.$id}`} className="text-petrol hover:underline text-sm">تفاصيل</Link></td>
+                        <td className="p-3"><Link href={`/dashboard/samples/${s.$id}`} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm">تفاصيل</Link></td>
                       </tr>
                     ))}
                   </tbody>
@@ -127,7 +127,7 @@ export default function ProjectDetailPage() {
             {tests.length === 0 ? <EmptyData title="لا توجد فحوصات" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">اسم الفحص</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النتيجة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوحدة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
+                  <thead><tr className="bg-surface-dim border-b border-border"><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">اسم الفحص</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النتيجة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الوحدة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th><th className="p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim"></th></tr></thead>
                   <tbody>
                     {tests.map(t => (
                       <tr key={t.$id} className="border-b">
@@ -135,7 +135,7 @@ export default function ProjectDetailPage() {
                         <td className="p-3">{t.result || '-'}</td>
                         <td className="p-3">{t.unit || '-'}</td>
                         <td className="p-3"><Badge status={t.status} size="sm" /></td>
-                        <td className="p-3"><Link href={`/dashboard/tests/${t.$id}`} className="text-petrol hover:underline text-sm">عرض</Link></td>
+                        <td className="p-3"><Link href={`/dashboard/tests/${t.$id}`} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm">عرض</Link></td>
                       </tr>
                     ))}
                   </tbody>
@@ -150,17 +150,17 @@ export default function ProjectDetailPage() {
             {invoices.length === 0 ? <EmptyData title="لا توجد فواتير" /> : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead><tr className="bg-concrete-50 border-b"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الفاتورة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المدفوع</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المتبقي</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th></tr></thead>
+                  <thead><tr className="bg-surface-dim border-b border-border"><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم الفاتورة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجمالي</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المدفوع</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المتبقي</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th><th className="p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim"></th></tr></thead>
                   <tbody>
                     {invoices.map(inv => (
                       <tr key={inv.$id} className="border-b">
                         <td className="p-3 font-mono">{inv.invoiceNumber}</td>
                         <td className="p-3">{inv.issueDate}</td>
                         <td className="p-3">{inv.total?.toFixed(2)} ₪</td>
-                        <td className="p-3 text-petrol">{inv.paidAmount?.toFixed(2) || '0.00'} ₪</td>
+                        <td className="p-3 text-primary">{inv.paidAmount?.toFixed(2) || '0.00'} ₪</td>
                         <td className="p-3 text-danger">{inv.remainingAmount?.toFixed(2) || '0.00'} ₪</td>
                         <td className="p-3"><Badge status={inv.status} size="sm" /></td>
-                        <td className="p-3"><Link href={`/dashboard/finance/invoices/${inv.$id}`} className="text-petrol hover:underline text-sm">عرض</Link></td>
+                        <td className="p-3"><Link href={`/dashboard/finance/invoices/${inv.$id}`} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm">عرض</Link></td>
                       </tr>
                     ))}
                   </tbody>

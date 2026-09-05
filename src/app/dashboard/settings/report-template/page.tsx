@@ -154,7 +154,7 @@ export default function ReportTemplateSettingsPage() {
 
           {/* معاينة حية لرأس التقرير */}
           <Card>
-            <h2 className="font-bold text-lg mb-3 flex items-center gap-2"><Eye size={18} className="text-petrol" /> معاينة حية لرأس التقرير</h2>
+            <h2 className="font-bold text-lg mb-3 flex items-center gap-2"><Eye size={18} className="text-primary" /> معاينة حية لرأس التقرير</h2>
             <div className="border-2 rounded-xl p-4 space-y-3" style={{ borderColor: primaryColor }}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
@@ -162,18 +162,18 @@ export default function ReportTemplateSettingsPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt="شعار المختبر" className="w-16 h-16 object-contain" />
                   ) : (
-                    <div className="w-16 h-16 rounded-lg flex items-center justify-center text-xs text-concrete-500" style={{ backgroundColor: `${primaryColor}1a` }}>
+                    <div className="w-16 h-16 rounded-lg flex items-center justify-center text-xs text-text-muted" style={{ backgroundColor: `${primaryColor}1a` }}>
                       شعار
                     </div>
                   )}
                   <div className="min-w-0">
                     <h3 className="text-lg font-bold" style={{ color: primaryColor }}>{form.labName || 'اسم المختبر'}</h3>
-                    {form.labNameEn && <p className="text-xs text-concrete-500 text-left" dir="ltr">{form.labNameEn}</p>}
-                    {form.accreditationText && <p className="text-xs text-concrete-500">{form.accreditationText}</p>}
+                    {form.labNameEn && <p className="text-xs text-text-muted text-left" dir="ltr">{form.labNameEn}</p>}
+                    {form.accreditationText && <p className="text-xs text-text-muted">{form.accreditationText}</p>}
                   </div>
                 </div>
                 <div className="text-center border rounded-lg px-3 py-1.5 flex-shrink-0" style={{ borderColor: primaryColor }}>
-                  <p className="text-[10px] text-concrete-500">رقم التقرير</p>
+                  <p className="text-[10px] text-text-muted">رقم التقرير</p>
                   <p className="font-bold text-sm" style={{ color: primaryColor }} dir="ltr">RPT-2025-000123</p>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function ReportTemplateSettingsPage() {
               <div className="border-t pt-4">
                 <h3 className="font-bold mb-2">شعار المختبر</h3>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-concrete-200 px-3 py-1 rounded flex items-center gap-1 hover:bg-concrete-200">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-border px-3 py-1 rounded flex items-center gap-1 hover:bg-border">
                     <Upload size={16} /> اختر الشعار
                   </button>
                   <input
@@ -221,7 +221,7 @@ export default function ReportTemplateSettingsPage() {
                       <X size={14} /> إزالة الشعار
                     </button>
                   )}
-                  <span className="text-sm text-concrete-500">
+                  <span className="text-sm text-text-muted">
                     {selectedLogo ? selectedLogo.name : logoFileId ? 'شعار مرفوع حاليًا' : 'لا يوجد شعار'}
                   </span>
                 </div>
@@ -234,26 +234,26 @@ export default function ReportTemplateSettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div>
-                  <label className="block mb-1.5 text-concrete-800 font-medium">اللون الرئيسي</label>
+                  <label className="block mb-1.5 text-text-primary font-medium">اللون الرئيسي</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={primaryColor}
                       onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
-                      className="w-12 h-10 rounded-lg border border-concrete-200 cursor-pointer bg-white"
+                      className="w-12 h-10 rounded-lg border border-border cursor-pointer bg-white"
                     />
                     <input
                       type="text"
                       value={primaryColor}
                       onChange={(e) => setForm({ ...form, primaryColor: e.target.value })}
                       dir="ltr"
-                      className="w-32 border border-concrete-200 p-2 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-petrol"
+                      className="w-32 border border-border p-2 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-petrol"
                     />
                   </div>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" checked={showQrCode} onChange={(e) => setShowQrCode(e.target.checked)} className="w-5 h-5 accent-petrol" />
-                  <span className="text-sm text-concrete-800">إظهار رمز QR للتحقق (مستقبلي)</span>
+                  <span className="text-sm text-text-primary">إظهار رمز QR للتحقق (مستقبلي)</span>
                 </label>
               </div>
 

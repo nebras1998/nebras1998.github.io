@@ -1,38 +1,66 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — petrol */
-  --color-petrol: #0f4c5c;
-  --color-petrol-dark: #0a3b48;
-  --color-petrol-soft: #e7f1f4;
+  /* Brand — primary (deep teal) */
+  --color-primary: #1a5276;
+  --color-primary-dark: #154360;
+  --color-primary-light: #d4e6f1;
+  --color-primary-50: #eaf2f8;
 
-  /* Neutrals — concrete */
+  /* Accent — warm amber */
+  --color-accent: #e67e22;
+  --color-accent-dark: #ca6f1e;
+  --color-accent-light: #fdebd0;
+
+  /* Sidebar — dark navy */
+  --color-sidebar: #1a2332;
+  --color-sidebar-hover: #243447;
+  --color-sidebar-active: #2c3e50;
+  --color-sidebar-text: #aeb6bf;
+  --color-sidebar-text-active: #ffffff;
+
+  /* Neutrals — refined gray */
+  --color-surface: #ffffff;
+  --color-surface-dim: #f8f9fa;
+  --color-surface-muted: #f1f3f5;
+  --color-border: #e9ecef;
+  --color-border-strong: #dee2e6;
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-muted: #adb5bd;
+
+  /* Legacy aliases (kept for gradual migration) */
   --color-concrete-0: #ffffff;
-  --color-concrete-50: #f6f6f5;
-  --color-concrete-100: #efefed;
-  --color-concrete-200: #e1e1de;
-  --color-concrete-500: #64645e;
-  --color-concrete-800: #2c2c29;
+  --color-concrete-50: #f8f9fa;
+  --color-concrete-100: #f1f3f5;
+  --color-concrete-200: #e9ecef;
+  --color-concrete-500: #6c757d;
+  --color-concrete-800: #212529;
+  --color-petrol: #1a5276;
+  --color-petrol-dark: #154360;
+  --color-petrol-soft: #eaf2f8;
 
-  /* Status — semantic tints (bg + dark text) */
-  --color-success-bg: #eaf3de;
-  --color-success: #173404;
-  --color-warning-bg: #fef3c7;
-  --color-warning: #92400e;
-  --color-warning-solid: #b45309;
-  --color-danger-bg: #fcebeb;
-  --color-danger: #791f1f;
-  --color-danger-solid: #dc2626;
-  --color-danger-dark: #b91c1c;
-  --color-info-bg: #e6f1fb;
-  --color-info: #042c53;
+  /* Status — semantic */
+  --color-success-bg: #eafaf1;
+  --color-success: #1e8449;
+  --color-success-solid: #27ae60;
+  --color-warning-bg: #fef9e7;
+  --color-warning: #b7950b;
+  --color-warning-solid: #d4ac0d;
+  --color-danger-bg: #fdedec;
+  --color-danger: #c0392b;
+  --color-danger-solid: #e74c3c;
+  --color-danger-dark: #cb4335;
+  --color-info-bg: #ebf5fb;
+  --color-info: #2980b9;
+  --color-info-solid: #3498db;
 
   /* Chart palette */
-  --color-chart-petrol: #0f4c5c;
-  --color-chart-amber: #e0a526;
-  --color-chart-green: #2e7d5b;
-  --color-chart-terracotta: #b4472c;
-  --color-chart-mauve: #7c5fa6;
+  --color-chart-primary: #1a5276;
+  --color-chart-amber: #e67e22;
+  --color-chart-green: #27ae60;
+  --color-chart-terracotta: #c0392b;
+  --color-chart-mauve: #8e44ad;
 }
 
 @theme inline {
@@ -40,8 +68,78 @@
   --font-mono: var(--font-plex-mono);
 }
 
+/* ─── Base ─── */
 body {
-  background: var(--color-concrete-50);
-  color: var(--color-concrete-800);
+  background: var(--color-surface-dim);
+  color: var(--color-text-primary);
   font-family: var(--font-sans), Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-surface-muted) 25%, var(--color-surface-dim) 50%, var(--color-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ─── Focus ring ─── */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }

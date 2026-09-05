@@ -1,9 +1,9 @@
 const CATEGORIES: Record<string, string> = {
-  success: 'bg-success-bg text-success',
-  warning: 'bg-warning-bg text-warning',
-  danger: 'bg-danger-bg text-danger',
-  info: 'bg-info-bg text-info',
-  neutral: 'bg-concrete-100 text-concrete-500',
+  success: 'bg-success-bg text-success border border-success/20',
+  warning: 'bg-warning-bg text-warning border border-warning/20',
+  danger: 'bg-danger-bg text-danger border border-danger/20',
+  info: 'bg-info-bg text-info border border-info/20',
+  neutral: 'bg-surface-muted text-text-secondary border border-border',
 };
 
 const SUCCESS = new Set(['مكتمل', 'منجز', 'حاضر', 'موافق', 'مدفوعة', 'مقبول', 'يعمل', 'نشط', 'جاهزة', 'تم الاستلام', 'معتمد', 'مكتملة', 'مطابق']);
@@ -25,10 +25,11 @@ export default function Badge({
     else if (DANGER.has(status)) category = 'danger';
     else if (INFO.has(status)) category = 'info';
   }
-  const pad = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm';
+  const pad = size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm';
+  const isDanger = category === 'danger';
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium whitespace-nowrap ${pad} ${CATEGORIES[category]}`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+    <span className={`inline-flex items-center gap-1.5 rounded-full font-semibold whitespace-nowrap ${pad} ${CATEGORIES[category]}`}>
+      <span className={`w-1.5 h-1.5 rounded-full bg-current ${isDanger ? 'animate-pulse-dot' : 'opacity-70'}`} />
       {status}
     </span>
   );

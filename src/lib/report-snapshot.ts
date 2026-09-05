@@ -4,8 +4,9 @@
 // where the resultType -> resultRows conversion lives, so the generation page and
 // the display/PDF pages never diverge. All identifiers/comments are English.
 
-import type { Test, Sample, Client, Project, ReportSnapshot } from '@/types';
+import type { Test, Sample, Client, Project, ReportSnapshot, ReportResultRow } from '@/types';
 import { getTestResultType, parseResultFields, parseAppliedStandard } from '@/lib/test-config';
+import type { TestLimit } from '@/lib/test-config';
 
 function parseNumberArray(raw?: string | null): number[] {
   if (!raw) return [];
@@ -31,6 +32,21 @@ function joinValues(values: number[]): string {
   return values.join(' / ');
 }
 
+// Attaches acceptance limits (from the applied standard) to a result row.
+// `limitKey` names which TestLimit applies; `fallback` is used for single-limit
+// examinations (single, multi_no_age, aggregate, steel...) where only one limit
+// block exists and no key is present.
+function withLimit(
+  row: ReportResultRow,
+  limits: TestLimit[],
+  limitKey?: string
+): ReportResultRow {
+  const key = (limitKey || '').toLowerCase();
+  const limit = limits.find((l) => (l.key || '').toLowerCase() === key) || (!key && limits.length ? limits[0] : undefined);
+  if (!limit) return row;
+  return { ...row, min: limit.min, max: limit.max };
+}
+
 export function buildReportSnapshot(
   test: Test,
   sample?: Sample | null,
@@ -41,42 +57,59 @@ export function buildReportSnapshot(
   const resultFields = parseResultFields(test.resultFields);
   const appliedStandard = parseAppliedStandard(test.appliedStandard);
   const resultFieldsValues = parseRecord(test.resultFieldsValues);
-  const unit = test.unit || '';
+  const unit = test.unit || appliedStandard?.unit || '';
+  const limits = appliedStandard?.limits || [];
 
-  const resultRows: ReportSnapshot['resultRows'] = [];
+  const resultRows: ReportResultRow[] = [];
+  const push = (row: ReportResultRow) => resultRows.push(row);
 
   if (resultType === 'dual_age') {
     const age7 = parseNumberArray(test.result7Days);
     const age28 = parseNumberArray(test.result28Days);
-    if (age7.length > 0) resultRows.push({ label: 'نتائج مكعبات عمر 7 أيام', value: joinValues(age7), unit });
-    if (test.average7Days != null) resultRows.push({ label: 'متوسط عمر 7 أيام', value: String(test.average7Days), unit });
-    if (age28.length > 0) resultRows.push({ label: 'نتائج مكعبات عمر 28 يوم', value: joinValues(age28), unit });
-    if (test.average28Days != null) resultRows.push({ label: 'متوسط عمر 28 يوم', value: String(test.average28Days), unit });
-    if (resultRows.length === 0 && test.result) resultRows.push({ label: 'النتيجة', value: test.result, unit });
+    if (age7.length > 0) push(withLimit({ label: 'نتائج مكعبات عمر 7 أيام', value: joinValues(age7), unit }, limits, 'age7'));
+    if (test.average7Days != null) push(withLimit({ label: 'متوسط عمر 7 أيام', value: String(test.average7Days), unit }, limits, 'age7'));
+    if (age28.length > 0) push(withLimit({ label: 'نتائج مكعبات عمر 28 يوم', value: joinValues(age28), unit }, limits, 'age28'));
+    if (test.average28Days != null) push(withLimit({ label: 'متوسط عمر 28 يوم', value: String(test.average28Days), unit }, limits, 'age28'));
+    if (resultRows.length === 0 && test.result) push({ label: 'النتيجة', value: test.result, unit });
   } else if (resultType === 'multi_no_age') {
     const cubes = parseNumberArray(test.results);
-    if (cubes.length > 0) resultRows.push({ label: 'نتائج المكعبات', value: joinValues(cubes), unit });
-    if (test.averageResult != null) resultRows.push({ label: 'المتوسط', value: String(test.averageResult), unit });
+    if (cubes.length > 0) push(withLimit({ label: 'نتائج العينات', value: joinValues(cubes), unit }, limits));
+    if (test.averageResult != null) push(withLimit({ label: 'المتوسط', value: String(test.averageResult), unit }, limits));
   } else if (resultType === 'multi_field') {
     if (resultFields.length > 0) {
       for (const f of resultFields) {
-        resultRows.push({ label: f.label, value: resultFieldsValues[f.key] ?? '', unit: f.unit || unit });
+        const lk = limits.find((l) => (l.key || '').toLowerCase() === (f.key || '').toLowerCase());
+        push(withLimit({ label: f.label, value: resultFieldsValues[f.key] ?? '', unit: f.unit || unit, limitKey: f.key }, limits, f.key));
+        void lk;
       }
     } else if (test.result) {
-      resultRows.push({ label: 'النتيجة', value: test.result, unit });
+      push({ label: 'النتيجة', value: test.result, unit });
     }
   } else if (test.result) {
-    resultRows.push({ label: 'النتيجة', value: test.result, unit });
+    push(withLimit({ label: 'النتيجة', value: test.result, unit }, limits));
   }
+
+  const standardRef = appliedStandard?.specification || test.specification;
 
   return {
     testName: test.testName,
     testNumber: test.testNumber || '',
     standard: test.specification || undefined,
+    standardRef: standardRef || undefined,
+    standardUnit: appliedStandard?.unit || unit || undefined,
     sampleNumber: sample?.sampleNumber || test.sampleNumber || undefined,
     sampleType: sample?.type || undefined,
+    sampleLocation: sample?.location || undefined,
+    sampleReceivedDate: sample?.receivedDate || undefined,
+    samplePreparedDate: sample?.preparationDate || test.completedAt || undefined,
     clientName: client?.name || sample?.clientName || undefined,
+    clientPhone: client?.phone || undefined,
+    clientAddress: client?.address || undefined,
     projectName: project?.name || sample?.projectName || undefined,
+    projectNumber: project?.projectNumber || undefined,
+    projectLocation: project?.location || undefined,
+    contractor: project?.contractor || undefined,
+    consultant: project?.consultant || undefined,
     completedAt: test.completedAt || undefined,
     resultType,
     resultRows,

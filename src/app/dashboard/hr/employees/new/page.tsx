@@ -157,9 +157,9 @@ export default function NewEmployeePage() {
               label="رقم الموظف"
               value={generatedNumber}
               readOnly
-              inputClassName="bg-concrete-100 font-mono"
+              inputClassName="bg-surface-muted font-mono"
             />
-            <p className="text-sm text-concrete-500 mt-1">يتم توليده تلقائياً</p>
+            <p className="text-sm text-text-muted mt-1">يتم توليده تلقائياً</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField label="الاسم" name="name" value={form.name} onChange={handleChange} required />
@@ -215,7 +215,7 @@ export default function NewEmployeePage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-concrete-200 px-3 py-1 rounded flex items-center gap-1 hover:bg-concrete-200"
+                  className="bg-border px-3 py-1 rounded flex items-center gap-1 hover:bg-border"
                 >
                   <Upload size={16} /> اختر ملفات
                 </button>
@@ -227,19 +227,19 @@ export default function NewEmployeePage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <span className="text-sm text-concrete-500">{selectedFiles.length} ملفات محددة</span>
+                <span className="text-sm text-text-muted">{selectedFiles.length} ملفات محددة</span>
               </div>
               {selectedFiles.length > 0 && (
                 <ul className="space-y-1">
                   {selectedFiles.map((file, index) => (
-                    <li key={index} className="flex justify-between items-center text-sm bg-concrete-50 p-1 rounded">
+                    <li key={index} className="flex justify-between items-center text-sm bg-surface-dim p-1 rounded">
                       <span>{file.name}</span>
                       <button type="button" onClick={() => removeFile(index)} className="text-danger"><X size={14} /></button>
                     </li>
                   ))}
                 </ul>
               )}
-              {uploading && <p className="text-sm text-petrol mt-1">جارٍ رفع الملفات...</p>}
+              {uploading && <p className="text-sm text-primary mt-1">جارٍ رفع الملفات...</p>}
             </div>
 
             <SubmitButton loading={loading || uploading}>حفظ الموظف</SubmitButton>

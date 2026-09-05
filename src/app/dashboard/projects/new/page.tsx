@@ -113,11 +113,11 @@ export default function NewProjectPage() {
                 value={formData.projectNumber}
                 onChange={handleChange}
                 required
-                inputClassName="bg-concrete-50"
+                inputClassName="bg-surface-dim"
                 placeholder={generatingNumber ? 'جارٍ التوليد...' : 'رقم المشروع'}
                 readOnly={generatingNumber}
               />
-              <p className="text-sm text-concrete-500 mt-1">يتم توليده تلقائياً (يمكنك تعديله يدوياً)</p>
+              <p className="text-sm text-text-muted mt-1">يتم توليده تلقائياً (يمكنك تعديله يدوياً)</p>
             </div>
             <TextField label="اسم المشروع" name="name" value={formData.name} onChange={handleChange} required />
             <SelectField label="العميل" name="clientId" value={formData.clientId} onChange={handleChange} required>

@@ -95,13 +95,13 @@ export default function FilesPage() {
         </div>
 
         <div className="mb-4 relative">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="ابحث باسم الملف..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full border border-concrete-200 p-2 pr-10 rounded"
+            className="w-full border border-border p-2 pr-10 rounded"
           />
         </div>
 
@@ -111,11 +111,11 @@ export default function FilesPage() {
           <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-concrete-50 border-b">
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">اسم الملف</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحجم (KB)</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الرفع</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                <tr className="bg-surface-dim border-b border-border">
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">اسم الملف</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحجم (KB)</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">تاريخ الرفع</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,14 +125,14 @@ export default function FilesPage() {
                   </tr>
                 ) : (
                   filtered.map((file: StorageFile) => (
-                    <tr key={file.$id} className="border-b hover:bg-concrete-50">
+                    <tr key={file.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                       <td className="p-3">{file.name}</td>
                       <td className="p-3">{(file.sizeOriginal / 1024).toFixed(2)}</td>
                       <td className="p-3">{new Date(file.$createdAt).toLocaleDateString('ar-EG')}</td>
                       <td className="p-3">
                         <button
                           onClick={() => openDeleteModal(file)}
-                          className="text-danger hover:underline flex items-center gap-1"
+                          className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                         >
                           <Trash2 size={16} /> حذف
                         </button>

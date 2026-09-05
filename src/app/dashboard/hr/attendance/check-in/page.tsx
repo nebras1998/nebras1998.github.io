@@ -90,12 +90,12 @@ export default function CheckInPage() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموظف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">وقت الحضور</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">وقت الانصراف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">ملاحظات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الموظف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">وقت الحضور</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">وقت الانصراف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">ملاحظات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -106,7 +106,7 @@ export default function CheckInPage() {
                         <select
                           value={attendanceList[emp.$id]?.status || 'حاضر'}
                           onChange={(e) => handleChange(emp.$id, 'status', e.target.value)}
-                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
+                          className="border border-border p-2 rounded-xl bg-surface w-full"
                         >
                           <option value="حاضر">حاضر</option>
                           <option value="غائب">غائب</option>
@@ -119,7 +119,7 @@ export default function CheckInPage() {
                           type="time"
                           value={attendanceList[emp.$id]?.checkIn || ''}
                           onChange={(e) => handleChange(emp.$id, 'checkIn', e.target.value)}
-                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
+                          className="border border-border p-2 rounded-xl bg-surface w-full"
                         />
                       </td>
                       <td className="p-3">
@@ -127,7 +127,7 @@ export default function CheckInPage() {
                           type="time"
                           value={attendanceList[emp.$id]?.checkOut || ''}
                           onChange={(e) => handleChange(emp.$id, 'checkOut', e.target.value)}
-                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
+                          className="border border-border p-2 rounded-xl bg-surface w-full"
                         />
                       </td>
                       <td className="p-3">
@@ -135,7 +135,7 @@ export default function CheckInPage() {
                           type="text"
                           value={attendanceList[emp.$id]?.notes || ''}
                           onChange={(e) => handleChange(emp.$id, 'notes', e.target.value)}
-                          className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-full"
+                          className="border border-border p-2 rounded-xl bg-surface w-full"
                           placeholder="ملاحظة"
                         />
                       </td>

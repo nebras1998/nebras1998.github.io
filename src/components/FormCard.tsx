@@ -16,9 +16,14 @@ export default function FormCard({
   className?: string;
 }) {
   return (
-    <Card className={`mx-auto ${maxWidth} ${className}`}>
-      {title && <h1 className={`text-2xl font-bold ${subtitle ? 'mb-1' : 'mb-6'}`}>{title}</h1>}
-      {subtitle && <p className="mb-6 text-sm text-concrete-500">{subtitle}</p>}
+    <Card className={`mx-auto ${maxWidth} animate-fade-in ${className}`}>
+      {title && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{title}</h1>
+          {subtitle && <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>}
+          <div className="mt-3 h-0.5 w-12 bg-gradient-to-l from-primary to-accent rounded-full" />
+        </div>
+      )}
       {children}
     </Card>
   );

@@ -1,20 +1,23 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Home } from 'lucide-react';
 
 export type Crumb = { label: string; href?: string };
 
 export default function Breadcrumb({ items }: { items: Crumb[] }) {
   return (
-    <nav className="flex flex-wrap items-center gap-2 text-sm text-concrete-500">
+    <nav className="flex flex-wrap items-center gap-1.5 text-sm">
+      <Link href="/dashboard" className="text-text-muted hover:text-primary transition-colors p-1 rounded-lg hover:bg-primary-50">
+        <Home size={14} />
+      </Link>
       {items.map((item, i) => (
-        <span key={i} className="flex items-center gap-2">
-          {i > 0 && <ArrowRight size={14} className="text-concrete-300" />}
+        <span key={i} className="flex items-center gap-1.5">
+          <ArrowRight size={12} className="text-text-muted" />
           {item.href ? (
-            <Link href={item.href} className="hover:text-petrol hover:underline">
+            <Link href={item.href} className="text-text-muted hover:text-primary hover:underline transition-colors">
               {item.label}
             </Link>
           ) : (
-            <span className="text-concrete-800">{item.label}</span>
+            <span className="text-text-primary font-semibold">{item.label}</span>
           )}
         </span>
       ))}

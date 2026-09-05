@@ -97,7 +97,7 @@ export default function NewOvertimePage() {
               <TextField label="وقت النهاية" type="time" name="endTime" value={form.endTime} onChange={handleChange} />
             </div>
             <TextField label="عدد الساعات" type="number" step="0.5" min="0" name="hours" value={form.hours} onChange={handleChange} required />
-            <p className="text-sm text-concrete-500 mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
+            <p className="text-sm text-text-muted mt-1">يتم حسابه تلقائياً من الوقت (يمكنك تعديله)</p>
             <TextAreaField label="سبب العمل الإضافي" name="reason" value={form.reason} onChange={handleChange} rows={3} />
             <TextAreaField label="ملاحظات" name="notes" value={form.notes} onChange={handleChange} rows={2} />
             <SubmitButton loading={loading} loadingText="جارٍ التقديم...">تقديم الطلب</SubmitButton>

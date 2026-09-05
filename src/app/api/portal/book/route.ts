@@ -13,6 +13,14 @@ export const dynamic = 'force-dynamic';
 // Abuse protection: in-memory per-IP rate limit (5 attempts / 10 minutes).
 // A module-level Map is enough for this self-hosted setup; entries are
 // lazily cleaned up on each request (keeps expiry/registry in one place).
+//
+// NOTE on limitations: the limiter is in-memory (resets if the process
+// restarts) and keyed off request headers (`x-forwarded-for` / `x-real-ip`)
+// because Next 16's route handlers don't expose the raw connection IP. Those
+// headers can be spoofed by a direct caller, so treat this as a best-effort
+// anti-abuse control, not a hard security boundary. If this ever runs behind
+// a non-trusted public edge or across multiple instances, move the counter to
+// a shared store (e.g. Appwrite/Redis) and key off the trusted proxy's real IP.
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const rateLimitMap = new Map<string, { count: number; expiresAt: number }>();
@@ -63,10 +71,14 @@ function createServerDatabases(): Databases | null {
   return new Databases(client);
 }
 
+// توليد رقم حجز تسلسلي {BOOK-YYYY-NNNN}. عند تعذّر قراءة آخر رقم (خطأ عابر في
+// القراءة)، نتراجع إلى رقمٍ عشوائي مع التحقق من عدم كونه مستخدماً حالياً،
+// لتجنّب تعارض الأرقام الناتج عن التراجع العشوائي غير المحقَّق.
 async function generateBookingNumber(databases: Databases): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `BOOK-${year}-`;
-  try {
+
+  async function sequentialNext(): Promise<number | null> {
     const res = await databases.listDocuments(DATABASE_ID, BOOKINGS_COLLECTION_ID, [
       Query.startsWith('bookingNumber', prefix),
       Query.orderDesc('bookingNumber'),
@@ -78,9 +90,30 @@ async function generateBookingNumber(databases: Databases): Promise<string> {
       const last = (res.documents[0].bookingNumber as string)?.split('-').pop();
       if (last && /^\d+$/.test(last)) next = parseInt(last, 10) + 1;
     }
+    return next;
+  }
+
+  const maxRandomAttempts = 8;
+
+  try {
+    const next = await sequentialNext();
     return `${prefix}${String(next).padStart(4, '0')}`;
   } catch {
-    return `${prefix}${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    // قراءة آخر رقم فشلت؛ جرّب رقماً عشوائياً ليس مستخدماً حالياً.
+    for (let attempt = 0; attempt < maxRandomAttempts; attempt++) {
+      const candidate = `${prefix}${String(Math.floor(Math.random() * 9000) + 1000)}`;
+      try {
+        const check = await databases.listDocuments(DATABASE_ID, BOOKINGS_COLLECTION_ID, [
+          Query.equal('bookingNumber', candidate),
+          Query.limit(1),
+          Query.select(['bookingNumber']),
+        ]);
+        if (check.documents.length === 0) return candidate;
+      } catch {
+        // إن تعذّر حتى التحقق من التعارض، أعد المحاولة برقمٍ عشوائي مختلف.
+      }
+    }
+    throw new Error('تعذر توليد رقم حجز فريد');
   }
 }
 

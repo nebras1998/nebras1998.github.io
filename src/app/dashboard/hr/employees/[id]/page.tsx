@@ -104,11 +104,11 @@ export default function EmployeeDetailPage() {
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-2xl font-bold">{employee.name}</h1>
-                <p className="text-concrete-500">{employee.jobTitle}</p>
+                <p className="text-text-muted">{employee.jobTitle}</p>
               </div>
               <Link
                 href={`/dashboard/hr/employees/${employeeId}/edit`}
-                className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark"
+                className="bg-primary text-white px-4 py-2 rounded flex items-center gap-1 hover:from-primary-dark hover:to-primary"
               >
                 <Edit size={16} /> تعديل
               </Link>
@@ -126,13 +126,13 @@ export default function EmployeeDetailPage() {
             {employee.certifications && (
               <div className="mt-4">
                 <h3 className="font-bold mb-1">الشهادات المهنية</h3>
-                <p className="text-concrete-800">{employee.certifications}</p>
+                <p className="text-text-primary">{employee.certifications}</p>
               </div>
             )}
             {employee.notes && (
               <div className="mt-4">
                 <h3 className="font-bold mb-1">ملاحظات</h3>
-                <p className="text-concrete-800">{employee.notes}</p>
+                <p className="text-text-primary">{employee.notes}</p>
               </div>
             )}
           </Card>
@@ -151,7 +151,7 @@ export default function EmployeeDetailPage() {
                       href={doc.viewUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-petrol hover:underline flex items-center gap-1"
+                      className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"
                     >
                       <FileDown size={16} /> تحميل
                     </a>
@@ -172,16 +172,16 @@ export default function EmployeeDetailPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-concrete-50 border-b">
-                      <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">اسم الفحص</th>
-                      <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النتيجة</th>
-                      <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوحدة</th>
-                      <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
+                    <tr className="bg-surface-dim border-b border-border">
+                      <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">اسم الفحص</th>
+                      <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النتيجة</th>
+                      <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الوحدة</th>
+                      <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
                     </tr>
                   </thead>
                   <tbody>
                     {assignedTests.map((test) => (
-                      <tr key={test.$id} className="border-b hover:bg-concrete-50">
+                      <tr key={test.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                         <td className="p-3">{test.testName}</td>
                         <td className="p-3">{test.result || '-'}</td>
                         <td className="p-3">{test.unit || '-'}</td>
@@ -202,6 +202,6 @@ export default function EmployeeDetailPage() {
 // مكون مساعد لعرض المعلومات
 function InfoItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <StatCard title={label} value={value} bgColor="bg-concrete-50" valueClass={mono ? 'font-mono' : undefined} centered />
+    <StatCard title={label} value={value} bgColor="bg-surface-dim" valueClass={mono ? 'font-mono' : undefined} centered />
   );
 }

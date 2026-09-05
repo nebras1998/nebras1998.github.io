@@ -81,14 +81,14 @@ export default function GlobalSearch() {
   return (
     <div ref={boxRef} className="relative w-full">
       <div className="relative">
-        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-400" />
+        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           onFocus={() => setOpen(true)}
           placeholder="بحث في العملاء والمشاريع والعينات..."
-          className="w-full bg-concrete-50 border border-concrete-200 rounded-lg pr-9 pl-9 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-petrol"
+          className="w-full bg-surface-dim border border-border rounded-xl pr-9 pl-9 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-surface transition-all duration-200"
         />
         {query && (
           <button
@@ -96,24 +96,32 @@ export default function GlobalSearch() {
               setQuery('');
               setResults(EMPTY);
             }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 text-concrete-400 hover:text-concrete-700"
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         )}
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full right-0 left-0 mt-1 bg-white border border-concrete-200 rounded-lg shadow-lg z-40 max-h-96 overflow-y-auto">
-          {loading && <div className="p-3 text-sm text-concrete-500">جارٍ البحث...</div>}
+        <div className="absolute top-full right-0 left-0 mt-2 bg-surface border border-border rounded-2xl shadow-xl z-40 max-h-96 overflow-y-auto animate-slide-up">
+          {loading && (
+            <div className="p-4 text-sm text-text-muted flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              جارٍ البحث...
+            </div>
+          )}
 
           {!loading && total === 0 && (
-            <div className="p-3 text-sm text-concrete-500">لا توجد نتائج لـ «{query.trim()}»</div>
+            <div className="p-4 text-sm text-text-muted">لا توجد نتائج لـ &laquo;{query.trim()}&raquo;</div>
           )}
 
           {!loading && results.clients.length > 0 && (
-            <div className="p-1">
-              <div className="px-2 py-1 text-xs font-bold text-concrete-400 flex items-center gap-1">
+            <div className="p-1.5">
+              <div className="px-3 py-1.5 text-xs font-bold text-text-muted flex items-center gap-1.5">
                 <Users size={12} /> العملاء
               </div>
               {results.clients.map((c) => (
@@ -121,18 +129,18 @@ export default function GlobalSearch() {
                   key={c.$id}
                   href={`/dashboard/clients/${c.$id}`}
                   onClick={() => setOpen(false)}
-                  className="block px-2 py-1.5 rounded text-sm hover:bg-concrete-50 flex items-center justify-between gap-2"
+                  className="block px-3 py-2 rounded-xl text-sm hover:bg-primary-50 flex items-center justify-between gap-2 transition-colors"
                 >
-                  <span>{c.name}</span>
-                  {c.phone && <span className="text-concrete-400 text-xs">{c.phone}</span>}
+                  <span className="font-medium text-text-primary">{c.name}</span>
+                  {c.phone && <span className="text-text-muted text-xs">{c.phone}</span>}
                 </Link>
               ))}
             </div>
           )}
 
           {!loading && results.projects.length > 0 && (
-            <div className="p-1 border-t border-concrete-100">
-              <div className="px-2 py-1 text-xs font-bold text-concrete-400 flex items-center gap-1">
+            <div className="p-1.5 border-t border-border">
+              <div className="px-3 py-1.5 text-xs font-bold text-text-muted flex items-center gap-1.5">
                 <FolderKanban size={12} /> المشاريع
               </div>
               {results.projects.map((p) => (
@@ -140,18 +148,18 @@ export default function GlobalSearch() {
                   key={p.$id}
                   href={`/dashboard/projects/${p.$id}`}
                   onClick={() => setOpen(false)}
-                  className="block px-2 py-1.5 rounded text-sm hover:bg-concrete-50 flex items-center justify-between gap-2"
+                  className="block px-3 py-2 rounded-xl text-sm hover:bg-primary-50 flex items-center justify-between gap-2 transition-colors"
                 >
-                  <span>{p.name}</span>
-                  <span className="text-concrete-400 text-xs">{p.projectNumber}</span>
+                  <span className="font-medium text-text-primary">{p.name}</span>
+                  <span className="text-text-muted text-xs">{p.projectNumber}</span>
                 </Link>
               ))}
             </div>
           )}
 
           {!loading && results.samples.length > 0 && (
-            <div className="p-1 border-t border-concrete-100">
-              <div className="px-2 py-1 text-xs font-bold text-concrete-400 flex items-center gap-1">
+            <div className="p-1.5 border-t border-border">
+              <div className="px-3 py-1.5 text-xs font-bold text-text-muted flex items-center gap-1.5">
                 <FlaskConical size={12} /> العينات
               </div>
               {results.samples.map((s) => (
@@ -159,10 +167,10 @@ export default function GlobalSearch() {
                   key={s.$id}
                   href={`/dashboard/samples/${s.$id}`}
                   onClick={() => setOpen(false)}
-                  className="block px-2 py-1.5 rounded text-sm hover:bg-concrete-50 flex items-center justify-between gap-2"
+                  className="block px-3 py-2 rounded-xl text-sm hover:bg-primary-50 flex items-center justify-between gap-2 transition-colors"
                 >
-                  <span>{s.sampleNumber}</span>
-                  <span className="text-concrete-400 text-xs">{s.type}</span>
+                  <span className="font-medium text-text-primary">{s.sampleNumber}</span>
+                  <span className="text-text-muted text-xs">{s.type}</span>
                 </Link>
               ))}
             </div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -59,7 +59,7 @@ export default function NewStandardTestPage() {
             title="نوع العينة مطلوب"
             description="افتح هذه الصفحة من داخل صفحة نوع العينة لاختيار النوع تلقائيًا."
             action={
-              <Link href="/dashboard/catalog" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+              <Link href="/dashboard/catalog" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
                 العودة إلى الكتالوج
               </Link>
             }

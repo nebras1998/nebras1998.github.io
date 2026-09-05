@@ -149,7 +149,7 @@ export default function NewBookingPage() {
               {sampleTypes.map(t => <option key={t.$id} value={t.name}>{t.name}</option>)}
             </SelectField>
             {standardTests.length > 0 && (
-              <div className="bg-concrete-50 p-4 rounded-xl">
+              <div className="bg-surface-dim p-4 rounded-xl">
                 <p className="font-bold mb-2">الفحوصات المطلوبة:</p>
                 <div className="space-y-2">
                   {standardTests.map(test => (

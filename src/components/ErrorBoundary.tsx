@@ -39,13 +39,13 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-[400px] flex items-center justify-center p-8">
           <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center space-y-4">
             <AlertTriangle size={48} className="mx-auto text-danger" />
-            <h2 className="text-xl font-bold text-concrete-800">حدث خطأ غير متوقع</h2>
-            <p className="text-concrete-500 text-sm">
+            <h2 className="text-xl font-bold text-text-primary">حدث خطأ غير متوقع</h2>
+            <p className="text-text-muted text-sm">
               {this.state.error?.message || 'فشلت تحميل هذا المكون.'}
             </p>
             <button
               onClick={this.handleReset}
-              className="bg-petrol text-white px-6 py-2 rounded-lg hover:bg-petrol-dark inline-flex items-center gap-2"
+              className="bg-primary text-white px-6 py-2 rounded-lg hover:from-primary-dark hover:to-primary inline-flex items-center gap-2"
             >
               <RefreshCw size={16} />
               إعادة المحاولة

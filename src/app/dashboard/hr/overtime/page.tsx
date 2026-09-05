@@ -139,8 +139,8 @@ export default function OvertimePage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">العمل الإضافي</h1>
-          <Link href="/dashboard/hr/overtime/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">العمل الإضافي</h1>
+          <Link href="/dashboard/hr/overtime/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
             <Plus size={18} /> طلب عمل إضافي
           </Link>
         </div>
@@ -148,19 +148,19 @@ export default function OvertimePage() {
         {/* صف الفلاتر */}
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+            <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="ابحث باسم الموظف أو السبب..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full border p-2 pr-10 rounded"
+              className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
             />
           </div>
           <select
             value={selectedEmployee}
             onChange={(e) => { setSelectedEmployee(e.target.value); setCurrentPage(1); }}
-            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+            className="border border-border p-2 rounded-xl bg-surface"
           >
             <option value="">كل الموظفين</option>
             {employeeOptions.map(([id, name]) => (
@@ -170,7 +170,7 @@ export default function OvertimePage() {
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+            className="border border-border p-2 rounded-xl bg-surface"
           >
             <option value="">كل الحالات</option>
             <option value="معلق">معلق</option>
@@ -181,13 +181,13 @@ export default function OvertimePage() {
             type="date"
             value={filterDate}
             onChange={(e) => { setFilterDate(e.target.value); setFilterMonth(''); setCurrentPage(1); }}
-            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+            className="border border-border p-2 rounded-xl bg-surface"
           />
           <input
             type="month"
             value={filterMonth}
             onChange={(e) => { setFilterMonth(e.target.value); setFilterDate(''); setCurrentPage(1); }}
-            className="border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+            className="border border-border p-2 rounded-xl bg-surface"
           />
         </div>
 
@@ -198,14 +198,14 @@ export default function OvertimePage() {
             <Card className="overflow-x-auto mb-4">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الموظف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الوقت</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الساعات</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السبب</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">معتمد</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الموظف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الوقت</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الساعات</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">السبب</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">معتمد</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -213,7 +213,7 @@ export default function OvertimePage() {
                     <tr><td colSpan={7}><EmptyData title="لا توجد طلبات" className="py-8" /></td></tr>
                   ) : (
                     paginated.map((ot) => (
-                      <tr key={ot.$id} className="border-b hover:bg-concrete-50">
+                      <tr key={ot.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                         <td className="p-3">{employeesMap[ot.employeeId] || ot.employeeId}</td>
                         <td className="p-3">{ot.date}</td>
                         <td className="p-3">-</td>
@@ -225,13 +225,13 @@ export default function OvertimePage() {
                         <td className="p-3 flex gap-2">
                           {!ot.approved && (
                             <>
-                              <button onClick={() => updateStatus(ot.$id, true)} className="text-petrol hover:underline flex items-center gap-1"><Check size={16} /> اعتماد</button>
-                              <button onClick={() => updateStatus(ot.$id, false)} className="text-danger hover:underline flex items-center gap-1"><XIcon size={16} /> رفض</button>
+                              <button onClick={() => updateStatus(ot.$id, true)} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><Check size={16} /> اعتماد</button>
+                              <button onClick={() => updateStatus(ot.$id, false)} className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"><XIcon size={16} /> رفض</button>
                             </>
                           )}
                           <button
                             onClick={() => openDeleteModal(ot.$id, employeesMap[ot.employeeId] || '')}
-                            className="text-danger hover:underline flex items-center gap-1"
+                            className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                           >
                             <Trash2 size={16} /> حذف
                           </button>
@@ -242,7 +242,7 @@ export default function OvertimePage() {
                 </tbody>
               </table>
             </Card>
-            <div className="flex items-center justify-between text-sm text-concrete-500">
+            <div className="flex items-center justify-between text-sm text-text-muted">
               <span>إجمالي الساعات: {totalHours.toFixed(2)} ساعة</span>
             </div>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

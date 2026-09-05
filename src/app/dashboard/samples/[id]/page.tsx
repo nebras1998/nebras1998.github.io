@@ -98,24 +98,24 @@ export default function SampleDetailPage() {
           <FormCard title="تفاصيل العينة" maxWidth="max-w-2xl">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><span className="text-concrete-500">رقم العينة:</span> {sample.sampleNumber}</div>
-            <div><span className="text-concrete-500">النوع:</span> {sample.type}</div>
-            <div><span className="text-concrete-500">المشروع:</span> {projectName || '-'}</div>
-            <div><span className="text-concrete-500">العميل:</span> {clientName || '-'}</div>
-            <div><span className="text-concrete-500">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
-            <div><span className="text-concrete-500">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
-            <div><span className="text-concrete-500">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
-            <div><span className="text-concrete-500">الحالة:</span> <Badge status={sample.status} /></div>
-            <div><span className="text-concrete-500">فني الأخذ:</span> {samplerName || '-'}</div>
-            <div><span className="text-concrete-500">فني التحضير:</span> {preparerName || '-'}</div>
-            <div><span className="text-concrete-500">فني الإحضار:</span> {transporterName || '-'}</div>
+            <div><span className="text-text-muted">رقم العينة:</span> {sample.sampleNumber}</div>
+            <div><span className="text-text-muted">النوع:</span> {sample.type}</div>
+            <div><span className="text-text-muted">المشروع:</span> {projectName || '-'}</div>
+            <div><span className="text-text-muted">العميل:</span> {clientName || '-'}</div>
+            <div><span className="text-text-muted">تاريخ الأخذ:</span> {sample.samplingDate || '-'}</div>
+            <div><span className="text-text-muted">تاريخ التحضير:</span> {sample.preparationDate || '-'}</div>
+            <div><span className="text-text-muted">تاريخ الإحضار:</span> {sample.deliveryDate || '-'}</div>
+            <div><span className="text-text-muted">الحالة:</span> <Badge status={sample.status} /></div>
+            <div><span className="text-text-muted">فني الأخذ:</span> {samplerName || '-'}</div>
+            <div><span className="text-text-muted">فني التحضير:</span> {preparerName || '-'}</div>
+            <div><span className="text-text-muted">فني الإحضار:</span> {transporterName || '-'}</div>
           </div>
 
           <div className="mt-8 border-t pt-6 text-center">
             <h2 className="font-bold mb-2 flex items-center justify-center gap-2">
               <QrCode size={20} /> رمز الاستجابة السريعة (QR)
             </h2>
-            <p className="text-sm text-concrete-500 mb-4">
+            <p className="text-sm text-text-muted mb-4">
               امسح الباركود للوصول إلى تفاصيل العينة (يتطلب تسجيل الدخول)
             </p>
             
@@ -131,11 +131,11 @@ export default function SampleDetailPage() {
               </div>
             )}
             
-            <p className="text-xs text-concrete-500 mt-2 break-all">{pageUrl}</p>
+            <p className="text-xs text-text-muted mt-2 break-all">{pageUrl}</p>
             
             <button
               onClick={downloadQR}
-              className="mt-4 bg-petrol text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:bg-petrol-dark"
+              className="mt-4 bg-primary text-white px-5 py-2 rounded-xl flex items-center gap-2 mx-auto hover:from-primary-dark hover:to-primary"
             >
               <Download size={16} /> تحميل صورة الباركود
             </button>

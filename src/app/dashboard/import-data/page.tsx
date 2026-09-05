@@ -76,7 +76,7 @@ export default function ImportDataPage() {
           maxWidth="max-w-xl"
           className="text-center"
         >
-          <Upload size={48} className="mx-auto text-petrol mb-4" />
+          <Upload size={48} className="mx-auto text-primary mb-4" />
 
           <input
             type="file"
@@ -87,7 +87,7 @@ export default function ImportDataPage() {
           />
 
           {result && (
-            <div className="flex items-center justify-center gap-2 text-petrol mb-4">
+            <div className="flex items-center justify-center gap-2 text-primary mb-4">
               <Loader2 size={18} className="animate-spin" />
               <span>{result}</span>
             </div>

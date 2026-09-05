@@ -206,22 +206,22 @@ export default function NewInvoicePage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h2 className="font-bold text-lg">البنود</h2>
-                <button type="button" onClick={addItem} className="bg-petrol text-white px-3 py-1 rounded flex items-center gap-1">
+                <button type="button" onClick={addItem} className="bg-primary text-white px-3 py-1 rounded flex items-center gap-1">
                   <Plus size={16} /> إضافة بند
                 </button>
               </div>
               {items.length === 0 ? (
-                <p className="text-concrete-500 text-sm">لا توجد بنود. اضغط &ldquo;إضافة بند&rdquo;.</p>
+                <p className="text-text-muted text-sm">لا توجد بنود. اضغط &ldquo;إضافة بند&rdquo;.</p>
               ) : (
                 <div className="overflow-x-auto border rounded">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-concrete-50">
-                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الفحص (الخدمة)</th>
-                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الكمية</th>
-                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السعر</th>
-                        <th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th>
-                        <th className="p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50"></th>
+                      <tr className="bg-surface-dim">
+                        <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الفحص (الخدمة)</th>
+                        <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الكمية</th>
+                        <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">السعر</th>
+                        <th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجمالي</th>
+                        <th className="p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -232,7 +232,7 @@ export default function NewInvoicePage() {
                               value={item.testId}
                               onChange={e => updateItem(idx, 'testId', e.target.value)}
                               required
-                              className="w-full border border-concrete-200 p-2 rounded-xl bg-concrete-0 text-sm"
+                              className="w-full border border-border p-2 rounded-xl bg-surface text-sm"
                             >
                               <option value="">اختر فحصاً</option>
                               {Object.entries(groupedTests()).map(([typeName, typeTests]) => (
@@ -247,7 +247,7 @@ export default function NewInvoicePage() {
                             </select>
                           </td>
                           <td className="p-3">
-                            <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
+                            <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 border border-border p-2 rounded-xl bg-surface" />
                           </td>
                           <td className="p-3">{item.price.toFixed(2)} ₪</td>
                           <td className="p-3 font-bold">{item.total.toFixed(2)} ₪</td>

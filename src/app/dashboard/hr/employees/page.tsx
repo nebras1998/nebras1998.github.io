@@ -76,23 +76,23 @@ export default function EmployeesPage() {
     <AuthGuard>
       <DashboardLayout>
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">الموظفون</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">الموظفون</h1>
           <Link
             href="/dashboard/hr/employees/new"
-            className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark"
+            className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2"
           >
             <Plus size={18} /> إضافة موظف جديد
           </Link>
         </div>
 
         <div className="mb-4 relative">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="ابحث باسم، رقم، مسمى، أو قسم..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border border-concrete-200 p-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-petrol"
+            className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
           />
         </div>
 
@@ -102,13 +102,13 @@ export default function EmployeesPage() {
           <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-concrete-50 border-b">
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الموظف</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الاسم</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المسمى الوظيفي</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">القسم</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                  <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                <tr className="bg-surface-dim border-b border-border">
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم الموظف</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الاسم</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المسمى الوظيفي</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">القسم</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                  <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,7 +120,7 @@ export default function EmployeesPage() {
                   </tr>
                 ) : (
                   filteredEmployees.map((emp) => (
-                    <tr key={emp.$id} className="border-b hover:bg-concrete-50">
+                    <tr key={emp.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                       <td className="p-3 font-mono">{emp.employeeNumber}</td>
                       <td className="p-3 font-bold">{emp.name}</td>
                       <td className="p-3">{emp.jobTitle}</td>
@@ -131,19 +131,19 @@ export default function EmployeesPage() {
                       <td className="p-3 flex gap-2">
                         <Link
                           href={`/dashboard/hr/employees/${emp.$id}`}
-                          className="text-petrol hover:underline flex items-center gap-1"
+                          className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"
                         >
                           <Eye size={16} /> عرض
                         </Link>
                         <Link
                           href={`/dashboard/hr/employees/${emp.$id}/edit`}
-                          className="text-petrol hover:underline flex items-center gap-1"
+                          className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"
                         >
                           <Edit size={16} /> تعديل
                         </Link>
                         <button
                           onClick={() => openDeleteModal(emp.$id, emp.name)}
-                          className="text-danger hover:underline flex items-center gap-1"
+                          className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                         >
                           <Trash2 size={16} /> حذف
                         </button>

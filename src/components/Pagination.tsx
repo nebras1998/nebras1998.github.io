@@ -33,26 +33,26 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   };
 
   return (
-    <div className="flex items-center justify-center gap-1 mt-4">
+    <div className="flex items-center justify-center gap-1.5 mt-4">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg border hover:bg-concrete-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="p-2 rounded-xl border border-border bg-surface hover:bg-surface-dim hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
       >
         <ChevronRight size={18} />
       </button>
 
       {getPageNumbers().map((page, idx) =>
         page === 'ellipsis' ? (
-          <span key={`ellipsis-${idx}`} className="px-3 py-1">...</span>
+          <span key={`ellipsis-${idx}`} className="px-2 py-1 text-text-muted">...</span>
         ) : (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-1 rounded-lg border ${
+            className={`min-w-[36px] h-9 rounded-xl border text-sm font-semibold transition-all duration-200 ${
               currentPage === page
-                ? 'bg-petrol text-white border-petrol'
-                : 'hover:bg-concrete-100'
+                ? 'bg-primary text-white border-primary shadow-sm'
+                : 'border-border bg-surface hover:bg-surface-dim hover:border-border-strong'
             }`}
           >
             {page}
@@ -63,7 +63,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg border hover:bg-concrete-100 disabled:opacity-30 disabled:cursor-not-allowed"
+        className="p-2 rounded-xl border border-border bg-surface hover:bg-surface-dim hover:border-border-strong disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
       >
         <ChevronLeft size={18} />
       </button>

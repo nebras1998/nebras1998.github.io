@@ -62,7 +62,7 @@ export default function NotificationBell() {
   }, [employeeId]);
 
   return (
-    <Link href="/dashboard/notifications" className="relative text-concrete-500 hover:text-petrol">
+    <Link href="/dashboard/notifications" className="relative text-text-muted hover:text-primary-dark">
       <Bell size={20} />
       {unreadCount > 0 && (
         <span className="absolute -top-2 -right-2 bg-danger-solid text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">

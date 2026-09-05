@@ -172,7 +172,7 @@ export default function EditEmployeePage() {
         </div>
         <FormCard title="تعديل بيانات الموظف">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <TextField label="رقم الموظف" value={form.employeeNumber} readOnly inputClassName="bg-concrete-100 font-mono" />
+            <TextField label="رقم الموظف" value={form.employeeNumber} readOnly inputClassName="bg-surface-muted font-mono" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField label="الاسم" name="name" value={form.name} onChange={handleChange} required />
@@ -214,8 +214,8 @@ export default function EditEmployeePage() {
                 <h3 className="font-bold mb-2">المستندات الحالية</h3>
                 <ul className="space-y-2">
                   {existingDocs.map((doc) => (
-                    <li key={doc.$id} className="flex justify-between items-center bg-concrete-50 p-2 rounded">
-                      <a href={doc.viewUrl} target="_blank" rel="noopener noreferrer" className="text-petrol hover:underline flex items-center gap-1">
+                    <li key={doc.$id} className="flex justify-between items-center bg-surface-dim p-2 rounded">
+                      <a href={doc.viewUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1">
                         <FileDown size={16} /> {doc.name}
                       </a>
                       <button type="button" onClick={() => handleDeleteExistingDoc(doc.$id)} className="text-danger" title="حذف المستند نهائياً">
@@ -231,23 +231,23 @@ export default function EditEmployeePage() {
             <div className="border-t pt-4">
               <h3 className="font-bold mb-2">إضافة مستندات جديدة</h3>
               <div className="flex items-center gap-2 mb-2">
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-concrete-200 px-3 py-1 rounded flex items-center gap-1 hover:bg-concrete-200">
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-border px-3 py-1 rounded flex items-center gap-1 hover:bg-border">
                   <Upload size={16} /> اختر ملفات
                 </button>
                 <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                <span className="text-sm text-concrete-500">{selectedFiles.length} ملفات محددة</span>
+                <span className="text-sm text-text-muted">{selectedFiles.length} ملفات محددة</span>
               </div>
               {selectedFiles.length > 0 && (
                 <ul className="space-y-1">
                   {selectedFiles.map((file, index) => (
-                    <li key={index} className="flex justify-between items-center text-sm bg-concrete-50 p-1 rounded">
+                    <li key={index} className="flex justify-between items-center text-sm bg-surface-dim p-1 rounded">
                       <span>{file.name}</span>
                       <button type="button" onClick={() => removeNewFile(index)} className="text-danger"><X size={14} /></button>
                     </li>
                   ))}
                 </ul>
               )}
-              {uploading && <p className="text-sm text-petrol mt-1">جارٍ رفع الملفات...</p>}
+              {uploading && <p className="text-sm text-primary mt-1">جارٍ رفع الملفات...</p>}
             </div>
 
             <SubmitButton loading={saving || uploading}>حفظ التعديلات</SubmitButton>

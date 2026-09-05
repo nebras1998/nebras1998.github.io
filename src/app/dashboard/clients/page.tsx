@@ -78,25 +78,25 @@ export default function ClientsPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">العملاء</h1>
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">العملاء</h1>
           <Link
             href="/dashboard/clients/new"
-            className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark"
+            className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2"
           >
             <Plus size={18} />
             إضافة عميل جديد
           </Link>
         </div>
 
-        <div className="mb-4 relative">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+        <div className="mb-5 relative">
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="ابحث عن عميل..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="w-full border border-concrete-200 p-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-petrol"
+            className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
           />
         </div>
 
@@ -107,13 +107,13 @@ export default function ClientsPage() {
             <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الاسم</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الهاتف</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العنوان</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">البريد الإلكتروني</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الاسم</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النوع</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الهاتف</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العنوان</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">البريد الإلكتروني</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,30 +125,30 @@ export default function ClientsPage() {
                     </tr>
                   ) : (
                     clients.map((client) => (
-                      <tr key={client.$id} className="border-b hover:bg-concrete-50">
-                        <td className="p-3">{client.name}</td>
-                        <td className="p-3">{client.type}</td>
-                        <td className="p-3">{client.phone}</td>
-                        <td className="p-3">{client.address || '-'}</td>
-                        <td className="p-3">{client.email || '-'}</td>
-                        <td className="p-3 flex gap-2">
+                      <tr key={client.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
+                        <td className="p-4 text-text-primary text-sm">{client.name}</td>
+                        <td className="p-4 text-text-secondary text-sm">{client.type}</td>
+                        <td className="p-4 text-text-primary text-sm">{client.phone}</td>
+                        <td className="p-4 text-text-secondary text-sm">{client.address || '-'}</td>
+                        <td className="p-4 text-text-secondary text-sm">{client.email || '-'}</td>
+                        <td className="p-4 flex gap-1">
                           <Link
                             href={`/dashboard/clients/${client.$id}`}
-                            className="text-petrol hover:underline flex items-center gap-1"
+                            className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50"
                           >
-                            <Eye size={16} /> عرض
+                            <Eye size={15} /> عرض
                           </Link>
                           <Link
                             href={`/dashboard/clients/${client.$id}/edit`}
-                            className="text-petrol hover:underline flex items-center gap-1"
+                            className="inline-flex items-center gap-1 text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50"
                           >
-                            <Edit size={16} /> تعديل
+                            <Edit size={15} /> تعديل
                           </Link>
                           <button
                             onClick={() => openDeleteModal(client.$id, client.name)}
-                            className="text-danger hover:underline flex items-center gap-1"
+                            className="inline-flex items-center gap-1 text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg"
                           >
-                            <Trash2 size={16} /> حذف
+                            <Trash2 size={15} /> حذف
                           </button>
                         </td>
                       </tr>
@@ -159,7 +159,7 @@ export default function ClientsPage() {
             </Card>
 
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
-              <p className="text-sm text-concrete-500">
+              <p className="text-sm text-text-muted">
                 عرض {clients.length} من أصل {totalDocuments} عميل
               </p>
               <Pagination

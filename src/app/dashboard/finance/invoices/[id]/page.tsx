@@ -162,20 +162,20 @@ export default function InvoiceDetailPage() {
           <Card>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h1 className="text-2xl font-bold">فاتورة {invoice.invoiceNumber}</h1>
-                <p className="text-concrete-500">العميل: {clientName}</p>
+                <h1 className="text-2xl font-bold text-text-primary tracking-tight">فاتورة {invoice.invoiceNumber}</h1>
+                <p className="text-text-muted">العميل: {clientName}</p>
               </div>
               <Badge status={invoice.status} />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
-              <div><span className="text-concrete-500">التاريخ:</span> {invoice.issueDate}</div>
-              <div><span className="text-concrete-500">الاستحقاق:</span> {invoice.dueDate || '-'}</div>
-              <div><span className="text-concrete-500">الإجمالي:</span> <strong>{invoice.total?.toFixed(2)} ₪</strong></div>
-              <div><span className="text-concrete-500">المدفوع:</span> <strong className="text-petrol">{totalPaid.toFixed(2)} ₪</strong></div>
+              <div><span className="text-text-muted">التاريخ:</span> {invoice.issueDate}</div>
+              <div><span className="text-text-muted">الاستحقاق:</span> {invoice.dueDate || '-'}</div>
+              <div><span className="text-text-muted">الإجمالي:</span> <strong>{invoice.total?.toFixed(2)} ₪</strong></div>
+              <div><span className="text-text-muted">المدفوع:</span> <strong className="text-primary">{totalPaid.toFixed(2)} ₪</strong></div>
             </div>
 
             <table className="w-full border-t">
-              <thead><tr className="border-b odd:bg-concrete-50"><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الخدمة</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الكمية</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">السعر</th><th className="p-3 text-right text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th></tr></thead>
+              <thead><tr className="border-b odd:bg-surface-dim"><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الخدمة</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الكمية</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">السعر</th><th className="p-4 text-right text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجمالي</th></tr></thead>
               <tbody>
                 {items.map((item: InvoiceItem, idx: number) => (
                   <tr key={idx} className="border-b"><td className="p-3">{item.testName}</td><td className="p-3">{item.quantity}</td><td className="p-3">{item.price} ₪</td><td className="p-3 font-bold">{item.total} ₪</td></tr>
@@ -207,7 +207,7 @@ export default function InvoiceDetailPage() {
                 <SubmitButton loading={addingPayment} className="flex items-center gap-1"><Plus size={16} /> تسجيل دفعة</SubmitButton>
               </form>
             )}
-            {remaining > 0 && <p className="mt-2 text-sm text-concrete-500">المتبقي: <strong className="text-danger">{remaining.toFixed(2)} ₪</strong></p>}
+            {remaining > 0 && <p className="mt-2 text-sm text-text-muted">المتبقي: <strong className="text-danger">{remaining.toFixed(2)} ₪</strong></p>}
           </Card>
         </div>
 

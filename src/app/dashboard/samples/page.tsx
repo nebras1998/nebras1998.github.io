@@ -140,27 +140,27 @@ export default function SamplesPage() {
   return (
     <AuthGuard><DashboardLayout>
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold">العينات</h1>
-        <Link href="/dashboard/samples/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark"><Plus size={18} /> إضافة عينة جديدة</Link>
+        <h1 className="text-2xl font-bold text-text-primary tracking-tight">العينات</h1>
+        <Link href="/dashboard/samples/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2"><Plus size={18} /> إضافة عينة جديدة</Link>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <div className="relative flex-1">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
-          <input type="text" placeholder="ابحث عن عينة..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border border-concrete-200 p-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-petrol" />
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input type="text" placeholder="ابحث عن عينة..." value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200" />
         </div>
-        <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded">
+        <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="border border-border p-2 rounded">
           <option value="">كل الحالات</option>
           <option value="تم الاستلام">تم الاستلام</option>
           <option value="تحت الفحص">تحت الفحص</option>
           <option value="منجز">منجز</option>
           <option value="مرفوض">مرفوض</option>
         </select>
-        <select value={filterType} onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded">
+        <select value={filterType} onChange={e => { setFilterType(e.target.value); setCurrentPage(1); }} className="border border-border p-2 rounded">
           <option value="">كل الأنواع</option>
           {sampleTypes.map(type => <option key={type} value={type}>{type}</option>)}
         </select>
-        <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setCurrentPage(1); }} className="border border-concrete-200 p-2 rounded">
+        <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setCurrentPage(1); }} className="border border-border p-2 rounded">
           <option value="">كل العملاء</option>
           {clientOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
         </select>
@@ -170,11 +170,11 @@ export default function SamplesPage() {
         <>
           <Card className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead><tr className="bg-concrete-50 border-b"><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم العينة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">النوع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المشروع</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الأخذ</th><th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th></tr></thead>
+              <thead><tr className="bg-surface-dim border-b border-border"><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم العينة</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">النوع</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المشروع</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العميل</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">تاريخ الأخذ</th><th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th></tr></thead>
               <tbody>
                 {samples.length === 0 ? <tr><td colSpan={7}><EmptyData title="لا يوجد عينات مطابقة" className="py-8" /></td></tr> :
                   samples.map(sample => (
-                    <tr key={sample.$id} className="border-b hover:bg-concrete-50">
+                    <tr key={sample.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                       <td className="p-3 font-mono">{sample.sampleNumber}</td>
                       <td className="p-3">{sample.type}</td>
                       <td className="p-3">{sample.projectName || projects[sample.projectId || ''] || sample.projectId}</td>
@@ -182,8 +182,8 @@ export default function SamplesPage() {
                       <td className="p-3"><Badge status={sample.status} /></td>
                       <td className="p-3">{sample.samplingDate || '-'}</td>
                       <td className="p-3 flex gap-2">
-                        <Link href={`/dashboard/samples/${sample.$id}`} className="text-petrol hover:underline flex items-center gap-1"><Eye size={16} /> عرض</Link>
-                        <Link href={`/dashboard/samples/${sample.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1"><Edit size={16} /> تعديل</Link>
+                        <Link href={`/dashboard/samples/${sample.$id}`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><Eye size={16} /> عرض</Link>
+                        <Link href={`/dashboard/samples/${sample.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><Edit size={16} /> تعديل</Link>
                         <button
                           onClick={() => openDeleteModal(sample.$id, sample.sampleNumber)}
                           disabled={deleting}
@@ -204,7 +204,7 @@ export default function SamplesPage() {
             </table>
           </Card>
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
-            <p className="text-sm text-concrete-500">عرض {samples.length} من أصل {totalDocuments} عينة</p>
+            <p className="text-sm text-text-muted">عرض {samples.length} من أصل {totalDocuments} عينة</p>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
           </div>
         </>

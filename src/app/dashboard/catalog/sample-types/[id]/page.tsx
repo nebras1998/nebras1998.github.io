@@ -106,15 +106,15 @@ export default function SampleTypeDetailPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold">{type.name}</h1>
-                  {type.code && <span className="font-mono text-sm text-concrete-500 bg-concrete-100 px-2 py-0.5 rounded">{type.code}</span>}
+                  {type.code && <span className="font-mono text-sm text-text-muted bg-surface-muted px-2 py-0.5 rounded">{type.code}</span>}
                 </div>
-                {type.description && <p className="mt-1 text-concrete-500">{type.description}</p>}
-                <p className="mt-2 text-sm text-concrete-600 flex items-center gap-1">
-                  <ClipboardCheck size={16} className="text-petrol" /> {tests.length} فحص قياسي
+                {type.description && <p className="mt-1 text-text-muted">{type.description}</p>}
+                <p className="mt-2 text-sm text-text-secondary flex items-center gap-1">
+                  <ClipboardCheck size={16} className="text-primary" /> {tests.length} فحص قياسي
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Link href={`/dashboard/catalog/sample-types/${typeId}/edit`} className="border border-concrete-200 px-4 py-2 rounded text-sm font-bold flex items-center gap-1 hover:bg-concrete-100">
+                <Link href={`/dashboard/catalog/sample-types/${typeId}/edit`} className="border border-border px-4 py-2 rounded text-sm font-bold flex items-center gap-1 hover:bg-surface-muted">
                   <Edit size={16} /> تعديل النوع
                 </Link>
                 <button onClick={() => openDelete({ kind: 'type', id: typeId, label: type.name })} className="border border-danger text-danger px-4 py-2 rounded text-sm font-bold flex items-center gap-1 hover:bg-danger-bg">
@@ -126,7 +126,7 @@ export default function SampleTypeDetailPage() {
 
           <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 className="text-lg font-bold">الفحوصات القياسية</h2>
-            <Link href={`/dashboard/catalog/tests/new?sampleTypeId=${typeId}`} className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+            <Link href={`/dashboard/catalog/tests/new?sampleTypeId=${typeId}`} className="bg-primary text-white px-4 py-2 rounded flex items-center gap-1 hover:from-primary-dark hover:to-primary">
               <Plus size={18} /> إضافة فحص قياسي
             </Link>
           </div>
@@ -137,7 +137,7 @@ export default function SampleTypeDetailPage() {
               title="لا توجد فحوصات قياسية لهذا النوع"
               description="أضف أول فحص قياسي وسيظهر تلقائيًا عند تسجيل عينة من هذا النوع."
               action={
-                <Link href={`/dashboard/catalog/tests/new?sampleTypeId=${typeId}`} className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+                <Link href={`/dashboard/catalog/tests/new?sampleTypeId=${typeId}`} className="bg-primary text-white px-4 py-2 rounded flex items-center gap-1 hover:from-primary-dark hover:to-primary">
                   <Plus size={16} /> إضافة فحص قياسي
                 </Link>
               }
@@ -146,7 +146,7 @@ export default function SampleTypeDetailPage() {
             <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
+                  <tr className="bg-surface-dim border-b border-border">
                     <th className="text-right p-3 text-sm font-semibold">الفحص</th>
                     <th className="text-right p-3 text-sm font-semibold">المدة</th>
                     <th className="text-right p-3 text-sm font-semibold">المرجع المعياري</th>
@@ -157,7 +157,7 @@ export default function SampleTypeDetailPage() {
                 </thead>
                 <tbody>
                   {tests.map((test) => (
-                    <tr key={test.$id} className="border-b hover:bg-concrete-50">
+                    <tr key={test.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                       <td className="p-3 font-medium">{test.name}</td>
                       <td className="p-3 text-sm">{test.duration || '-'}</td>
                       <td className="p-3 text-sm">{test.standard || '-'}</td>
@@ -170,10 +170,10 @@ export default function SampleTypeDetailPage() {
                               step="0.01"
                               value={editingPrice.price}
                               onChange={(e) => setEditingPrice({ testId: test.$id, price: e.target.value })}
-                              className="w-24 border border-concrete-200 p-1.5 rounded-lg bg-concrete-0 text-sm"
+                              className="w-24 border border-border p-1.5 rounded-lg bg-surface text-sm"
                               autoFocus
                             />
-                            <button onClick={() => savePrice(test.$id)} className="text-petrol hover:text-success" title="حفظ">
+                            <button onClick={() => savePrice(test.$id)} className="text-primary hover:text-success" title="حفظ">
                               <Save size={16} />
                             </button>
                             <button onClick={() => setEditingPrice(null)} className="text-danger" title="إلغاء">
@@ -181,19 +181,19 @@ export default function SampleTypeDetailPage() {
                             </button>
                           </div>
                         ) : (
-                          <button onClick={() => setEditingPrice({ testId: test.$id, price: String(test.price || 0) })} className="text-petrol hover:underline text-sm" title="تعديل السعر">
+                          <button onClick={() => setEditingPrice({ testId: test.$id, price: String(test.price || 0) })} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm" title="تعديل السعر">
                             {(test.price || 0).toFixed(2)}
                           </button>
                         )}
                       </td>
                       <td className="p-3">
                         <div className="flex flex-wrap gap-3">
-                          <Link href={`/dashboard/catalog/tests/${test.$id}/edit`} className="text-petrol hover:underline flex items-center gap-1 text-sm">
+                          <Link href={`/dashboard/catalog/tests/${test.$id}/edit`} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1 text-sm">
                             <Edit size={14} /> تعديل
                           </Link>
                           <Link
                             href={`/dashboard/catalog/tests/new?sampleTypeId=${typeId}&duplicateOf=${test.$id}`}
-                            className="text-petrol hover:underline flex items-center gap-1 text-sm"
+                            className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1 text-sm"
                             title="نسخ الفحص وفتح نموذج جديد معبأ مسبقًا"
                           >
                             <Copy size={14} /> نسخ
@@ -219,7 +219,7 @@ export default function SampleTypeDetailPage() {
             </Card>
           )}
 
-          <Link href="/dashboard/catalog" className="mt-4 inline-flex items-center gap-1 text-petrol text-sm hover:underline">
+          <Link href="/dashboard/catalog" className="mt-4 inline-flex items-center gap-1 text-primary text-sm hover:underline">
             <ArrowRight size={16} /> العودة إلى الكتالوج
           </Link>
 

@@ -27,12 +27,12 @@ export default function ResultFieldsEditor({
   return (
     <div className="space-y-3">
       {fields.length === 0 && (
-        <p className="text-sm text-concrete-500">
+        <p className="text-sm text-text-muted">
           أضف حقول النتائج لهذا الفحص. المفتاح (key) يتحول تلقائيًا إلى snake_case بدون مسافات، ويجب أن يكون فريدًا.
         </p>
       )}
       {fields.map((f, i) => (
-        <div key={i} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end border border-concrete-100 rounded-lg p-2">
+        <div key={i} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end border border-border/50 rounded-lg p-2">
           <TextField
             label="المفتاح (key)"
             value={f.key}
@@ -53,7 +53,7 @@ export default function ResultFieldsEditor({
           </button>
         </div>
       ))}
-      <button type="button" onClick={add} className="text-petrol text-sm flex items-center gap-1 hover:underline">
+      <button type="button" onClick={add} className="text-primary text-sm flex items-center gap-1 hover:underline">
         <Plus size={14} /> إضافة حقل
       </button>
       {duplicateKey && (

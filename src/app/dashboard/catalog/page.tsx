@@ -50,7 +50,7 @@ export default function CatalogPage() {
           </div>
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h1 className="text-2xl font-bold">كتالوج الفحوصات</h1>
-            <Link href="/dashboard/catalog/sample-types/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+            <Link href="/dashboard/catalog/sample-types/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
               <Plus size={18} /> إضافة نوع عينة جديد
             </Link>
           </div>
@@ -63,7 +63,7 @@ export default function CatalogPage() {
               title="لا توجد أنواع عينات بعد"
               description="أضف أول نوع عينة ثم عرّف الفحوصات القياسية المرتبطة به."
               action={
-                <Link href="/dashboard/catalog/sample-types/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+                <Link href="/dashboard/catalog/sample-types/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
                   <Plus size={16} /> إضافة نوع عينة
                 </Link>
               }
@@ -77,22 +77,22 @@ export default function CatalogPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <h2 className="font-bold text-lg truncate">{type.name}</h2>
-                        {type.code && <span className="text-xs font-mono text-concrete-500">{type.code}</span>}
+                        {type.code && <span className="text-xs font-mono text-text-muted">{type.code}</span>}
                       </div>
-                      <div className="flex items-center gap-1 text-concrete-400">
-                        <Link href={`/dashboard/catalog/sample-types/${type.$id}/edit`} className="p-1.5 hover:text-petrol rounded-lg" title="تعديل">
+                      <div className="flex items-center gap-1 text-text-muted">
+                        <Link href={`/dashboard/catalog/sample-types/${type.$id}/edit`} className="p-1.5 hover:text-primary-dark rounded-lg" title="تعديل">
                           <Edit size={16} />
                         </Link>
                       </div>
                     </div>
-                    {type.description && <p className="text-sm text-concrete-500 line-clamp-2">{type.description}</p>}
-                    <div className="flex items-center gap-2 text-sm text-concrete-600">
-                      <ClipboardCheck size={16} className="text-petrol" />
+                    {type.description && <p className="text-sm text-text-muted line-clamp-2">{type.description}</p>}
+                    <div className="flex items-center gap-2 text-sm text-text-secondary">
+                      <ClipboardCheck size={16} className="text-primary" />
                       <span>{count} فحص قياسي</span>
                     </div>
                     <Link
                       href={`/dashboard/catalog/sample-types/${type.$id}`}
-                      className="mt-auto bg-petrol-soft text-petrol px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1 hover:bg-petrol hover:text-white transition-colors"
+                      className="mt-auto bg-primary-50 text-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1 hover:bg-primary hover:text-white transition-colors"
                     >
                       <Eye size={16} /> عرض الفحوصات
                     </Link>

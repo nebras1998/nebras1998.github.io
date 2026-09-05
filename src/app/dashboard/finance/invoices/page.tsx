@@ -77,21 +77,21 @@ export default function InvoicesPage() {
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">الفواتير</h1>
-          <Link href="/dashboard/finance/invoices/new" className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 hover:bg-petrol-dark">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">الفواتير</h1>
+          <Link href="/dashboard/finance/invoices/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
             <Plus size={18} /> فاتورة جديدة
           </Link>
         </div>
 
-        <div className="mb-4 relative">
-          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+        <div className="mb-5 relative">
+          <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="ابحث برقم الفاتورة أو العميل..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full border border-concrete-200 p-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-petrol"
+            className="w-full border border-border bg-surface p-3 pr-10 rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
           />
         </div>
 
@@ -102,16 +102,16 @@ export default function InvoicesPage() {
             <Card className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الفاتورة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الإصدار</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">تاريخ الاستحقاق</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجمالي</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المدفوع</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">المتبقي</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم الفاتورة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العميل</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">تاريخ الإصدار</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">تاريخ الاستحقاق</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجمالي</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المدفوع</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">المتبقي</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,27 +126,27 @@ export default function InvoicesPage() {
                       const paid = inv.paidAmount ?? 0;
                       const remaining = inv.remainingAmount ?? (inv.total - paid);
                       return (
-                        <tr key={inv.$id} className="border-b hover:bg-concrete-50">
+                        <tr key={inv.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                           <td className="p-3 font-mono">{inv.invoiceNumber}</td>
                           <td className="p-3">{clientsMap[inv.clientId] || inv.clientId}</td>
                           <td className="p-3">{inv.issueDate}</td>
                           <td className="p-3">{inv.dueDate || '-'}</td>
                           <td className="p-3 font-bold">{inv.total?.toFixed(2)} ₪</td>
-                          <td className="p-3 text-petrol font-bold">{paid.toFixed(2)} ₪</td>
-                          <td className={`p-3 font-bold ${remaining > 0 ? 'text-danger' : 'text-petrol'}`}>
+                          <td className="p-3 text-primary font-bold">{paid.toFixed(2)} ₪</td>
+                          <td className={`p-3 font-bold ${remaining > 0 ? 'text-danger' : 'text-primary'}`}>
                             {remaining > 0 ? remaining.toFixed(2) : '0.00'} ₪
                           </td>
                           <td className="p-3"><Badge status={inv.status} /></td>
                           <td className="p-3 flex gap-2">
                             <Link
                               href={`/dashboard/finance/invoices/${inv.$id}`}
-                              className="text-petrol hover:underline flex items-center gap-1"
+                              className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"
                             >
                               <Eye size={16} /> عرض
                             </Link>
                             <button
                               onClick={() => openDeleteModal(inv.$id, inv.invoiceNumber)}
-                              className="text-danger hover:underline flex items-center gap-1"
+                              className="text-danger hover:text-danger-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-danger-bg flex items-center gap-1"
                             >
                               <Trash2 size={16} /> حذف
                             </button>
@@ -159,7 +159,7 @@ export default function InvoicesPage() {
               </table>
             </Card>
 
-            <div className="flex items-center justify-between mt-2 text-sm text-concrete-500">
+            <div className="flex items-center justify-between mt-2 text-sm text-text-muted">
               <span>عرض {invoices.length} من أصل {totalDocuments} فاتورة</span>
             </div>
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

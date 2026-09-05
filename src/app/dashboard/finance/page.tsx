@@ -12,10 +12,10 @@ export default function FinancePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="hover:shadow-md transition-shadow">
             <Link href="/dashboard/finance/invoices" className="flex items-center gap-4 h-full">
-              <FileText size={32} className="text-petrol" />
+              <FileText size={32} className="text-primary" />
               <div>
                 <h2 className="text-xl font-bold">الفواتير</h2>
-                <p className="text-concrete-500">إصدار الفواتير ومتابعتها</p>
+                <p className="text-text-muted">إصدار الفواتير ومتابعتها</p>
               </div>
             </Link>
           </Card>
@@ -25,7 +25,7 @@ export default function FinancePage() {
               <CreditCard size={32} className="text-warning" />
               <div>
                 <h2 className="text-xl font-bold">المدفوعات</h2>
-                <p className="text-concrete-500">تسجيل المدفوعات واستعراضها</p>
+                <p className="text-text-muted">تسجيل المدفوعات واستعراضها</p>
               </div>
             </Link>
           </Card>
@@ -35,7 +35,7 @@ export default function FinancePage() {
               <Receipt size={32} className="text-danger" />
               <div>
                 <h2 className="text-xl font-bold">المصروفات</h2>
-                <p className="text-concrete-500">إدارة المصروفات والنفقات</p>
+                <p className="text-text-muted">إدارة المصروفات والنفقات</p>
               </div>
             </Link>
           </Card>

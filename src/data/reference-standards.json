@@ -126,6 +126,65 @@
 
     { "id": "pipe-pressure-astm", "testNameHint": "فحص الضغط الهيدروستاتيكي", "category": "أنابيب", "body": "ASTM", "ref": "ASTM D1599", "unit": "bar", "limits": null },
 
-    { "id": "paint-thickness-astm", "testNameHint": "سماكة الطلاء", "category": "طلاء", "body": "ASTM", "ref": "ASTM D7091", "unit": "micron", "limits": null }
+    { "id": "paint-thickness-astm", "testNameHint": "سماكة الطلاء", "category": "طلاء", "body": "ASTM", "ref": "ASTM D7091", "unit": "micron", "limits": null },
+
+    { "id": "concrete-compressive-en", "testNameHint": "مقاومة الضغط للمكعبات الخرسانية", "category": "خرسانة", "body": "EN", "ref": "EN 12390-3", "unit": "MPa", "limits": { "min": 25, "max": 99 } },
+    { "id": "concrete-compressive-cylinder-en", "testNameHint": "مقاومة الضغط للاسطوانات الخرسانية", "category": "خرسانة", "body": "EN", "ref": "EN 12390-3", "unit": "MPa", "limits": { "min": 20, "max": 80 } },
+    { "id": "concrete-slump-en", "testNameHint": "فحص الهطول", "category": "خرسانة", "body": "EN", "ref": "EN 12350-2", "unit": "mm", "limits": null },
+    { "id": "concrete-density-en", "testNameHint": "الكثافة للخرسانة المتصلبة", "category": "خرسانة", "body": "EN", "ref": "EN 12390-7", "unit": "kg/m³", "limits": null },
+    { "id": "concrete-splitting-en", "testNameHint": "مقاومة الشد غير المباشر (البرازيلي)", "category": "خرسانة", "body": "EN", "ref": "EN 12390-6", "unit": "MPa", "limits": { "min": 2.0, "max": 5.0 } },
+    { "id": "concrete-modulus-en", "testNameHint": "معامل المرونة للخرسانة", "category": "خرسانة", "body": "EN", "ref": "EN 12390-13", "unit": "GPa", "limits": null },
+    { "id": "concrete-core-en", "testNameHint": "مقاومة الضغط للكور المستخرج", "category": "خرسانة", "body": "EN", "ref": "EN 12504-1", "unit": "MPa", "limits": null },
+    { "id": "concrete-rebound-en", "testNameHint": "فحص المطرقة الارتدادية", "category": "خرسانة", "body": "EN", "ref": "EN 12504-2", "unit": "", "limits": null },
+    { "id": "concrete-upv-en", "testNameHint": "فحص سرعة الموجات فوق الصوتية", "category": "خرسانة", "body": "EN", "ref": "EN 12504-4", "unit": "km/s", "limits": null },
+    { "id": "concrete-water-absorption-bs", "testNameHint": "امتصاص الماء للخرسانة", "category": "خرسانة", "body": "BS", "ref": "BS 1881-122", "unit": "%", "limits": { "min": 0, "max": 5.0 } },
+
+    { "id": "soil-proctor-std-en", "testNameHint": "بروكتور قياسي", "category": "تربة", "body": "EN", "ref": "EN 13286-2", "unit": "kg/m³", "limits": { "min": 1500, "max": 2200 } },
+    { "id": "soil-ll-en", "testNameHint": "حد السيولة", "category": "تربة", "body": "EN", "ref": "EN ISO 17892-12", "unit": "%", "limits": { "min": 0, "max": 100 } },
+    { "id": "soil-moisture-en", "testNameHint": "المحتوى الرطوبي الطبيعي", "category": "تربة", "body": "EN", "ref": "EN ISO 17892-1", "unit": "%", "limits": null },
+    { "id": "soil-density-en", "testNameHint": "الكثافة حقلية (مخروط الرمل)", "category": "تربة", "body": "EN", "ref": "EN ISO 17892-2", "unit": "kg/m³", "limits": null },
+    { "id": "soil-direct-shear-en", "testNameHint": "فحص القص المباشر", "category": "تربة", "body": "EN", "ref": "EN ISO 17892-10", "unit": "kPa", "limits": null },
+    { "id": "soil-cbr-en", "testNameHint": "سيبر (CBR)", "category": "تربة", "body": "BS", "ref": "BS 1377-4", "unit": "%", "limits": { "min": 5, "max": 100 } },
+
+    { "id": "aggregate-sieve-en", "testNameHint": "التحليل المنخلي للركام", "category": "ركام", "body": "EN", "ref": "EN 933-1", "unit": "%", "limits": null },
+    { "id": "aggregate-sg-coarse-en", "testNameHint": "الوزن النوعي والامتصاص - ركام خشن", "category": "ركام", "body": "EN", "ref": "EN 1097-6", "unit": "%", "limits": null },
+    { "id": "aggregate-unit-weight-en", "testNameHint": "الوزن الحجمي", "category": "ركام", "body": "EN", "ref": "EN 1097-3", "unit": "kg/m³", "limits": null },
+    { "id": "aggregate-la-en", "testNameHint": "التآكل بلوس أنجلوس", "category": "ركام", "body": "EN", "ref": "EN 1097-2", "unit": "%", "limits": null },
+    { "id": "aggregate-flakiness-en", "testNameHint": "معامل التفلطح", "category": "ركام", "body": "EN", "ref": "EN 933-3", "unit": "%", "limits": null },
+    { "id": "aggregate-shape-en", "testNameHint": "معامل الشكل", "category": "ركام", "body": "EN", "ref": "EN 933-4", "unit": "%", "limits": null },
+
+    { "id": "steel-tensile-en", "testNameHint": "مقاومة الشد لحديد التسليح", "category": "حديد", "body": "EN", "ref": "EN ISO 6892-1", "unit": "MPa", "limits": { "min": 420, "max": 720 } },
+    { "id": "steel-elongation-en", "testNameHint": "استطالة حديد التسليح", "category": "حديد", "body": "EN", "ref": "EN ISO 6892-1", "unit": "%", "limits": { "min": 10, "max": 30 } },
+    { "id": "steel-bend-en", "testNameHint": "اختبار الثني لحديد التسليح", "category": "حديد", "body": "EN", "ref": "EN ISO 7438", "unit": "°", "limits": null },
+    { "id": "rebar-weld-detached-en", "testNameHint": "اختبار الشد للوصلات الملحومة", "category": "حديد", "body": "EN", "ref": "EN ISO 15630-1", "unit": "MPa", "limits": null },
+
+    { "id": "cement-strength-en", "testNameHint": "مقاومة الضغط للإسمنت", "category": "إسمنت", "body": "EN", "ref": "EN 196-1", "unit": "MPa", "limits": null },
+    { "id": "cement-setting-en", "testNameHint": "زمن الشك (فيكات)", "category": "إسمنت", "body": "EN", "ref": "EN 196-3", "unit": "min", "limits": null },
+    { "id": "cement-soundness-en", "testNameHint": "السلامة (لوشاتيليه)", "category": "إسمنت", "body": "EN", "ref": "EN 196-3", "unit": "mm", "limits": null },
+    { "id": "cement-fineness-en", "testNameHint": "النعومة (بلين)", "category": "إسمنت", "body": "EN", "ref": "EN 196-6", "unit": "m²/kg", "limits": null },
+    { "id": "cement-sulfate-en", "testNameHint": "محتوى الكبريتات", "category": "إسمنت", "body": "EN", "ref": "EN 196-2", "unit": "%", "limits": null },
+
+    { "id": "masonry-block-compressive-en", "testNameHint": "مقاومة ضغط البلوك الخرساني", "category": "بلوك", "body": "EN", "ref": "EN 772-1", "unit": "MPa", "limits": { "min": 5, "max": 40 } },
+    { "id": "masonry-brick-compressive-en", "testNameHint": "مقاومة الضغط للطوب", "category": "طوب", "body": "EN", "ref": "EN 772-1", "unit": "MPa", "limits": null },
+    { "id": "masonry-water-absorption-en", "testNameHint": "امتصاص الماء للبلوك/الطوب", "category": "بلوك", "body": "EN", "ref": "EN 772-7", "unit": "%", "limits": { "min": 0, "max": 15 } },
+
+    { "id": "tile-water-absorption-en", "testNameHint": "امتصاص الماء للبلاط", "category": "بلاط", "body": "EN", "ref": "EN ISO 10545-3", "unit": "%", "limits": null },
+    { "id": "tile-breaking-strength-en", "testNameHint": "مقاومة الكسر للبلاط", "category": "بلاط", "body": "EN", "ref": "EN ISO 10545-4", "unit": "N", "limits": null },
+    { "id": "tile-modulus-en", "testNameHint": "قوة الانثناء للبلاط", "category": "بلاط", "body": "EN", "ref": "EN ISO 10545-4", "unit": "MPa", "limits": null },
+
+    { "id": "stone-compressive-en", "testNameHint": "مقاومة الضغط للحجر", "category": "حجر", "body": "EN", "ref": "EN 1926", "unit": "MPa", "limits": null },
+    { "id": "stone-water-absorption-en", "testNameHint": "امتصاص الماء للحجر", "category": "حجر", "body": "EN", "ref": "EN 13755", "unit": "%", "limits": null },
+
+    { "id": "asphalt-marshall-en", "testNameHint": "ثبات مارشال", "category": "أسفلت", "body": "EN", "ref": "EN 12697-34", "unit": "kN", "limits": null },
+    { "id": "asphalt-bulk-density-en", "testNameHint": "الكثافة الظاهرية للأسفلت", "category": "أسفلت", "body": "EN", "ref": "EN 12697-6", "unit": "kg/m³", "limits": null },
+    { "id": "asphalt-air-voids-en", "testNameHint": "نسبة الفراغات الهوائية", "category": "أسفلت", "body": "EN", "ref": "EN 12697-8", "unit": "%", "limits": null },
+    { "id": "asphalt-indirect-tensile-en", "testNameHint": "فحص الشد غير المباشر للأسفلت", "category": "أسفلت", "body": "EN", "ref": "EN 12697-23", "unit": "kPa", "limits": null },
+    { "id": "asphalt-recovery-en", "testNameHint": "استخلاص واستعادة الإسفلت", "category": "أسفلت", "body": "EN", "ref": "EN 12697-1", "unit": "%", "limits": null },
+    { "id": "bitumen-penetration-en", "testNameHint": "درجة الاختراق للبيتومين", "category": "أسفلت", "body": "EN", "ref": "EN 1426", "unit": "0.1mm", "limits": null },
+    { "id": "bitumen-softening-en", "testNameHint": "نقطة الليونة للبيتومين", "category": "أسفلت", "body": "EN", "ref": "EN 1427", "unit": "°C", "limits": null },
+
+    { "id": "steel-concrete-cover-en", "testNameHint": "فحص غطاء الحماية للحديد", "category": "حديد", "body": "EN", "ref": "EN 12504-5", "unit": "mm", "limits": null },
+
+    { "id": "concrete-design-eurocode", "testNameHint": "التصميم وفق الكود الأوروبي", "category": "خرسانة", "body": "EN", "ref": "EN 1992-1-1", "unit": "MPa", "limits": null }
   ]
 }

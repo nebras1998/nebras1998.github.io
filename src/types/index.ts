@@ -278,20 +278,47 @@ export interface ReportTemplate {
 }
 
 // ===== لقطة بيانات التقرير (تُلتقط عند إنشاء المسودة ولا تتغير) =====
+// A single snapshot row: a result line plus, when available, its acceptance
+// limits and per-row compliance (for multi-result examinations).
+export interface ReportResultRow {
+  label: string;
+  value: string;
+  unit?: string;
+  limitKey?: string;       // matches a TestLimit.key (e.g. 'age7', 'age28')
+  min?: number;            // acceptance lower bound (from the applied standard)
+  max?: number;            // acceptance upper bound
+  pass?: boolean;          // per-row compliance when a limit exists
+}
+
 export interface ReportSnapshot {
   testName: string;
   testNumber: string;
-  standard?: string;
+  testNameEn?: string;
+  standard?: string;              // free-text spec reference, e.g. "ASTM C39"
   sampleNumber?: string;
   sampleType?: string;
+  sampleLocation?: string;
+  sampleReceivedDate?: string;
+  samplePreparedDate?: string;
   clientName?: string;
+  clientPhone?: string;
+  clientAddress?: string;
   projectName?: string;
+  projectNumber?: string;
+  projectLocation?: string;
+  contractor?: string;
+  consultant?: string;
   completedAt?: string;
   resultType: 'single' | 'dual_age' | 'multi_no_age' | 'multi_field';
-  resultRows: { label: string; value: string; unit?: string }[];
-  appliedStandardName?: string;
+  resultRows: ReportResultRow[];
+  appliedStandardName?: string;   // the SpecificationProfile name/grade (e.g. "تصميم C25")
+  standardRef?: string;           // the method code (e.g. "ASTM C39/C39M")
+  standardUnit?: string;          // unit from the applied standard profile
   complianceStatus?: 'مطابق' | 'غير مطابق';
   technicianName?: string;
+  equipment?: string;             // free-form equipment/conditions note
+  methodNotes?: string;           // per-examination method/curing note
+  category?: string;              // examination category for section selection
 }
 
 // ===== التقرير =====
@@ -310,10 +337,75 @@ export interface Report {
 }
 
 // ===== إحصائيات لوحة التحكم (محسوبة على الخادم) =====
+export interface TechStatsItem {
+  id: string;
+  name: string;
+  totalTests: number;
+  completed: number;
+  pending: number;
+  samplesCount: number;
+  progress: number;
+  todaySampled: number;
+  todayPrepared: number;
+  todayDelivered: number;
+}
+
+export interface DashboardVehicleStatus {
+  $id: string;
+  plateNumber: string;
+  brand: string;
+  model: string;
+}
+
+export interface DashboardBusyVehicle {
+  $id: string;
+  vehicleId: string;
+  driverId: string;
+  destination?: string;
+  departureTime: string;
+  status: string;
+  driverName: string;
+  vehiclePlate: string;
+}
+
+export interface DashboardUpcomingSample {
+  $id: string;
+  sampleNumber: string;
+  type: string;
+  test7DaysDate?: string;
+  test28DaysDate?: string;
+}
+
+export interface DashboardRecentBooking {
+  $id: string;
+  bookingNumber: string;
+  clientName: string;
+  sampleType?: string;
+  preferredDate?: string;
+  status?: string;
+}
+
 export interface DashboardStats {
+  clients: number;
+  activeProjects: number;
+  todaySamples: number;
+  pendingTests: number;
+  unpaidInvoices: number;
   totalRevenue: number;
+  todayBookings: number;
+  readyVehicles: number;
+  vehiclesInUse: number;
+  nonCompliantTests: number;
+  dueComplianceSamples: number;
   samplesByType: { name: string; value: number }[];
   monthlyRevenue: { month: string; revenue: number }[];
+  weeklyTests: { day: string; count: number }[];
+  techStats: TechStatsItem[];
+  upcomingTests: DashboardUpcomingSample[];
+  recentSamples: Sample[];
+  recentBookings: DashboardRecentBooking[];
+  availableVehicles: DashboardVehicleStatus[];
+  busyVehicles: DashboardBusyVehicle[];
   compliance: {
     nonCompliantTests: number;
     dueComplianceSamples: number;

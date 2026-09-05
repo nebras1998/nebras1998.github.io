@@ -164,18 +164,18 @@ function ResetSystemButton() {
       <p className="text-danger font-bold">هل أنت متأكد؟ هذه العملية لا يمكن التراجع عنها.</p>
       <div className="flex justify-center gap-3">
         <button onClick={() => setStep('input')} className="bg-danger-solid text-white px-4 py-2 rounded hover:bg-danger-dark">نعم، متابعة</button>
-        <button onClick={() => setStep('hidden')} className="bg-concrete-200 text-concrete-800 px-4 py-2 rounded hover:bg-concrete-100">إلغاء</button>
+        <button onClick={() => setStep('hidden')} className="bg-border text-text-primary px-4 py-2 rounded hover:bg-surface-muted">إلغاء</button>
       </div>
     </div>
   );
 
   return (
     <div className="space-y-3">
-      <p className="text-danger font-bold">اكتب <span className="bg-concrete-200 px-1 rounded">حذف كل البيانات</span> للتأكيد:</p>
-      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48 text-center" placeholder="حذف كل البيانات" dir="rtl" />
+      <p className="text-danger font-bold">اكتب <span className="bg-border px-1 rounded">حذف كل البيانات</span> للتأكيد:</p>
+      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48 text-center" placeholder="حذف كل البيانات" dir="rtl" />
       <br />
       <button onClick={handleReset} disabled={loading || inputText !== 'حذف كل البيانات'} className="bg-danger-solid text-white px-6 py-2 rounded hover:bg-danger-dark disabled:opacity-50">{loading ? 'جارٍ الحذف...' : 'تأكيد الحذف النهائي'}</button>
-      <button onClick={() => { setStep('hidden'); setInputText(''); }} className="bg-concrete-200 text-concrete-800 px-4 py-2 rounded hover:bg-concrete-100 mr-2">إلغاء</button>
+      <button onClick={() => { setStep('hidden'); setInputText(''); }} className="bg-border text-text-primary px-4 py-2 rounded hover:bg-surface-muted mr-2">إلغاء</button>
     </div>
   );
 }
@@ -332,29 +332,29 @@ export default function BackupPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         {/* النسخ الاحتياطي */}
         <Card className="text-center">
-          <HardDrive size={48} className="mx-auto text-petrol mb-4" />
+          <HardDrive size={48} className="mx-auto text-primary mb-4" />
           <h1 className="text-2xl font-bold mb-2">النسخ الاحتياطي</h1>
-          <p className="text-concrete-500 mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.</p>
+          <p className="text-text-muted mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.</p>
           <div className="mb-4 flex flex-col items-center gap-2">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={backupEncrypt} onChange={e => setBackupEncrypt(e.target.checked)} /> تشفير الملف بكلمة مرور</label>
-            {backupEncrypt && <input type="password" placeholder="كلمة المرور" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48" />}
+            {backupEncrypt && <input type="password" placeholder="كلمة المرور" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48" />}
           </div>
-          {backupLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {backupProgress}<div className="w-full bg-concrete-200 h-2 rounded-full mt-1"><div className="bg-petrol h-2 rounded-full" style={{width:`${backupPercent}%`}} /></div></div>}
-          <button onClick={handleBackup} disabled={backupLoading || (backupEncrypt && !backupPassword)} className="bg-petrol text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-petrol-dark disabled:opacity-50"><Download size={20} /> {backupLoading ? 'جارٍ الإنشاء...' : 'إنشاء نسخة احتياطية'}</button>
+          {backupLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {backupProgress}<div className="w-full bg-border h-2 rounded-full mt-1"><div className="bg-primary h-2 rounded-full" style={{width:`${backupPercent}%`}} /></div></div>}
+          <button onClick={handleBackup} disabled={backupLoading || (backupEncrypt && !backupPassword)} className="bg-primary text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:from-primary-dark hover:to-primary disabled:opacity-50"><Download size={20} /> {backupLoading ? 'جارٍ الإنشاء...' : 'إنشاء نسخة احتياطية'}</button>
         </Card>
 
         {/* استعادة النسخة */}
         <Card className="border-2 border-dashed border-warning">
           <AlertTriangle size={48} className="mx-auto text-warning mb-4" />
           <h2 className="text-2xl font-bold mb-2">استعادة النسخة الاحتياطية</h2>
-          <p className="text-concrete-500 mb-4">ارفع ملف ZIP (أو .enc) لاستعادة البيانات.</p>
+          <p className="text-text-muted mb-4">ارفع ملف ZIP (أو .enc) لاستعادة البيانات.</p>
           <div className="mb-4 bg-warning-bg border border-warning-bg rounded-lg p-3 text-sm text-warning">تحذير: سيتم حذف البيانات الحالية في المجموعات المحددة.</div>
           <input type="file" accept=".zip,.enc" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="block mx-auto mb-2" />
-          {selectedFile?.name?.endsWith('.enc') && <input type="password" placeholder="كلمة مرور فك التشفير" value={restorePassword} onChange={e => setRestorePassword(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0 w-48 mx-auto mb-2" />}
-          <button onClick={handlePreview} disabled={previewLoading || !selectedFile} className="bg-petrol text-white px-4 py-2 rounded flex items-center gap-1 mx-auto mb-4 hover:bg-petrol-dark"><Eye size={16} /> معاينة المحتويات</button>
+          {selectedFile?.name?.endsWith('.enc') && <input type="password" placeholder="كلمة مرور فك التشفير" value={restorePassword} onChange={e => setRestorePassword(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48 mx-auto mb-2" />}
+          <button onClick={handlePreview} disabled={previewLoading || !selectedFile} className="bg-primary text-white px-4 py-2 rounded flex items-center gap-1 mx-auto mb-4 hover:from-primary-dark hover:to-primary"><Eye size={16} /> معاينة المحتويات</button>
 
           {previewData && (
-            <div className="mb-4 bg-concrete-50 p-4 rounded-lg text-right">
+            <div className="mb-4 bg-surface-dim p-4 rounded-lg text-right">
               <h3 className="font-bold mb-2">محتويات النسخة</h3>
               <p className="text-sm">عدد الملفات: {previewData.filesCount}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
@@ -369,7 +369,7 @@ export default function BackupPage() {
             </div>
           )}
 
-          {restoreLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {restoreProgress}<div className="w-full bg-concrete-200 h-2 rounded-full mt-1"><div className="bg-warning-solid h-2 rounded-full" style={{width:`${restorePercent}%`}} /></div></div>}
+          {restoreLoading && <div className="mb-4"><Loader2 size={18} className="animate-spin inline" /> {restoreProgress}<div className="w-full bg-border h-2 rounded-full mt-1"><div className="bg-warning-solid h-2 rounded-full" style={{width:`${restorePercent}%`}} /></div></div>}
           <button onClick={() => setRestoreConfirmOpen(true)} disabled={restoreLoading || !previewData || selectedCollections.size === 0} className="bg-warning-solid text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto hover:bg-warning-solid disabled:opacity-50"><Upload size={20} /> استعادة المحدد</button>
         </Card>
 
@@ -377,7 +377,7 @@ export default function BackupPage() {
         <Card className="border-2 border-danger-bg text-center">
           <AlertTriangle size={48} className="mx-auto text-danger mb-4" />
           <h2 className="text-2xl font-bold mb-2 text-danger">إعادة تعيين النظام</h2>
-          <p className="text-concrete-500 mb-4">سيؤدي هذا الإجراء إلى حذف جميع البيانات والملفات بشكل كامل ولا يمكن التراجع عنه.</p>
+          <p className="text-text-muted mb-4">سيؤدي هذا الإجراء إلى حذف جميع البيانات والملفات بشكل كامل ولا يمكن التراجع عنه.</p>
           <ResetSystemButton />
         </Card>
       </div>
