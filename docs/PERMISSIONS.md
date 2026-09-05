@@ -1,30 +1,59 @@
 # Appwrite Permissions Register
 
-> TODO: This register must be reviewed and confirmed by the Appwrite team.
-> Actual read/write permissions are configured in the Appwrite console and
-> cannot be derived from the codebase alone. Every cell below is therefore
-> marked as needing review.
+> هذا السجل جاهز للمراجعة البشرية من فريق Appwrite ولا يُعدّ بديلاً عنها.
+> عمود «الوصول الفعلي في الكود» استنتاج من الكود المصدري فقط (من يقرأ/يكتب فعليًا في
+> هذه المرحلة وليس الصلاحيات المكوّنة في Console). الأعمدة الأخيرة تبقى «قيد المراجعة».
 
-| Collection | Who can read | Who can write | Notes |
-| --- | --- | --- | --- |
-| clients | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| projects | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| samples | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| tests | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| equipment | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| services | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| invoices | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| payments | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| employees | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| attendance | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| leaverequests | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| overtime | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| vehicles | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| vehicletrips | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| expenses | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| sampletypes | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| standardtests | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| notifications | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| bookings | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| reporttemplates | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
-| reports | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team | TODO: needs review from the Appwrite team |
+## ملاحظات أساسية حول نقاط الوصول في الكود
+
+- **طبقة الخدمات «من العميل»**: `src/lib/services/*.ts` كلها تعبر عبر
+  `src/lib/services/base.ts` التي تستخدم `databases` من `src/lib/appwrite.ts`
+  (SDK المتصفح `appwrite` بجلسة المستخدم). أيًّا كانت الصلاحيات، فالوصول الفعلي
+  اليوم يتم من المتصفح (read/write) بصفة المستخدم المسجّل.
+- **خادم بجلسة المستخدم**: `src/app/api/dashboard-stats/route.ts` و
+  `src/app/api/reports/[id]/pdf/route.ts` ينشئان Client بخادم-node لكن
+  بجلسة المستخدم (setCookie)، أي أنهما يخضعان لنفس صلاحيات دور المستخدم.
+- **خادم بمفتاح API (بلا تسجيل دخول)**: `src/app/api/portal/book/route.ts` و
+  `src/app/api/reports/verify/route.ts` يستخدمان `node-appwrite` بمفتاح `APPWRITE_API_KEY`.
+- **حارس الأدوار**: `src/components/AuthGuard.tsx` — لوحة `/dashboard` متاحة فقط
+  لمن دوره `مدير` أو `إداري`، ومسار `/technician` لمن دوره `فني` أو `مدير`.
+  هذا gate على مستوى الواجهة فقط ولا يلغي ضرورة الصلاحيات في Appwrite.
+
+## جدول الوصول
+
+| Collection | الوصول الفعلي في الكود (استنتاج) | من يقرأ (مراجعة) | من يكتب (مراجعة) | ملاحظات |
+| --- | --- | --- | --- | --- |
+| clients | قراءة + كتابة من العميل عبر `services/clients.ts` (json: clients)؛ وتُقرأ أيضاً من الخادم بجلسة المستخدم عبر dashboard-stats للعدّ. | قيد المراجعة | قيد المراجعة | وصول المتصفح كامل. |
+| projects | قراءة + كتابة من العميل عبر `services/projects.ts` و `helpers.ts` (توليد أرقام المشاريع)؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | — |
+| samples | قراءة + كتابة من العميل عبر `services/samples.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | — |
+| tests | قراءة + كتابة من العميل عبر `services/tests.ts` و `helpers.ts` (توليد أرقام الفحوصات)؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | — |
+| equipment | قراءة + كتابة من العميل فقط عبر `services/equipment.ts`. | قيد المراجعة | قيد المراجعة | — |
+| services | **لا توجد أي وظيفة خدمة له**؛ يظهر فقط في صفحة النسخ الاحتياطي `dashboard/backup` ضمن قائمة المجموعات (قراءة/حذف من المتصفح عند التنفيذ). | قيد المراجعة | قيد المراجعة | مجموعة غير مستخدمة بالكود. |
+| invoices | قراءة + كتابة من العميل عبر `services/invoices.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | بيانات مالية (انظر التحذيرات). |
+| payments | قراءة + كتابة من العميل عبر `services/payments.ts`. | قيد المراجعة | قيد المراجعة | بيانات مالية (انظر التحذيرات). |
+| employees | قراءة + كتابة من العميل عبر `services/employees.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats و pdf route. | قيد المراجعة | قيد المراجعة | بيانات حساسة: `salary` و `nationalId` (انظر التحذيرات). |
+| attendance | قراءة + كتابة من العميل عبر `services/attendance.ts`. | قيد المراجعة | قيد المراجعة | بيانات موظفين. |
+| leaverequests | قراءة + كتابة من العميل عبر `services/leaves.ts`. | قيد المراجعة | قيد المراجعة | — |
+| overtime | قراءة + كتابة من العميل عبر `services/overtime.ts`. | قيد المراجعة | قيد المراجعة | — |
+| vehicles | قراءة + كتابة من العميل عبر `services/vehicles.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | — |
+| vehicletrips | قراءة + كتابة من العميل عبر `services/vehicle-trips.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | — |
+| expenses | قراءة + كتابة من العميل عبر `services/expenses.ts`. | قيد المراجعة | قيد المراجعة | بيانات مالية. |
+| sampletypes | قراءة + كتابة من العميل عبر `services/sample-types.ts`؛ وتُقرأ بلا تسجيل دخول من الخادم بمفتاح API في `api/portal/book` (قراءة اسم فقط). | قيد المراجعة | قيد المراجعة | قراءة عامة عبر الحجز أونلاين فِقط بقائمة محدودة من الحقول. |
+| standardtests | قراءة + كتابة من العميل عبر `services/sample-types.ts`؛ وتُقرأ بلا تسجيل دخول من الخادم بمفتاح API في `api/portal/book`. | قيد المراجعة | قيد المراجعة | — |
+| notifications | قراءة + كتابة من العميل عبر `services/notifications.ts`. | قيد المراجعة | قيد المراجعة | — |
+| bookings | قراءة + كتابة من العميل عبر `services/bookings.ts`؛ **وكتابة (إنشاء) بلا تسجيل دخول** من الخادم بمفتاح API في `api/portal/book`؛ وتُقرأ من الخادم بجلسة المستخدم في dashboard-stats. | قيد المراجعة | قيد المراجعة | نقلة الانتباه: حجز أونلاين عام يكتب مباشرة. |
+| reporttemplates | قراءة + كتابة من العميل عبر `services/reports.ts`؛ وتُقرأ من الخادم بجلسة المستخدم في pdf route. | قيد المراجعة | قيد المراجعة | — |
+| reports | قراءة + كتابة من العميل عبر `services/reports.ts` (مع قفل منطقي في الخدمة: لا تعديل على «معتمد»)؛ وتُقرأ من الخادم بجلسة المستخدم في pdf route؛ **وتُقرأ بلا تسجيل دخول** في `api/reports/verify` (قراءة حقول محددة فقط عبر select). | قيد المراجعة | قيد المراجعة | التحقق العام مقصود؛ راقِب أن الحقول المكشوفة محدودة. |
+| REPORTS_BUCKET_ID (storage) | قراءة + كتابة + حذف من العميل عبر `services/files.ts`؛ وقراءة/إنشاء من الخادم بجلسة المستخدم في pdf route. | قيد المراجعة | قيد المراجعة | ملفات تقارير PDF. |
+
+## تحذيرات (أولويات المراجعة اليدوية — تُراجع أولاً)
+
+> هذه المجموعات تُقرأ/تُكتب مباشرة من المتصفح (عميل) وتحتوي بيانات حساسة، لذا يجب
+> على فريق Appwrite مراجعة صلاحياتها يدويًا قبل غيرها:
+
+1. **employees** — تحتوي `salary` و `nationalId` (`src/types/index.ts`)، وهناك قراءة + كتابة كاملة من العميل عبر `services/employees.ts` لأي مستخدم يصل للوحة (`مدير`/`إداري`). الأولوية القصوى: تقييد الحقول الحساسة ومراجعة سياسات القراءة/الكتابة.
+2. **clients** — أرقام هواتف وعناوين (بيانات شخصية)، قراءة + كتابة كاملة من العميل؛ أي صارت R حمَّالة للتواصل والفوترة. مراجعة حذف أيضًا.
+3. **invoices / payments / expenses** — بيانات مالية (subtotal/total/paidAmount/amount) تُقرأ وتُكتب بالكامل من المتصفح، من ضمنها `payments.amount` و `expenses.amount`. الحذف متاح من العميل أيضًا.
+4. **attendance / overtime / leaverequests** — بيانات HR تُكتب وتُحذف من المتصفح.
+5. **backup page (`dashboard/backup`)** — تستدعي `databases` من المتصفح لقراءة **كل** المجموعات أعلاه وتنفيذ **حذف جماعي** لكل المستندات وحذف ملفات storage. أي صلاحية «كتابة/حذف» مكشوفة لدور مدير ستسمح بتدمير البيانات من الواجهة دون المرور بمفتاح API الخادم. التوصية: نقل هذا (بالأخص الحذف) إلى مسار خادم بمفتاح API محمي.
+6. **portal booking (`api/portal/book`)** — نقطة عامة بدون تسجيل دخول تكتب في `bookings` وتقرأ `sampletypes`/`standardtests`؛ راجع أن حد الكتابة من العميل للـ bookings يبقى مقيدًا بما لا يسمح بتجاوز القيود عبر استدعاء مباشر للمتصفح.
