@@ -36,6 +36,13 @@ export async function generateUniqueProjectNumber(): Promise<string> {
   return newNumber;
 }
 
+export function formatDateAr(value?: string | null): string {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('ar-EG');
+}
+
 export async function generateTestNumber(code: string): Promise<string> {
   const currentYear = new Date().getFullYear();
   const prefix = `TST-${currentYear}-${code}-`;

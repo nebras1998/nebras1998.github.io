@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { listClients, listProjects, listSamples, listTests, listInvoices, listEmployees, listVehicles, listVehicleTrips, listBookings } from '@/lib/services';
-import type { Sample, Booking, DashboardStats } from '@/types';
-import type { Vehicle, VehicleTrip } from '@/lib/services';
-import { Query } from '@/lib/services';
+import type { DashboardStats } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
-  Users,
   FolderKanban,
   FlaskConical,
   ClipboardCheck,
@@ -29,7 +25,6 @@ import {
   UserPlus,
   ArrowLeft,
   ShieldAlert,
-  ShieldCheck,
 } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import ChartCard from '@/components/ChartCard';
@@ -38,6 +33,7 @@ import TechCard from '@/components/TechCard';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import TableSkeleton from '@/components/TableSkeleton';
+import { formatDateAr } from '@/lib/helpers';
 import {
   PieChart,
   Pie,
@@ -53,40 +49,25 @@ import {
   Area,
 } from 'recharts';
 
-const COLORS = ['#0F4C5C', '#E0A526', '#2E7D5B', '#B4472C', '#7C5FA6'];
-
-interface TechStatsItem {
-  id: string;
-  name: string;
-  totalTests: number;
-  completed: number;
-  pending: number;
-  samplesCount: number;
-  progress: number;
-  todaySampled: number;
-  todayPrepared: number;
-  todayDelivered: number;
-}
-
-type BusyVehicle = VehicleTrip & { driverName: string; vehiclePlate: string; };
+const COLORS = ['#1a5276', '#e67e22', '#27ae60', '#c0392b', '#8e44ad'];
 
 function SectionLabel({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-5">
       {icon}
-      <h2 className="text-sm font-bold text-concrete-500 tracking-wide">{children}</h2>
-      <div className="flex-1 h-px bg-concrete-200" />
+      <h2 className="text-sm font-bold text-text-secondary tracking-wide uppercase">{children}</h2>
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
 
 function SectionHeader({ title, icon, href }: { title: React.ReactNode; icon?: React.ReactNode; href?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 mb-4">
-      <h2 className="text-lg font-bold flex items-center gap-2">{icon}{title}</h2>
+    <div className="flex items-center justify-between gap-3 mb-5">
+      <h2 className="text-lg font-bold text-text-primary flex items-center gap-2 tracking-tight">{icon}{title}</h2>
       {href && (
-        <Link href={href} className="text-sm text-petrol hover:underline flex items-center gap-1 shrink-0">
-          عرض الكل <ArrowLeft size={14} />
+        <Link href={href} className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 shrink-0 transition-colors group">
+          عرض الكل <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
         </Link>
       )}
     </div>
@@ -95,305 +76,112 @@ function SectionHeader({ title, icon, href }: { title: React.ReactNode; icon?: R
 
 function StatCardSkeleton() {
   return (
-    <div className="bg-concrete-0 rounded-xl p-4 shadow-sm border border-concrete-200 animate-pulse">
-      <div className="h-4 bg-concrete-200 rounded w-20 mb-3"></div>
-      <div className="h-6 bg-concrete-100 rounded w-24"></div>
+    <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border animate-shimmer">
+      <div className="h-3.5 bg-surface-muted rounded-lg w-20 mb-4"></div>
+      <div className="h-7 bg-surface-muted rounded-lg w-24"></div>
     </div>
   );
 }
 
 const QUICK_ACTIONS = [
-  { href: '/dashboard/samples/new', label: 'إضافة عينة جديدة', icon: Plus },
-  { href: '/dashboard/bookings/new', label: 'حجز جديد', icon: CalendarPlus },
-  { href: '/dashboard/finance/invoices/new', label: 'فاتورة جديدة', icon: Receipt },
-  { href: '/dashboard/clients/new', label: 'إضافة عميل', icon: UserPlus },
+  { href: '/dashboard/samples/new', label: 'إضافة عينة جديدة', icon: Plus, color: 'from-primary to-primary-dark' },
+  { href: '/dashboard/bookings/new', label: 'حجز جديد', icon: CalendarPlus, color: 'from-accent to-accent-dark' },
+  { href: '/dashboard/finance/invoices/new', label: 'فاتورة جديدة', icon: Receipt, color: 'from-success to-success-solid' },
+  { href: '/dashboard/clients/new', label: 'إضافة عميل', icon: UserPlus, color: 'from-[#8e44ad] to-[#7d3c98]' },
 ];
 
+const DEFAULTS = {
+  clients: 0,
+  activeProjects: 0,
+  todaySamples: 0,
+  pendingTests: 0,
+  unpaidInvoices: 0,
+  totalRevenue: 0,
+  readyVehicles: 0,
+  vehiclesInUse: 0,
+  todayBookings: 0,
+  nonCompliantTests: 0,
+  dueComplianceSamples: 0,
+};
+
 export default function DashboardPage() {
-  const [basicStats, setBasicStats] = useState({
-    clients: 0,
-    activeProjects: 0,
-    todaySamples: 0,
-    pendingTests: 0,
-    unpaidInvoices: 0,
-    totalRevenue: 0,
-    readyVehicles: 0,
-    vehiclesInUse: 0,
-    todayBookings: 0,
-    nonCompliantTests: 0,
-    dueComplianceSamples: 0,
-  });
-  const [basicLoading, setBasicLoading] = useState(true);
-  const [basicDone, setBasicDone] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [error, setError] = useState(false);
+  const loading = !stats && !error;
 
-  const [samplesByType, setSamplesByType] = useState<{ name: string; value: number }[]>([]);
-  const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string; revenue: number }[]>([]);
-  const [weeklyTests, setWeeklyTests] = useState<{ day: string; count: number }[]>([]);
-  const [recentSamples, setRecentSamples] = useState<Sample[]>([]);
-  const [techStats, setTechStats] = useState<TechStatsItem[]>([]);
-  const [availableVehiclesList, setAvailableVehiclesList] = useState<Vehicle[]>([]);
-  const [busyVehiclesList, setBusyVehiclesList] = useState<BusyVehicle[]>([]);
-  const [upcomingTests, setUpcomingTests] = useState<Sample[]>([]);
-  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-
-  // حالات تحميل منفصلة لكل قسم ليظهر القسم فور جاهزية بياناته
-  const [upcomingLoading, setUpcomingLoading] = useState(true);
-  const [samplesLoading, setSamplesLoading] = useState(true);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
-  const [techLoading, setTechLoading] = useState(true);
-  const [vehiclesLoading, setVehiclesLoading] = useState(true);
-
-  // بيانات وسيطة لتغذية الأقسام الأخرى
-  const [activeTripsData, setActiveTripsData] = useState<VehicleTrip[]>([]);
-  const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
-
-  // --- تحميل البيانات الأساسية ---
   useEffect(() => {
-    const fetchBasic = async () => {
+    let active = true;
+    const load = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const [
-          clientsRes,
-          activeProjectsRes,
-          todaySamplesRes,
-          pendingTestsRes,
-          unpaidInvoicesRes,
-          statsRes,
-          vehiclesRes,
-          activeTripsRes,
-          todayBookingsRes,
-        ] = await Promise.all([
-          listClients([Query.limit(1)]),
-          listProjects([Query.equal('status', 'نشط'), Query.limit(1)]),
-          listSamples([Query.equal('samplingDate', today), Query.limit(1)]),
-          listTests([Query.equal('status', 'قيد الانتظار'), Query.limit(1)]),
-          listInvoices([Query.equal('status', 'صادرة'), Query.limit(1)]),
-          fetch('/api/dashboard-stats'),
-          listVehicles([Query.limit(100)]),
-          listVehicleTrips([Query.equal('status', 'قيد الرحلة'), Query.limit(20)]),
-          listBookings([Query.equal('preferredDate', today), Query.limit(1)]),
-        ]);
-
-        if (!statsRes.ok) throw new Error('فشل تحميل إحصائيات لوحة التحكم');
-        const stats: DashboardStats = await statsRes.json();
-
-        const inUse = activeTripsRes.documents.length;
-        const readyVehicles = vehiclesRes.documents.filter((v) => v.status === 'جاهزة').length;
-
-        setBasicStats({
-          clients: clientsRes.total,
-          activeProjects: activeProjectsRes.total,
-          todaySamples: todaySamplesRes.total,
-          pendingTests: pendingTestsRes.total,
-          unpaidInvoices: unpaidInvoicesRes.total,
-          totalRevenue: stats.totalRevenue,
-          readyVehicles,
-          vehiclesInUse: inUse,
-          todayBookings: todayBookingsRes.total,
-          nonCompliantTests: stats.compliance?.nonCompliantTests ?? 0,
-          dueComplianceSamples: stats.compliance?.dueComplianceSamples ?? 0,
-        });
-
-        // توزيع العينات حسب النوع والإيرادات الشهرية تُحسب مرة واحدة على الخادم
-        setSamplesByType(stats.samplesByType);
-        setMonthlyRevenue(stats.monthlyRevenue);
-
-        // تخزين البيانات الوسيطة
-        setActiveTripsData(activeTripsRes.documents);
-        setVehiclesData(vehiclesRes.documents);
+        const res = await fetch('/api/dashboard-stats');
+        if (!res.ok) throw new Error('فشل تحميل إحصائيات لوحة التحكم');
+        const data: DashboardStats = await res.json();
+        if (active) setStats(data);
       } catch (err) {
-        console.error('خطأ في تحميل الإحصائيات الأساسية:', err);
-      } finally {
-        setBasicLoading(false);
-        setBasicDone(true);
+        console.error('خطأ في تحميل إحصائيات لوحة التحكم:', err);
+        if (active) setError(true);
       }
     };
-    fetchBasic();
+    load();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // --- الفحوصات المقبلة (خلال يومين) ---
-  useEffect(() => {
-    const fetchUpcoming = async () => {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const d2 = new Date(); d2.setDate(d2.getDate() + 2);
-        const twoDaysLater = d2.toISOString().split('T')[0];
-        const upcomingRes = await listSamples([
-          Query.or([
-            Query.and([Query.greaterThanEqual('test7DaysDate', today), Query.lessThanEqual('test7DaysDate', twoDaysLater)]),
-            Query.and([Query.greaterThanEqual('test28DaysDate', today), Query.lessThanEqual('test28DaysDate', twoDaysLater)]),
-          ]),
-          Query.limit(10),
-        ]);
-        setUpcomingTests(upcomingRes.documents);
-      } catch (err) {
-        console.error('خطأ في تحميل الفحوصات المقبلة:', err);
-      } finally {
-        setUpcomingLoading(false);
-      }
-    };
-    fetchUpcoming();
-  }, []);
+  const basicStats = stats ?? DEFAULTS;
+  const samplesByType = stats?.samplesByType ?? [];
+  const monthlyRevenue = stats?.monthlyRevenue ?? [];
+  const weeklyTests = stats?.weeklyTests ?? [];
+  const techStats = stats?.techStats ?? [];
+  const upcomingTests = stats?.upcomingTests ?? [];
+  const recentSamples = stats?.recentSamples ?? [];
+  const recentBookings = stats?.recentBookings ?? [];
+  const availableVehiclesList = stats?.availableVehicles ?? [];
+  const busyVehiclesList = stats?.busyVehicles ?? [];
 
-  // --- آخر العينات ---
-  useEffect(() => {
-    const fetchSamples = async () => {
-      try {
-        const res = await listSamples([Query.orderDesc('$createdAt'), Query.limit(5)]);
-        setRecentSamples(res.documents);
-      } catch (err) {
-        console.error('خطأ في تحميل آخر العينات:', err);
-      } finally {
-        setSamplesLoading(false);
-      }
-    };
-    fetchSamples();
-  }, []);
+  const basicLoading = loading;
+  const techLoading = loading;
+  const upcomingLoading = loading;
+  const samplesLoading = loading;
+  const bookingsLoading = loading;
+  const vehiclesLoading = loading;
+  const chartsLoading = loading;
 
-  // --- آخر الحجوزات ---
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await listBookings([Query.orderDesc('$createdAt'), Query.limit(5)]);
-        setRecentBookings(res.documents);
-      } catch (err) {
-        console.error('خطأ في تحميل آخر الحجوزات:', err);
-      } finally {
-        setBookingsLoading(false);
-      }
-    };
-    fetchBookings();
-  }, []);
-
-  // --- إحصائيات الفنيين + الفحوصات الأسبوعية ---
-  useEffect(() => {
-    const fetchTech = async () => {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        const [
-          allSamplesRes,
-          allTestsRes,
-          employeesRes,
-        ] = await Promise.all([
-          listSamples([Query.limit(500), Query.select(['type', 'samplerId', 'preparerId', 'transporterId', 'samplingDate', 'preparationDate', 'deliveryDate'])]),
-          listTests([Query.limit(1000), Query.select(['assignedTo', 'status', 'sampleId', '$createdAt'])]),
-          listEmployees([Query.equal('role', 'فني'), Query.equal('status', 'يعمل'), Query.limit(200)]),
-        ]);
-
-        // الفحوصات الأسبوعية
-        const days = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          days.push(d.toISOString().split('T')[0]);
-        }
-        setWeeklyTests(days.map(day => ({
-          day: day.slice(5),
-          count: allTestsRes.documents.filter((t) => t.$createdAt?.startsWith(day)).length,
-        })));
-
-        // إحصائيات الفنيين
-        const techs = employeesRes.documents;
-        const techStatsData = techs.map((tech) => {
-          const techTests = allTestsRes.documents.filter((t) => t.assignedTo === tech.$id);
-          const completed = techTests.filter((t) => t.status === 'مكتمل').length;
-          const pending = techTests.filter((t) => t.status === 'قيد الانتظار' || t.status === 'تحت الفحص').length;
-          const sampleIds = [...new Set(techTests.map((t) => t.sampleId).filter(Boolean))];
-          const todaySampled = allSamplesRes.documents.filter((s) => s.samplerId === tech.$id && s.samplingDate === today).length;
-          const todayPrepared = allSamplesRes.documents.filter((s) => s.preparerId === tech.$id && s.preparationDate === today).length;
-          const todayDelivered = allSamplesRes.documents.filter((s) => s.transporterId === tech.$id && s.deliveryDate === today).length;
-          return {
-            id: tech.$id,
-            name: tech.name,
-            totalTests: techTests.length,
-            completed,
-            pending,
-            samplesCount: sampleIds.length,
-            progress: techTests.length > 0 ? Math.round((completed / techTests.length) * 100) : 0,
-            todaySampled,
-            todayPrepared,
-            todayDelivered,
-          };
-        });
-        setTechStats(techStatsData);
-      } catch (err) {
-        console.error('خطأ في تحميل إحصائيات الفنيين:', err);
-      } finally {
-        setTechLoading(false);
-      }
-    };
-    fetchTech();
-  }, []);
-
-  // --- حالة المركبات ---
-  useEffect(() => {
-    if (!basicDone) return;
-    const fetchVehicles = async () => {
-      try {
-        const activeVehicleIds = activeTripsData.map((t) => t.vehicleId);
-        const availableVehicles = vehiclesData.filter(
-          (v) => v.status === 'جاهزة' && !activeVehicleIds.includes(v.$id)
-        );
-        setAvailableVehiclesList(availableVehicles);
-
-        const driversMap: Record<string, string> = {};
-        const vehiclesMap: Record<string, string> = {};
-        if (activeTripsData.length > 0) {
-          const driverIds = [...new Set(activeTripsData.map((t) => t.driverId))];
-          const vehicleIdsForTrips = [...new Set(activeTripsData.map((t) => t.vehicleId))];
-          if (driverIds.length > 0) {
-            const driversRes = await listEmployees([
-              Query.equal('$id', driverIds),
-              Query.limit(50),
-            ]);
-            driversRes.documents.forEach((emp) => (driversMap[emp.$id] = emp.name));
-          }
-          if (vehicleIdsForTrips.length > 0) {
-            const vehiclesForTripsRes = await listVehicles([
-              Query.equal('$id', vehicleIdsForTrips),
-              Query.limit(50),
-            ]);
-            vehiclesForTripsRes.documents.forEach((v) => (vehiclesMap[v.$id] = v.plateNumber));
-          }
-        }
-        const busyVehicles = activeTripsData.map((trip) => ({
-          ...trip,
-          driverName: driversMap[trip.driverId] || trip.driverId,
-          vehiclePlate: vehiclesMap[trip.vehicleId] || trip.vehicleId,
-        }));
-        setBusyVehiclesList(busyVehicles);
-      } catch (err) {
-        console.error('خطأ في تحميل حالة المركبات:', err);
-      } finally {
-        setVehiclesLoading(false);
-      }
-    };
-    fetchVehicles();
-  }, [basicDone, activeTripsData, vehiclesData]);
-
-  const chartsLoading = basicLoading || techLoading;
+  const revenueTrend = useMemo(() => {
+    const series = stats?.monthlyRevenue;
+    if (!series || series.length < 2) return undefined;
+    const now = new Date();
+    const thisMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const prevIdx = series.findIndex((m) => m.month === thisMonth) - 1;
+    if (prevIdx < 0) return undefined;
+    const cur = series[prevIdx + 1]?.revenue ?? 0;
+    const prev = series[prevIdx]?.revenue ?? 0;
+    if (prev <= 0) return undefined;
+    return { value: Math.round(((cur - prev) / prev) * 100), label: 'الشهر الحالي' };
+  }, [stats]);
 
   return (
     <AuthGuard>
       <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-8 animate-fade-in">
+          {/* Compact Page Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-concrete-800">لوحة التحكم</h1>
-              <p className="text-concrete-500">مرحباً بك، إليك ملخص اليوم</p>
+              <h1 className="text-2xl font-bold tracking-tight text-text-primary">لوحة التحكم</h1>
+              <p className="text-sm text-text-secondary mt-1">مرحباً بك، إليك ملخص اليوم</p>
             </div>
-            <div className="text-sm text-concrete-500">
+            <div className="text-sm text-text-secondary bg-surface border border-border rounded-xl px-4 py-2 whitespace-nowrap">
               {new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
           </div>
 
-          {/* شريط الإجراءات السريعة */}
+          {/* Quick Actions */}
           <div className="flex flex-wrap gap-3">
-            {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+            {QUICK_ACTIONS.map(({ href, label, icon: Icon, color }) => (
               <Link
                 key={href}
                 href={href}
-                className="inline-flex items-center gap-2 bg-petrol text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-petrol-dark transition-colors"
+                className={`inline-flex items-center gap-2 bg-gradient-to-l ${color} text-white px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg transition-all duration-200 active:scale-[0.98]`}
               >
                 <Icon size={18} />
                 {label}
@@ -401,149 +189,137 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* البطاقات الإحصائية */}
+          {/* Stat Cards */}
           {basicLoading ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-                {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)}
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-                <StatCard title="فحوصات معلقة" value={basicStats.pendingTests} icon={<AlertCircle size={24} />} tone="danger" />
-                <StatCard title="فواتير غير مدفوعة" value={basicStats.unpaidInvoices} icon={<FileText size={24} />} tone="warning" />
-                <StatCard title="إجمالي الإيرادات" value={`${basicStats.totalRevenue.toFixed(0)} ₪`} icon={<Banknote size={24} />} tone="success" valueClass="whitespace-nowrap" />
-                <StatCard title="عينات اليوم" value={basicStats.todaySamples} icon={<Hammer size={24} />} tone="warning" />
-                <StatCard title="مشاريع نشطة" value={basicStats.activeProjects} icon={<FolderKanban size={24} />} tone="success" />
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard size="sm" title="مركبات جاهزة" value={basicStats.readyVehicles} icon={<Car size={18} />} bgColor="bg-petrol-soft" iconColor="text-petrol" />
-                <StatCard size="sm" title="مركبات بالخارج" value={basicStats.vehiclesInUse} icon={<Navigation size={18} />} bgColor="bg-warning-bg" iconColor="text-warning" />
-                <StatCard size="sm" title="حجوزات اليوم" value={basicStats.todayBookings} icon={<Calendar size={18} />} bgColor="bg-petrol-soft" iconColor="text-petrol" />
-                <StatCard size="sm" title="العملاء" value={basicStats.clients} icon={<Users size={18} />} bgColor="bg-petrol-soft" iconColor="text-petrol" />
-              </div>
-            </>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+              <StatCard title="عينات اليوم" value={basicStats.todaySamples} icon={<Hammer size={22} />} tone="warning" />
+              <StatCard title="فحوصات معلقة" value={basicStats.pendingTests} icon={<AlertCircle size={22} />} tone="danger" />
+              <StatCard title="إجمالي الإيرادات" value={`${basicStats.totalRevenue.toFixed(0)} ₪`} icon={<Banknote size={22} />} tone="success" trend={revenueTrend} valueClass="whitespace-nowrap" />
+              <StatCard title="مشاريع نشطة" value={basicStats.activeProjects} icon={<FolderKanban size={22} />} tone="success" />
+              <StatCard title="حجوزات اليوم" value={basicStats.todayBookings} icon={<Calendar size={18} />} tone="petrol" />
+            </div>
           )}
 
-          {/* المستوى الأول: يحتاج إلى انتباهك اليوم */}
+          {/* Level 1: Attention */}
           <section>
             <SectionLabel icon={<AlertCircle size={16} className="text-warning" />}>يحتاج إلى انتباهك اليوم</SectionLabel>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {/* فواتير غير مدفوعة */}
-              <div className="bg-warning-bg border border-warning rounded-xl p-5">
-                <div className="flex items-center justify-between gap-3">
+              {/* Unpaid Invoices */}
+              <Card className="relative overflow-hidden animate-fade-in">
+                <div className="absolute top-0 right-0 w-1 h-full bg-warning-solid rounded-l-full" />
+                <div className="flex items-center justify-between gap-3 pr-2">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-full bg-white shadow-sm text-warning"><FileText size={22} /></div>
+                    <div className="p-2.5 rounded-xl bg-warning-bg text-warning"><FileText size={22} /></div>
                     <div>
-                      <p className="text-sm text-concrete-500">فواتير غير مدفوعة</p>
+                      <p className="text-sm text-text-secondary">فواتير غير مدفوعة</p>
                       {basicLoading ? (
-                        <div className="h-7 w-16 bg-concrete-200 rounded animate-pulse mt-1"></div>
+                        <div className="h-7 w-16 bg-surface-muted rounded-lg animate-shimmer mt-1"></div>
                       ) : (
-                        <p className="text-2xl font-bold text-concrete-800">{basicStats.unpaidInvoices}</p>
+                        <p className="text-2xl font-bold text-text-primary">{basicStats.unpaidInvoices}</p>
                       )}
                     </div>
                   </div>
-                  <Link href="/dashboard/finance/invoices" className="text-sm text-petrol hover:underline flex items-center gap-1 shrink-0">
-                    عرض الكل <ArrowLeft size={14} />
+                  <Link href="/dashboard/finance/invoices" className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 shrink-0 transition-colors group">
+                    عرض الكل <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
-              </div>
+              </Card>
 
-              {/* مركبات بالخارج */}
-              <div className="bg-warning-bg border border-warning rounded-xl p-5">
-                <div className="flex items-center justify-between gap-3">
+              {/* Vehicles Out */}
+              <Card className="relative overflow-hidden animate-fade-in">
+                <div className="absolute top-0 right-0 w-1 h-full bg-accent rounded-l-full" />
+                <div className="flex items-center justify-between gap-3 pr-2">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-full bg-white shadow-sm text-warning"><Navigation size={22} /></div>
+                    <div className="p-2.5 rounded-xl bg-accent-light text-accent"><Navigation size={22} /></div>
                     <div>
-                      <p className="text-sm text-concrete-500">مركبات بالخارج</p>
+                      <p className="text-sm text-text-secondary">مركبات بالخارج</p>
                       {basicLoading ? (
-                        <div className="h-7 w-16 bg-concrete-200 rounded animate-pulse mt-1"></div>
+                        <div className="h-7 w-16 bg-surface-muted rounded-lg animate-shimmer mt-1"></div>
                       ) : (
-                        <p className="text-2xl font-bold text-concrete-800">{basicStats.vehiclesInUse}</p>
+                        <p className="text-2xl font-bold text-text-primary">{basicStats.vehiclesInUse}</p>
                       )}
                     </div>
                   </div>
-                  <Link href="/dashboard/vehicles" className="text-sm text-petrol hover:underline flex items-center gap-1 shrink-0">
-                    عرض الكل <ArrowLeft size={14} />
+                  <Link href="/dashboard/vehicles" className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 shrink-0 transition-colors group">
+                    عرض الكل <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
                 {!basicLoading && !vehiclesLoading && busyVehiclesList.length > 0 && (
-                  <div className="mt-3 space-y-1 text-sm">
+                  <div className="mt-3 space-y-1.5 text-sm pr-2">
                     {busyVehiclesList.map((trip) => (
-                      <p key={trip.$id} className="font-mono text-concrete-700">
+                      <p key={trip.$id} className="font-mono text-text-primary text-xs">
                         {trip.vehiclePlate}
-                        <span className="text-concrete-500"> - {trip.driverName}</span>
+                        <span className="text-text-muted"> — {trip.driverName}</span>
                       </p>
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
 
-              {/* تنبيهات الالتزام */}
-              <div className="bg-concrete-0 border border-concrete-200 rounded-xl p-5">
-                <div className="flex items-center justify-between gap-3">
+              {/* Compliance Alerts */}
+              <Card className="relative overflow-hidden animate-fade-in">
+                <div className="absolute top-0 right-0 w-1 h-full bg-danger-solid rounded-l-full" />
+                <div className="flex items-center justify-between gap-3 pr-2">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-full bg-white shadow-sm text-danger"><ShieldAlert size={22} /></div>
+                    <div className="p-2.5 rounded-xl bg-danger-bg text-danger"><ShieldAlert size={22} /></div>
                     <div>
-                      <p className="text-sm text-concrete-500">تنبيهات الالتزام</p>
+                      <p className="text-sm text-text-secondary">تنبيهات الالتزام</p>
                       {basicLoading ? (
-                        <div className="h-7 w-16 bg-concrete-200 rounded animate-pulse mt-1"></div>
+                        <div className="h-7 w-16 bg-surface-muted rounded-lg animate-shimmer mt-1"></div>
                       ) : (
-                        <p className="text-2xl font-bold text-concrete-800">
+                        <p className="text-2xl font-bold text-text-primary">
                           {basicStats.nonCompliantTests + basicStats.dueComplianceSamples}
                         </p>
                       )}
                     </div>
                   </div>
-                  <Link href="/dashboard/tests" className="text-sm text-petrol hover:underline flex items-center gap-1 shrink-0">
-                    عرض الكل <ArrowLeft size={14} />
+                  <Link href="/dashboard/tests" className="text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 shrink-0 transition-colors group">
+                    عرض الكل <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
                 {!basicLoading &&
                   (basicStats.nonCompliantTests + basicStats.dueComplianceSamples === 0 ? (
-                    <div className="mt-3 flex items-center gap-2 text-sm text-success">
-                      <ShieldCheck size={16} /> لا توجد تنبيهات التزام حالياً
-                    </div>
+                    <EmptyData title="لا توجد تنبيهات التزام حالياً" className="py-4" />
                   ) : (
-                    <div className="mt-3 space-y-1.5 text-sm">
+                    <div className="mt-3 space-y-2 text-sm pr-2">
                       <p className="flex items-center justify-between gap-3">
-                        <span className="text-concrete-500">فحوصات غير مطابقة للمواصفة</span>
+                        <span className="text-text-secondary">فحوصات غير مطابقة للمواصفة</span>
                         <span className="font-bold text-danger">{basicStats.nonCompliantTests}</span>
                       </p>
                       <p className="flex items-center justify-between gap-3">
-                        <span className="text-concrete-500">عينات تستحق فحص 7/28 يوم (خلال 14 يوماً)</span>
+                        <span className="text-text-secondary">عينات تستحق فحص 7/28 يوم (خلال 14 يوماً)</span>
                         <span className="font-bold text-warning">{basicStats.dueComplianceSamples}</span>
                       </p>
                     </div>
                   ))}
-              </div>
+              </Card>
             </div>
 
-            {/* فحوصات مقبلة */}
+            {/* Upcoming Tests */}
             {upcomingLoading ? (
               <Card>
                 <div className="flex items-center gap-2 mb-4">
                   <Clock size={20} className="text-warning" />
-                  <h2 className="text-lg font-bold text-warning">فحوصات مقبلة (خلال يومين)</h2>
+                  <h2 className="text-lg font-bold text-text-primary">فحوصات مقبلة (خلال يومين)</h2>
                 </div>
                 <TableSkeleton rows={2} cols={3} />
               </Card>
             ) : upcomingTests.length > 0 && (
-              <Card className="!border-warning">
-                <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-warning"><Clock size={20} /> فحوصات مقبلة (خلال يومين)</h2>
+              <Card className="!border-warning/30 !shadow-[0_0_0_1px_rgba(212,172,13,0.1)]">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-text-primary tracking-tight"><Clock size={20} className="text-warning" /> فحوصات مقبلة (خلال يومين)</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {upcomingTests.map((sample) => (
-                    <div key={sample.$id} className="bg-warning-bg p-3 rounded-lg border border-warning">
-                      <p className="font-mono font-bold">{sample.sampleNumber}</p>
-                      <p className="text-sm text-concrete-500">{sample.type}</p>
-                      <div className="text-xs mt-1 space-y-1">
-                        {sample.test7DaysDate && sample.test7DaysDate >= new Date().toISOString().split('T')[0] && <p>🔬 7 أيام: {sample.test7DaysDate}</p>}
-                        {sample.test28DaysDate && sample.test28DaysDate >= new Date().toISOString().split('T')[0] && <p>🔬 28 يوم: {sample.test28DaysDate}</p>}
+                    <div key={sample.$id} className="bg-warning-bg p-4 rounded-xl border border-warning/20">
+                      <p className="font-mono font-bold text-text-primary">{sample.sampleNumber}</p>
+                      <p className="text-sm text-text-secondary mt-1">{sample.type}</p>
+                      <div className="text-xs mt-2 space-y-1">
+                        {sample.test7DaysDate && sample.test7DaysDate >= new Date().toISOString().split('T')[0] && <p className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> 7 أيام: {formatDateAr(sample.test7DaysDate)}</p>}
+                        {sample.test28DaysDate && sample.test28DaysDate >= new Date().toISOString().split('T')[0] && <p className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> 28 يوم: {formatDateAr(sample.test28DaysDate)}</p>}
                       </div>
                     </div>
                   ))}
@@ -552,22 +328,22 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* المستوى الثاني: نظرة عامة تشغيلية */}
+          {/* Level 2: Operational */}
           <section>
-            <SectionLabel icon={<ClipboardCheck size={16} className="text-petrol" />}>نظرة عامة تشغيلية</SectionLabel>
+            <SectionLabel icon={<ClipboardCheck size={16} className="text-primary" />}>نظرة عامة تشغيلية</SectionLabel>
 
-            {/* قسم الفنيين */}
+            {/* Technicians */}
             {techLoading ? (
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <UserCheck size={20} className="text-petrol" />
-                  <h2 className="text-lg font-bold">أداء الفنيين اليوم</h2>
+                  <UserCheck size={20} className="text-primary" />
+                  <h2 className="text-lg font-bold text-text-primary">أداء الفنيين اليوم</h2>
                 </div>
                 <TableSkeleton rows={3} cols={3} />
               </Card>
             ) : techStats.length > 0 && (
               <Card>
-                <SectionHeader title="أداء الفنيين اليوم" icon={<UserCheck size={20} className="text-petrol" />} href="/dashboard/hr/employees" />
+                <SectionHeader title="أداء الفنيين اليوم" icon={<UserCheck size={20} className="text-primary" />} href="/dashboard/hr/employees" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {techStats.map((tech) => (
                     <TechCard key={tech.id} tech={tech} />
@@ -576,20 +352,20 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            {/* آخر العينات */}
+            {/* Recent Samples */}
             <Card>
-              <SectionHeader title="آخر العينات المضافة" icon={<FlaskConical size={20} className="text-warning" />} href="/dashboard/samples" />
+              <SectionHeader title="آخر العينات المضافة" icon={<FlaskConical size={20} className="text-accent" />} href="/dashboard/samples" />
               {samplesLoading ? (
                 <TableSkeleton rows={3} cols={5} />
               ) : recentSamples.length === 0 ? <EmptyData /> : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                   {recentSamples.map((sample) => (
-                    <div key={sample.$id} className="bg-concrete-50 rounded-lg p-4 border border-concrete-200 hover:shadow-md transition-shadow">
-                      <p className="font-mono text-sm text-concrete-800">{sample.sampleNumber}</p>
-                      <p className="text-xs text-concrete-500 mt-1">{sample.type}</p>
+                    <div key={sample.$id} className="bg-surface-dim rounded-xl p-4 border border-border hover:shadow-md hover:border-primary/20 transition-all duration-200">
+                      <p className="font-mono text-sm text-text-primary">{sample.sampleNumber}</p>
+                      <p className="text-xs text-text-secondary mt-1">{sample.type}</p>
                       <div className="flex justify-between items-center mt-3">
                         <Badge status={sample.status} size="sm" />
-                        <span className="text-xs text-concrete-500">{sample.samplingDate || '-'}</span>
+                        <span className="text-xs text-text-muted">{sample.samplingDate || '-'}</span>
                       </div>
                     </div>
                   ))}
@@ -597,27 +373,27 @@ export default function DashboardPage() {
               )}
             </Card>
 
-            {/* آخر الحجوزات */}
+            {/* Recent Bookings */}
             {bookingsLoading ? (
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <Calendar size={20} className="text-petrol" />
-                  <h2 className="text-lg font-bold">آخر الحجوزات</h2>
+                  <Calendar size={20} className="text-primary" />
+                  <h2 className="text-lg font-bold text-text-primary">آخر الحجوزات</h2>
                 </div>
                 <TableSkeleton rows={3} cols={5} />
               </Card>
             ) : recentBookings.length > 0 && (
               <Card>
-                <SectionHeader title="آخر الحجوزات" icon={<Calendar size={20} className="text-petrol" />} href="/dashboard/bookings" />
+                <SectionHeader title="آخر الحجوزات" icon={<Calendar size={20} className="text-primary" />} href="/dashboard/bookings" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                   {recentBookings.map((booking) => (
-                    <div key={booking.$id} className="bg-petrol-soft rounded-lg p-4 border border-concrete-200 hover:shadow-md transition-shadow">
-                      <p className="font-mono text-sm text-concrete-800">{booking.bookingNumber}</p>
-                      <p className="text-sm font-bold mt-1">{booking.clientName}</p>
-                      <p className="text-xs text-concrete-500">{booking.sampleType}</p>
+                    <div key={booking.$id} className="bg-primary-50 rounded-xl p-4 border border-primary/10 hover:shadow-md hover:border-primary/20 transition-all duration-200">
+                      <p className="font-mono text-sm text-text-primary">{booking.bookingNumber}</p>
+                      <p className="text-sm font-bold mt-1 text-text-primary">{booking.clientName}</p>
+                      <p className="text-xs text-text-secondary">{booking.sampleType}</p>
                       <div className="flex justify-between items-center mt-3">
                         <Badge status={booking.status} size="sm" />
-                        <span className="text-xs text-concrete-500">{booking.preferredDate || '-'}</span>
+                        <span className="text-xs text-text-muted">{booking.preferredDate ? formatDateAr(booking.preferredDate) : '-'}</span>
                       </div>
                     </div>
                   ))}
@@ -625,39 +401,39 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            {/* حالة المركبات */}
+            {/* Vehicle Status */}
             <Card>
-              <SectionHeader title="حالة المركبات" icon={<Car size={20} className="text-petrol" />} href="/dashboard/vehicles" />
+              <SectionHeader title="حالة المركبات" icon={<Car size={20} className="text-primary" />} href="/dashboard/vehicles" />
               {vehiclesLoading ? (
                 <TableSkeleton rows={3} cols={2} />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-bold text-success mb-3 flex items-center gap-2"><Car size={18} /> متوفرة ({availableVehiclesList.length})</h3>
-                    {availableVehiclesList.length === 0 ? <p className="text-concrete-500">لا توجد مركبات متوفرة</p> : (
+                    {availableVehiclesList.length === 0 ? <EmptyData title="لا توجد مركبات متوفرة" className="py-6" /> : (
                       <div className="space-y-2">
                         {availableVehiclesList.map((v) => (
-                          <div key={v.$id} className="flex justify-between items-center bg-success-bg p-3 rounded-lg">
-                            <span className="font-mono">{v.plateNumber}</span>
-                            <span className="text-sm text-concrete-500">{v.brand} {v.model}</span>
+                          <div key={v.$id} className="flex justify-between items-center bg-success-bg p-3 rounded-xl border border-success/10">
+                            <span className="font-mono font-semibold text-text-primary">{v.plateNumber}</span>
+                            <span className="text-sm text-text-secondary">{v.brand} {v.model}</span>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-warning mb-3 flex items-center gap-2"><Navigation size={18} /> بالخارج ({busyVehiclesList.length})</h3>
-                    {busyVehiclesList.length === 0 ? <p className="text-concrete-500">لا توجد رحلات نشطة</p> : (
+                    <h3 className="font-bold text-accent mb-3 flex items-center gap-2"><Navigation size={18} /> بالخارج ({busyVehiclesList.length})</h3>
+                    {busyVehiclesList.length === 0 ? <EmptyData title="لا توجد رحلات نشطة" className="py-6" /> : (
                       <div className="space-y-2">
                         {busyVehiclesList.map((trip) => (
-                          <div key={trip.$id} className="bg-warning-bg p-3 rounded-lg">
+                          <div key={trip.$id} className="bg-accent-light p-3 rounded-xl border border-accent/10">
                             <div className="flex justify-between">
-                              <span className="font-mono font-bold">{trip.vehiclePlate}</span>
-                              <span className="text-xs text-concrete-500">{trip.departureTime}</span>
+                              <span className="font-mono font-bold text-text-primary">{trip.vehiclePlate}</span>
+                              <span className="text-xs text-text-muted">{trip.departureTime}</span>
                             </div>
                             <div className="text-sm mt-1">
-                              <span>{trip.driverName}</span>
-                              {trip.destination && <span className="text-concrete-500"> - {trip.destination}</span>}
+                              <span className="text-text-secondary">{trip.driverName}</span>
+                              {trip.destination && <span className="text-text-muted"> — {trip.destination}</span>}
                             </div>
                           </div>
                         ))}
@@ -669,22 +445,22 @@ export default function DashboardPage() {
             </Card>
           </section>
 
-          {/* المستوى الثالث: التحليلات */}
+          {/* Level 3: Analytics */}
           <section>
-            <SectionLabel icon={<TrendingUp size={16} className="text-petrol" />}>التحليلات</SectionLabel>
+            <SectionLabel icon={<TrendingUp size={16} className="text-primary" />}>التحليلات</SectionLabel>
 
             {chartsLoading ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <Card key={i}>
-                    <div className="h-6 bg-concrete-200 rounded w-40 mb-6"></div>
-                    <div className="h-64 bg-concrete-100 rounded animate-pulse"></div>
+                    <div className="h-5 bg-surface-muted rounded-lg w-40 mb-6 animate-shimmer"></div>
+                    <div className="h-64 bg-surface-muted rounded-xl animate-shimmer"></div>
                   </Card>
                 ))}
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <ChartCard title="العينات حسب النوع" icon={<FlaskConical size={20} className="text-petrol" />}>
+                <ChartCard title="العينات حسب النوع" icon={<FlaskConical size={20} className="text-primary" />}>
                   {samplesByType.length === 0 ? <EmptyData /> : (
                     <>
                       <div className="relative">
@@ -697,17 +473,17 @@ export default function DashboardPage() {
                           </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-2xl font-bold text-concrete-800">
+                          <span className="text-2xl font-bold text-text-primary">
                             {samplesByType.reduce((sum, s) => sum + s.value, 0)}
                           </span>
-                          <span className="text-xs text-concrete-500">عينة</span>
+                          <span className="text-xs text-text-muted">عينة</span>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-3 mt-4">
                         {samplesByType.map((item, idx) => (
-                          <div key={item.name} className="flex items-center gap-1 text-sm">
+                          <div key={item.name} className="flex items-center gap-1.5 text-sm">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                            <span className="text-concrete-500">{item.name}</span>
+                            <span className="text-text-secondary">{item.name}</span>
                           </div>
                         ))}
                       </div>
@@ -715,38 +491,38 @@ export default function DashboardPage() {
                   )}
                 </ChartCard>
 
-                <ChartCard title="الإيرادات الشهرية" icon={<TrendingUp size={20} className="text-petrol" />}>
+                <ChartCard title="الإيرادات الشهرية" icon={<TrendingUp size={20} className="text-primary" />}>
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={monthlyRevenue} margin={{ top: 4 }}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#12708A" />
-                          <stop offset="100%" stopColor="#0F4C5C" />
+                          <stop offset="0%" stopColor="#1a5276" />
+                          <stop offset="100%" stopColor="#154360" />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ fill: 'rgba(15, 76, 92, 0.06)' }} />
-                      <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} name="الإيرادات (₪)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6c757d' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: '#6c757d' }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: 'rgba(26, 82, 118, 0.06)' }} />
+                      <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[6, 6, 0, 0]} name="الإيرادات (₪)" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="الفحوصات اليومية (آخر 7 أيام)" icon={<ClipboardCheck size={20} className="text-petrol" />}>
+                <ChartCard title="الفحوصات اليومية (آخر 7 أيام)" icon={<ClipboardCheck size={20} className="text-primary" />}>
                   <ResponsiveContainer width="100%" height={280}>
                     <AreaChart data={weeklyTests} margin={{ top: 4 }}>
                       <defs>
                         <linearGradient id="colorTests" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0F4C5C" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#0F4C5C" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#1a5276" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#1a5276" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                      <XAxis dataKey="day" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ stroke: '#0F4C5C', strokeDasharray: '3 3' }} />
-                      <Area type="monotone" dataKey="count" stroke="#0F4C5C" strokeWidth={2} fill="url(#colorTests)" name="عدد الفحوصات" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" vertical={false} />
+                      <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#6c757d' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: '#6c757d' }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ stroke: '#1a5276', strokeDasharray: '3 3' }} />
+                      <Area type="monotone" dataKey="count" stroke="#1a5276" strokeWidth={2} fill="url(#colorTests)" name="عدد الفحوصات" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </ChartCard>

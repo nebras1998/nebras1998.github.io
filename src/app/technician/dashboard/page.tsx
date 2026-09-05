@@ -12,6 +12,7 @@ import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import EmptyData from '@/components/EmptyData';
 import TableSkeleton from '@/components/TableSkeleton';
+import { formatDateAr } from '@/lib/helpers';
 
 export default function TechnicianDashboard() {
   const { user, employee, logout, loading } = useAuthStore();
@@ -54,8 +55,8 @@ export default function TechnicianDashboard() {
   if (loading) return <div className="p-4"><TableSkeleton rows={5} cols={3} /></div>;
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex justify-between items-center shadow">
+    <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+      <header className="bg-primary text-white p-4 flex justify-between items-center shadow">
         <h1 className="text-lg font-bold">مهامي</h1>
         <div className="flex items-center gap-3">
           <span className="text-sm">{employee?.name}</span>
@@ -78,16 +79,16 @@ export default function TechnicianDashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-mono font-bold text-base">{s.sampleNumber}</p>
-                      <p className="text-sm text-concrete-500">{s.type}</p>
+                      <p className="text-sm text-text-muted">{s.type}</p>
                     </div>
                     <AlertCircle size={20} className="text-warning" />
                   </div>
                   <div className="text-xs mt-2 space-y-1">
                     {s.test7DaysDate && s.test7DaysDate >= new Date().toISOString().split('T')[0] && (
-                      <p className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-petrol" /> 7 أيام: {s.test7DaysDate}</p>
+                      <p className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" /> 7 أيام: {formatDateAr(s.test7DaysDate)}</p>
                     )}
                     {s.test28DaysDate && s.test28DaysDate >= new Date().toISOString().split('T')[0] && (
-                      <p className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-petrol" /> 28 يوم: {s.test28DaysDate}</p>
+                      <p className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" /> 28 يوم: {formatDateAr(s.test28DaysDate)}</p>
                     )}
                   </div>
                 </div>
@@ -109,7 +110,7 @@ export default function TechnicianDashboard() {
                 <Link key={test.$id} href={`/technician/tests/${test.$id}`} className="block">
                   <Card className="hover:shadow-md transition-shadow">
                     <div className="font-bold text-lg">{test.testName}</div>
-                    <div className="text-sm text-concrete-500 mt-1">رقم العينة: {test.sampleId}</div>
+                    <div className="text-sm text-text-muted mt-1">رقم العينة: {test.sampleId}</div>
                     <div className="mt-2">
                       <Badge status={test.status} size="sm" />
                     </div>

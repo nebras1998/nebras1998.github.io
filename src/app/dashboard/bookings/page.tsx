@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ID } from 'appwrite';
-import { generateUniqueProjectNumber } from '@/lib/helpers';
+import { generateUniqueProjectNumber, formatDateAr } from '@/lib/helpers';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatCard from '@/components/StatCard';
 import Badge from '@/components/Badge';
@@ -75,7 +75,7 @@ const CustomCalendar = ({
   const weeks: React.ReactNode[] = [];
   let days: React.ReactNode[] = [];
   for (let i = 0; i < startDay; i++) {
-    days.push(<div key={`empty-${i}`} className="h-20 border bg-concrete-50" />);
+    days.push(<div key={`empty-${i}`} className="h-20 border bg-surface-dim" />);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -88,17 +88,17 @@ const CustomCalendar = ({
     days.push(
       <div
         key={day}
-        className={`h-20 border p-1 cursor-pointer transition-colors hover:bg-petrol-soft relative ${
-          isToday ? 'bg-petrol-soft' : isWeekend ? 'bg-concrete-100' : 'bg-white'
+        className={`h-20 border p-1 cursor-pointer transition-colors hover:bg-primary-50 relative ${
+          isToday ? 'bg-primary-50' : isWeekend ? 'bg-surface-muted' : 'bg-white'
         }`}
         onClick={() => onSelectDay(dateStr)}
       >
         <div className="flex justify-between items-start">
-          <span className={`text-sm font-bold ${isToday ? 'text-petrol' : ''}`}>
+          <span className={`text-sm font-bold ${isToday ? 'text-primary' : ''}`}>
             {day}
           </span>
           {dayBookings.length > 0 && (
-            <span className="text-xs bg-petrol text-white rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="text-xs bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center">
               {dayBookings.length}
             </span>
           )}
@@ -116,7 +116,7 @@ const CustomCalendar = ({
             </div>
           ))}
           {dayBookings.length > 2 && (
-            <div className="text-xs text-concrete-500">+{dayBookings.length - 2} المزيد</div>
+            <div className="text-xs text-text-muted">+{dayBookings.length - 2} المزيد</div>
           )}
         </div>
       </div>
@@ -130,22 +130,22 @@ const CustomCalendar = ({
   if (days.length > 0) {
     const filler: React.ReactNode[] = [];
     for (let i = days.length; i < 7; i++) {
-      filler.push(<div key={`empty-end-${i}`} className="h-20 border bg-concrete-50" />);
+      filler.push(<div key={`empty-end-${i}`} className="h-20 border bg-surface-dim" />);
     }
     weeks.push(<div key={`week-${weeks.length}`} className="grid grid-cols-7">{[...days, ...filler]}</div>);
   }
 
   return (
-    <div>
+    <div dir="rtl">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <button onClick={goToPreviousMonth} className="p-2 rounded-lg hover:bg-concrete-200 border">
+          <button onClick={goToPreviousMonth} className="p-2 rounded-lg hover:bg-border border">
             <ChevronLeft size={18} />
           </button>
-          <button onClick={goToToday} className="px-3 py-1 text-sm rounded-lg hover:bg-concrete-200 border">
+          <button onClick={goToToday} className="px-3 py-1 text-sm rounded-lg hover:bg-border border">
             اليوم
           </button>
-          <button onClick={goToNextMonth} className="p-2 rounded-lg hover:bg-concrete-200 border">
+          <button onClick={goToNextMonth} className="p-2 rounded-lg hover:bg-border border">
             <ChevronRight size={18} />
           </button>
         </div>
@@ -162,7 +162,7 @@ const CustomCalendar = ({
           <span className="text-lg font-bold">{viewDate.format('YYYY')}</span>
         </div>
       </div>
-      <div className="grid grid-cols-7 bg-concrete-100 border-b">
+      <div className="grid grid-cols-7 bg-surface-muted border-b">
         {['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map(d => (
           <div key={d} className="p-2 text-center font-bold text-sm">{d}</div>
         ))}
@@ -460,7 +460,7 @@ export default function BookingsPage() {
                 <ul className="text-sm text-warning mt-1 list-disc list-inside">
                   {nearbyBookings.map(b => (
                     <li key={b.$id}>
-                      {b.clientName} - {b.sampleType} ({b.preferredDate})
+                      {b.clientName} - {b.sampleType} ({formatDateAr(b.preferredDate)})
                     </li>
                   ))}
                 </ul>
@@ -469,11 +469,11 @@ export default function BookingsPage() {
           )}
 
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <h1 className="text-2xl font-bold">الحجوزات</h1>
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">الحجوزات</h1>
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setViewMode(viewMode === 'table' ? 'calendar' : 'table')}
-                className="bg-concrete-200 text-concrete-800 px-4 py-2 rounded-xl hover:bg-concrete-200 flex items-center gap-2"
+                className="bg-border text-text-primary px-4 py-2 rounded-xl hover:bg-border flex items-center gap-2"
               >
                 {viewMode === 'table' ? <CalendarIcon size={18} /> : <Table size={18} />}
                 {viewMode === 'table' ? 'عرض التقويم' : 'عرض الجدول'}
@@ -483,12 +483,12 @@ export default function BookingsPage() {
                   <button onClick={exportCSV} className="bg-success-bg text-success px-4 py-2 rounded-xl hover:bg-success-bg flex items-center gap-2">
                     <Download size={18} /> تصدير CSV
                   </button>
-                  <button onClick={printTable} className="bg-concrete-100 text-concrete-800 px-4 py-2 rounded-xl hover:bg-concrete-200 flex items-center gap-2">
+                  <button onClick={printTable} className="bg-surface-muted text-text-primary px-4 py-2 rounded-xl hover:bg-border flex items-center gap-2">
                     <Printer size={18} /> طباعة
                   </button>
                 </>
               )}
-              <Link href="/dashboard/bookings/new" className="bg-petrol text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-petrol-dark">
+              <Link href="/dashboard/bookings/new" className="bg-gradient-to-l from-primary to-primary-dark text-white px-5 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 active:scale-[0.98] flex items-center gap-2">
                 <Plus size={18} /> حجز جديد
               </Link>
             </div>
@@ -498,16 +498,16 @@ export default function BookingsPage() {
             <StatCard title="معلقة" value={stats.pending} centered bgColor="bg-warning-bg" valueClass="text-warning" />
             <StatCard title="مقبولة" value={stats.accepted} centered bgColor="bg-success-bg" valueClass="text-success" />
             <StatCard title="مرفوضة" value={stats.rejected} centered bgColor="bg-danger-bg" valueClass="text-danger" />
-            <StatCard title="اليوم" value={stats.today} centered bgColor="bg-petrol-soft" valueClass="text-petrol" />
+            <StatCard title="اليوم" value={stats.today} centered bgColor="bg-primary-50" valueClass="text-primary" />
           </div>
 
           {viewMode === 'table' && (
             <div className="flex gap-4">
               <div className="relative flex-1">
-                <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-concrete-500" />
+                <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input type="text" placeholder="ابحث..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border p-2 pr-10 rounded-xl" />
               </div>
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0">
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-border p-2 rounded-xl bg-surface">
                 <option value="">كل الحالات</option>
                 <option value="معلق">معلق</option>
                 <option value="مقبول">مقبول</option>
@@ -530,16 +530,16 @@ export default function BookingsPage() {
               />
             </Card>
           ) : (
-            <div className="bg-white rounded-xl shadow overflow-x-auto print:shadow-none print:rounded-none">
+            <Card className="overflow-x-auto print:shadow-none print:rounded-none">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-concrete-50 border-b">
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">رقم الحجز</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">العميل</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">نوع العينة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">التاريخ المفضل</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50">الحالة</th>
-                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-concrete-50 print:hidden">الإجراءات</th>
+                  <tr className="bg-surface-dim border-b border-border">
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">رقم الحجز</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">العميل</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">نوع العينة</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">التاريخ المفضل</th>
+                    <th className="text-right p-4 text-sm font-semibold text-text-secondary sticky top-0 z-10 bg-surface-dim">الحالة</th>
+                    <th className="text-right p-3 text-sm font-semibold sticky top-0 z-10 bg-surface-dim print:hidden">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -547,20 +547,17 @@ export default function BookingsPage() {
                     <tr><td colSpan={6}><EmptyData title="لا توجد حجوزات" className="py-8" /></td></tr>
                   ) : (
                     filtered.map(b => (
-                      <tr key={b.$id} className="border-b hover:bg-concrete-50">
+                      <tr key={b.$id} className="border-b border-border/50 hover:bg-primary-50 transition-colors">
                         <td className="p-3 font-mono">{b.bookingNumber}</td>
                         <td className="p-3">{b.clientName}</td>
                         <td className="p-3">{b.sampleType}</td>
-                        <td className="p-3">{b.preferredDate || '-'}</td>
+                        <td className="p-3">{formatDateAr(b.preferredDate)}</td>
                         <td className="p-3">
                           <Badge status={b.status} />
                         </td>
                         <td className="p-3 flex flex-wrap gap-1 print:hidden">
-                          {b.status === 'معلق' && (
-                            <button onClick={() => acceptBooking(b)} className="text-petrol hover:underline flex items-center gap-1 text-sm"><Check size={14} /> قبول</button>
-                          )}
                           {b.status !== 'مقبول' && (
-                            <button onClick={() => changeStatus(b.$id, 'مقبول')} className="text-petrol hover:underline flex items-center gap-1 text-sm"><Check size={14} /> تعيين كمقبول</button>
+                            <button onClick={() => (b.status === 'معلق' ? acceptBooking(b) : changeStatus(b.$id, 'مقبول'))} className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1 text-sm"><Check size={14} /> قبول</button>
                           )}
                           {b.status !== 'مرفوض' && (
                             <button onClick={() => changeStatus(b.$id, 'مرفوض')} className="text-danger hover:underline flex items-center gap-1 text-sm"><X size={14} /> رفض</button>
@@ -575,7 +572,7 @@ export default function BookingsPage() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </Card>
           )}
         </div>
 
@@ -593,7 +590,7 @@ export default function BookingsPage() {
         {quickAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-              <h2 className="text-xl font-bold mb-4">حجز جديد - {quickAddDate}</h2>
+              <h2 className="text-xl font-bold mb-4">حجز جديد - {formatDateAr(quickAddDate)}</h2>
               <form onSubmit={handleQuickAdd} className="space-y-3">
                 <TextField
                   name="clientName"
@@ -640,7 +637,7 @@ export default function BookingsPage() {
                 />
                 <div className="flex gap-2">
                   <SubmitButton loading={quickAddLoading} className="flex-1">حفظ</SubmitButton>
-                  <button type="button" onClick={() => setQuickAddModal(false)} className="flex-1 bg-concrete-200 text-concrete-800 py-2 rounded-lg font-bold">
+                  <button type="button" onClick={() => setQuickAddModal(false)} className="flex-1 bg-border text-text-primary py-2 rounded-lg font-bold">
                     إلغاء
                   </button>
                 </div>
