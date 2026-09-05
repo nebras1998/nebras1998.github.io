@@ -23,7 +23,8 @@ import Breadcrumb from '@/components/Breadcrumb';
 
 import { toast } from 'sonner';
 
-import { FileDown, X, Plus } from 'lucide-react';
+import { FileDown, X } from 'lucide-react';
+import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import {
   getTestResultType,
   parseResultFields,
@@ -164,16 +165,6 @@ export default function EditTestPage() {
     }
   };
 
-  const updateResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => setter((prev: string[]) => { const n = [...prev]; n[index] = value; return n; });
-  const addResult = (setter: React.Dispatch<React.SetStateAction<string[]>>) => setter((prev: string[]) => [...prev, '']);
-  const removeResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => setter((prev: string[]) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
-  const calcAvg = (vals: string[]) => {
-    // filter blank cells before numeric conversion — Number('') === 0 would otherwise
-    // silently pull the average down
-    const nums = vals.filter((v) => v.trim() !== '').map(Number).filter((n) => !isNaN(n));
-    return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
-  };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setSelectedFile(e.target.files[0]); };
   const uploadFile = async (): Promise<string | null> => {
     if (!selectedFile) return formData.reportFileId;
@@ -266,7 +257,7 @@ export default function EditTestPage() {
               <div className="flex flex-wrap gap-2">
                 {standardTests.map(test => (
                   <button type="button" key={test.$id} onClick={() => handleTestSelect(test)}
-                    className={`px-3 py-1 rounded border text-sm ${formData.testName === test.name ? 'bg-petrol text-white' : 'bg-white hover:bg-concrete-100'}`}>
+                    className={`px-3 py-1 rounded border text-sm ${formData.testName === test.name ? 'bg-primary text-white' : 'bg-white hover:bg-surface-muted'}`}>
                     {test.name} {test.specification ? `(${test.specification})` : ''}
                   </button>
                 ))}
@@ -277,91 +268,49 @@ export default function EditTestPage() {
           {specProfiles.length > 0 && (
             <SelectField label="المعيار المطبق" name="appliedStandardName" value={selectedProfileName} onChange={(e) => handleProfileSelect(e.target.value)}>
               <option value="">بدون معيار محدد</option>
-              {specProfiles.map((p) => (
-                <option key={p.name} value={p.name}>{p.name}{p.specification ? ` (${p.specification})` : ''}</option>
+              {specProfiles.map((p, idx) => (
+                <option key={`${p.name}-${idx}`} value={p.name}>{p.name}{p.specification ? ` (${p.specification})` : ''}</option>
               ))}
             </SelectField>
           )}
 
           <TextField label="اسم الفحص" name="testName" value={formData.testName} onChange={handleChange} required />
 
-          {/* ========== فحص مقاومة الضغط ========== */}
-          {isDualAge && (
-            <div className="space-y-4">
-              <div className="bg-petrol-soft p-4 rounded-lg">
-                <h3 className="font-bold text-petrol mb-2">نتائج عمر 7 أيام</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <TextField type="date" id="age7-test-date" label="تاريخ الفحص" value={test7Date} onChange={e => setTest7Date(e.target.value)} />
-                  <TextField id="age7-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
-                </div>
-                <div className="space-y-2">
-                  {age7Results.map((val, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-sm w-16">مكعب {idx + 1}</span>
-                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge7Results, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
-                      {age7Results.length > 1 && <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger"><X size={16} /></button>}
-                    </div>
-                  ))}
-                </div>
-                <button type="button" onClick={() => addResult(setAge7Results)} className="mt-2 text-petrol text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
-                <div className="mt-2 font-bold text-success">المتوسط: {calcAvg(age7Results)}</div>
-              </div>
-              <div className="bg-petrol-soft p-4 rounded-lg">
-                <h3 className="font-bold text-petrol mb-2">نتائج عمر 28 يوم</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <TextField type="date" id="age28-test-date" label="تاريخ الفحص" value={test28Date} onChange={e => setTest28Date(e.target.value)} />
-                  <TextField id="age28-unit" label="الوحدة" value={formData.unit} readOnly inputClassName="bg-concrete-100" />
-                </div>
-                <div className="space-y-2">
-                  {age28Results.map((val, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-sm w-16">مكعب {idx + 1}</span>
-                      <input type="number" step="0.01" value={val} onChange={e => updateResult(setAge28Results, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
-                      {age28Results.length > 1 && <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger"><X size={16} /></button>}
-                    </div>
-                  ))}
-                </div>
-                <button type="button" onClick={() => addResult(setAge28Results)} className="mt-2 text-petrol text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
-                <div className="mt-2 font-bold text-success">المتوسط: {calcAvg(age28Results)}</div>
-              </div>
-            </div>
-          )}
-
-          {/* ========== فحوصات متعددة المكعبات ========== */}
-          {isMultiResult && (
-            <div className="bg-petrol-soft p-4 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-petrol">نتائج المكعبات</h3>
-                <button type="button" onClick={() => addResult(setCubeResults)} className="text-petrol hover:underline text-sm flex items-center gap-1"><Plus size={14} /> إضافة مكعب</button>
-              </div>
-              {cubeResults.map((val, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-sm text-concrete-500 w-20">مكعب {idx + 1}</span>
-                  <input type="number" step="0.01" value={val} onChange={e => updateResult(setCubeResults, idx, e.target.value)} className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0" placeholder="0" />
-                  <span className="text-sm">{formData.unit || '-'}</span>
-                  {cubeResults.length > 1 && <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger"><X size={16} /></button>}
-                </div>
-              ))}
-              <div className="font-bold text-success">المتوسط: {calcAvg(cubeResults)}</div>
-            </div>
-          )}
+          {/* ========== نتائج الفحص حسب النوع ========== */}
+          <TestResultRowsEditor
+            resultType={resultType}
+            unit={formData.unit}
+            age7Results={age7Results}
+            age28Results={age28Results}
+            test7Date={test7Date}
+            test28Date={test28Date}
+            onAge7ResultsChange={(v) => setAge7Results(v)}
+            onAge28ResultsChange={(v) => setAge28Results(v)}
+            onTest7DateChange={(v) => setTest7Date(v)}
+            onTest28DateChange={(v) => setTest28Date(v)}
+            cubeResults={cubeResults}
+            onCubeResultsChange={(v) => setCubeResults(v)}
+            resultFields={resultFields}
+            resultFieldsValues={resultFieldsValues}
+            onResultFieldsValuesChange={(v) => setResultFieldsValues(v)}
+          />
 
           {/* ========== فحوصات متعددة الحقول (multi_field) ========== */}
           {isMultiField && (
-            <div className="bg-petrol-soft p-4 rounded-lg space-y-3">
-              <h3 className="font-bold text-petrol">نتائج الفحص</h3>
+            <div className="bg-primary-50 p-4 rounded-lg space-y-3">
+              <h3 className="font-bold text-primary">نتائج الفحص</h3>
               {resultFields.length === 0 ? (
-                <p className="text-sm text-concrete-500">لم تُعرّف حقول نتائج لهذا الفحص.</p>
+                <p className="text-sm text-text-muted">لم تُعرّف حقول نتائج لهذا الفحص.</p>
               ) : (
                 resultFields.map((f) => (
                   <div key={f.key} className="flex items-center gap-2">
-                    <span className="text-sm text-concrete-500 w-24 shrink-0">{f.label}</span>
+                    <span className="text-sm text-text-muted w-24 shrink-0">{f.label}</span>
                     <input
                       type="number"
                       step="0.01"
                       value={resultFieldsValues[f.key] || ''}
                       onChange={(e) => setResultFieldsValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                      className="flex-1 border border-concrete-200 p-2 rounded-xl bg-concrete-0"
+                      className="flex-1 border border-border p-2 rounded-xl bg-surface"
                       placeholder="0"
                     />
                     <span className="text-sm">{f.unit || formData.unit || '-'}</span>
@@ -394,7 +343,7 @@ export default function EditTestPage() {
             <h3 className="font-bold mb-2">تقرير الفحص (PDF)</h3>
             {existingFileUrl && (
               <div className="mb-2 flex items-center gap-2">
-                <a href={existingFileUrl} target="_blank" rel="noopener noreferrer" className="text-petrol hover:underline flex items-center gap-1"><FileDown size={16} /> التقرير الحالي</a>
+                <a href={existingFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><FileDown size={16} /> التقرير الحالي</a>
                 <button type="button" onClick={async () => {
                   if (formData.reportFileId) { try { await deleteFile(formData.reportFileId); toast.success('تم حذف الملف'); } catch (err: unknown) { toast.error('فشل حذف الملف: ' + (err instanceof Error ? err.message : String(err))); } }
                   setExistingFileUrl(null); setFormData({...formData, reportFileId: ''}); setSelectedFile(null);
@@ -402,10 +351,10 @@ export default function EditTestPage() {
               </div>
             )}
             <div className="flex items-center gap-2">
-              <input type="file" accept=".pdf" ref={fileInputRef} onChange={handleFileSelect} className="border border-concrete-200 p-2 rounded-xl bg-concrete-0" />
-              {selectedFile && <span className="text-sm text-concrete-500">{selectedFile.name}</span>}
+              <input type="file" accept=".pdf" ref={fileInputRef} onChange={handleFileSelect} className="border border-border p-2 rounded-xl bg-surface" />
+              {selectedFile && <span className="text-sm text-text-muted">{selectedFile.name}</span>}
             </div>
-            {uploading && <p className="text-sm text-petrol mt-1">جارٍ رفع الملف...</p>}
+            {uploading && <p className="text-sm text-primary mt-1">جارٍ رفع الملف...</p>}
           </div>
 
           <SubmitButton loading={saving} disabled={uploading} className="w-full">حفظ التعديلات</SubmitButton>

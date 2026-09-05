@@ -6,8 +6,9 @@ import type { Test, Sample } from '@/types';
 import { getTest, updateTest, getSample, listEmployees, Query } from '@/lib/services';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/useAuthStore';
-import { ArrowRight, Save, Plus, X } from 'lucide-react';
+import { ArrowRight, Save } from 'lucide-react';
 import { createNotification } from '@/lib/notifications';
+import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import Card from '@/components/Card';
 import TextField from '@/components/TextField';
 import TextAreaField from '@/components/TextAreaField';
@@ -120,19 +121,6 @@ export default function TechnicianTestPage() {
     };
     fetchTest();
   }, [testId]);
-
-  // --- دوال مساعدة لنتائج المكعبات ---
-  const updateResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
-    setter((prev: string[]) => { const n = [...prev]; n[index] = value; return n; });
-  };
-  const addResult = (setter: React.Dispatch<React.SetStateAction<string[]>>) => setter((prev: string[]) => [...prev, '']);
-  const removeResult = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => setter((prev: string[]) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev);
-  const calcAvg = (vals: string[]) => {
-    // filter blank cells before numeric conversion — Number('') === 0 would otherwise
-    // silently pull the average down
-    const nums = vals.filter((v) => v.trim() !== '').map(Number).filter((n) => !isNaN(n));
-    return nums.length ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(2) : '';
-  };
 
   const hasEnteredValue =
     isDualAge
@@ -274,18 +262,18 @@ export default function TechnicianTestPage() {
   if (!test) return <div className="p-4"><EmptyData title="الفحص غير موجود" /></div>;
 
   return (
-    <div className="min-h-screen bg-concrete-50 pb-20" dir="rtl">
-      <header className="bg-petrol text-white p-4 flex items-center gap-3 shadow">
+    <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+      <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
         <button onClick={() => router.back()} className="text-white"><ArrowRight size={24} /></button>
         <h1 className="text-lg font-bold">{test.testName}</h1>
       </header>
 
       <main className="p-4">
         <Card className="mb-4 space-y-1 text-sm">
-          <p><span className="text-concrete-500">رقم العينة:</span> {sample?.sampleNumber || test.sampleId}</p>
-          <p><span className="text-concrete-500">النوع:</span> {sample?.type || '-'}</p>
-          <p><span className="text-concrete-500">المواصفة:</span> {appliedStandard?.specification || test.specification || '-'}</p>
-          {appliedStandard && <p><span className="text-concrete-500">المعيار المطبق:</span> {appliedStandard.name}</p>}
+          <p><span className="text-text-muted">رقم العينة:</span> {sample?.sampleNumber || test.sampleId}</p>
+          <p><span className="text-text-muted">النوع:</span> {sample?.type || '-'}</p>
+          <p><span className="text-text-muted">المواصفة:</span> {appliedStandard?.specification || test.specification || '-'}</p>
+          {appliedStandard && <p><span className="text-text-muted">المعيار المطبق:</span> {appliedStandard.name}</p>}
           {showLiveCompliance && (
             <div className="flex items-center justify-between pt-2 border-t mt-2">
               <span className="font-bold text-sm">حالة المطابقة</span>
@@ -295,129 +283,26 @@ export default function TechnicianTestPage() {
         </Card>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ========== فحص مقاومة الضغط (عمرين) ========== */}
-          {isDualAge && (
-            <div className="space-y-4">
-              {/* عمر 7 أيام */}
-              <div className="bg-petrol-soft p-4 rounded-2xl">
-                <h3 className="font-bold text-petrol mb-3">نتائج عمر 7 أيام</h3>
-                <TextField label="تاريخ الفحص" type="date" value={test7Date} onChange={e => setTest7Date(e.target.value)} className="mb-3" />
-                {age7Results.map((val, idx) => (
-                  <div key={idx} className="flex items-center gap-2 mb-2">
-                    <span className="text-sm w-16">مكعب {idx + 1}</span>
-                    <TextField
-                      type="number"
-                      step="0.01"
-                      value={val}
-                      onChange={e => updateResult(setAge7Results, idx, e.target.value)}
-                      className="flex-1"
-                      placeholder="0"
-                    />
-                <span className="text-sm">{unit || '-'}</span>
-                {age7Results.length > 1 && (
-                  <button type="button" onClick={() => removeResult(setAge7Results, idx)} className="text-danger p-1"><X size={18} /></button>
-                )}
-                  </div>
-                ))}
-                <button type="button" onClick={() => addResult(setAge7Results)} className="mt-2 text-petrol text-sm flex items-center gap-1 font-bold">
-                  <Plus size={16} /> إضافة مكعب
-                </button>
-                <div className="mt-3 text-center font-bold text-success">
-                  المتوسط: {calcAvg(age7Results)}{unit ? ` ${unit}` : ''}
-                </div>
-              </div>
+          {/* ========== نتائج الفحص حسب النوع ========== */}
+          <TestResultRowsEditor
+            resultType={resultType}
+            unit={unit}
+            age7Results={age7Results}
+            age28Results={age28Results}
+            test7Date={test7Date}
+            test28Date={test28Date}
+            onAge7ResultsChange={(v) => setAge7Results(v)}
+            onAge28ResultsChange={(v) => setAge28Results(v)}
+            onTest7DateChange={(v) => setTest7Date(v)}
+            onTest28DateChange={(v) => setTest28Date(v)}
+            cubeResults={cubeResults}
+            onCubeResultsChange={(v) => setCubeResults(v)}
+            resultFields={resultFields}
+            resultFieldsValues={resultFieldsValues}
+            onResultFieldsValuesChange={(v) => setResultFieldsValues(v)}
+          />
 
-              {/* عمر 28 يوم */}
-              <div className="bg-petrol-soft p-4 rounded-2xl">
-                <h3 className="font-bold text-petrol mb-3">نتائج عمر 28 يوم</h3>
-                <TextField label="تاريخ الفحص" type="date" value={test28Date} onChange={e => setTest28Date(e.target.value)} className="mb-3" />
-                {age28Results.map((val, idx) => (
-                  <div key={idx} className="flex items-center gap-2 mb-2">
-                    <span className="text-sm w-16">مكعب {idx + 1}</span>
-                    <TextField
-                      type="number"
-                      step="0.01"
-                      value={val}
-                      onChange={e => updateResult(setAge28Results, idx, e.target.value)}
-                      className="flex-1"
-                      placeholder="0"
-                    />
-                <span className="text-sm">{unit || '-'}</span>
-                {age28Results.length > 1 && (
-                  <button type="button" onClick={() => removeResult(setAge28Results, idx)} className="text-danger p-1"><X size={18} /></button>
-                )}
-                  </div>
-                ))}
-                <button type="button" onClick={() => addResult(setAge28Results)} className="mt-2 text-petrol text-sm flex items-center gap-1 font-bold">
-                  <Plus size={16} /> إضافة مكعب
-                </button>
-                <div className="mt-3 text-center font-bold text-success">
-                  المتوسط: {calcAvg(age28Results)}{unit ? ` ${unit}` : ''}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========== فحوصات متعددة المكعبات (القلب الخرساني) ========== */}
-          {isMultiResult && !isDualAge && (
-            <div className="bg-petrol-soft p-4 rounded-2xl space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-petrol">نتائج المكعبات</h3>
-                <button type="button" onClick={() => addResult(setCubeResults)} className="text-petrol text-sm flex items-center gap-1 font-bold">
-                  <Plus size={16} /> إضافة مكعب
-                </button>
-              </div>
-              {cubeResults.map((val, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-sm w-16">مكعب {idx + 1}</span>
-                  <TextField
-                    type="number"
-                    step="0.01"
-                    value={val}
-                    onChange={e => updateResult(setCubeResults, idx, e.target.value)}
-                    className="flex-1"
-                    placeholder="0"
-                  />
-                  <span className="text-sm">{unit || '-'}</span>
-                  {cubeResults.length > 1 && (
-                    <button type="button" onClick={() => removeResult(setCubeResults, idx)} className="text-danger p-1"><X size={18} /></button>
-                  )}
-                </div>
-              ))}
-              <div className="text-center font-bold text-success mt-2">
-                المتوسط: {calcAvg(cubeResults)}{unit ? ` ${unit}` : ''}
-              </div>
-            </div>
-          )}
-
-          {/* ========== فحوصات متعددة الحقول (multi_field) ========== */}
-          {isMultiField && (
-            <div className="bg-petrol-soft p-4 rounded-2xl space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-petrol">نتائج الفحص</h3>
-              </div>
-              {resultFields.length === 0 ? (
-                <p className="text-sm text-concrete-500">لم تُعرّف حقول نتائج لهذا الفحص.</p>
-              ) : (
-                resultFields.map((f) => (
-                  <div key={f.key} className="flex items-center gap-2">
-                    <span className="text-sm w-24 shrink-0">{f.label}</span>
-                    <TextField
-                      type="number"
-                      step="0.01"
-                      value={resultFieldsValues[f.key] || ''}
-                      onChange={(e) => setResultFieldsValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                      className="flex-1"
-                      placeholder="0"
-                    />
-                    <span className="text-sm">{f.unit || unit || '-'}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* ========== فحص عادي ========== */}
+        {/* ========== فحص عادي ========== */}
           {!isDualAge && !isMultiResult && !isMultiField && (
             <>
               <Card className="space-y-4">
