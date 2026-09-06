@@ -20,6 +20,9 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "مختبر LIMS",
   description: "منصة إدارة المختبر الهندسي",
+  icons: {
+    icon: "/branding/shamal-logo.jpg",
+  },
 };
 
 export default function RootLayout({
