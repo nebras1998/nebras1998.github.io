@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { Toaster } from 'sonner';
 
 const plexSans = IBM_Plex_Sans_Arabic({
@@ -36,6 +37,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>{children}</Providers>
         </ErrorBoundary>
+        <ServiceWorkerRegister />
         <Toaster richColors position="top-left" />
       </body>
     </html>

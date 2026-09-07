@@ -31,3 +31,24 @@ export async function findEmployeeByEmail(email: string): Promise<Employee | nul
   ]);
   return res.documents[0] ?? null;
 }
+
+// قائمة (مدير/إداري) المتلقين المخزّنة مؤقتًا لمنع جلب جميع الموظفين
+// عند كل عملية حفظ (كانت تُجلب 200 وثيقة لكل حفظ نتيجة فحص أو بلاغ).
+const managerCache: { promise: Promise<Employee[]> | null; at: number } = { promise: null, at: 0 };
+const MANAGER_CACHE_TTL_MS = 5 * 60 * 1000;
+
+export function getManagerRecipients(): Promise<Employee[]> {
+  const now = Date.now();
+  if (managerCache.promise && now - managerCache.at < MANAGER_CACHE_TTL_MS) {
+    return managerCache.promise;
+  }
+  managerCache.promise = (async () => {
+    const res = await listDocuments<Employee>(COL, [
+      Query.equal('status', 'يعمل'),
+      Query.limit(200),
+    ]);
+    return res.documents.filter((e) => e.role === 'مدير' || e.role === 'إداري');
+  })();
+  managerCache.at = now;
+  return managerCache.promise;
+}

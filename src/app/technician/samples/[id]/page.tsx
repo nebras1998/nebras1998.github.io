@@ -31,29 +31,27 @@ export default function SampleDetailPage() {
     if (!sampleId) return;
     const fetchData = async () => {
       try {
+        // إحضار العينة أولاً (مطلوب لتحديد المراجع)، ثم الأسماء بالتوازي في خطوة واحدة
         const sampleDoc = await getSample(sampleId);
         setSample(sampleDoc);
 
-        if (sampleDoc.projectId) {
-          const project = await getProject(sampleDoc.projectId);
+        const [project, sampler, preparer, transporter] = await Promise.all([
+          sampleDoc.projectId ? getProject(sampleDoc.projectId) : undefined,
+          sampleDoc.samplerId ? getEmployee(sampleDoc.samplerId) : undefined,
+          sampleDoc.preparerId ? getEmployee(sampleDoc.preparerId) : undefined,
+          sampleDoc.transporterId ? getEmployee(sampleDoc.transporterId) : undefined,
+        ]);
+
+        if (project) {
           setProjectName(project.name);
           if (project.clientId) {
             const client = await getClient(project.clientId);
             setClientName(client.name);
           }
         }
-        if (sampleDoc.samplerId) {
-          const emp = await getEmployee(sampleDoc.samplerId);
-          setSamplerName(emp.name);
-        }
-        if (sampleDoc.preparerId) {
-          const emp = await getEmployee(sampleDoc.preparerId);
-          setPreparerName(emp.name);
-        }
-        if (sampleDoc.transporterId) {
-          const emp = await getEmployee(sampleDoc.transporterId);
-          setTransporterName(emp.name);
-        }
+        if (sampler) setSamplerName(sampler.name);
+        if (preparer) setPreparerName(preparer.name);
+        if (transporter) setTransporterName(transporter.name);
       } catch {
         toast.error('فشل تحميل بيانات العينة');
       } finally {
@@ -126,10 +124,7 @@ export default function SampleDetailPage() {
   // ------------------- المستخدم مسجل دخول ← تفاصيل العينة -------------------
   if (!sample) return null;
 
-  const pageUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard/samples/${sampleId}` : '';
-
-  // تحديد إذا كان المستخدم فنيًا أم مديرًا لتخصيص الواجهة قليلاً
-  const isTechnician = user?.labels?.includes('technician'); // أو حسب منطق دور المستخدم لديك
+  const pageUrl = typeof window !== 'undefined' ? `${window.location.origin}/technician/samples/${sampleId}` : '';
 
   const content = (
     <FormCard title="تفاصيل العينة" maxWidth="max-w-2xl">

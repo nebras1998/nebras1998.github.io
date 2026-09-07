@@ -32,3 +32,32 @@ export async function createNotification(params: CreateNotificationParams) {
     console.error('فشل إنشاء التنبيه:', err);
   }
 }
+
+// يُستدعى من الواجهات الإدارية عند إسناد فحص لفني، بحيث يظهر
+// إشعار داخل تطبيق الفني (صفحة /technician/notifications).
+export async function notifyTestAssignment(params: {
+  testId: string;
+  testName: string;
+  testNumber?: string;
+  technicianId: string;
+  technicianName: string;
+}) {
+  if (!params.technicianId) return;
+  try {
+    await databases.createDocument(
+      DATABASE_ID,
+      NOTIFICATIONS_COLLECTION_ID,
+      ID.unique(),
+      {
+        type: 'مهمة_جديدة',
+        message: `تم إسناد فحص "${params.testName}" إليك${params.testNumber ? ` (${params.testNumber})` : ''}.`,
+        relatedId: params.testId,
+        employeeId: params.technicianId,
+        employeeName: params.technicianName,
+        isRead: false,
+      }
+    );
+  } catch (err) {
+    console.error('فشل إرسال إشعار الإسناد:', err);
+  }
+}

@@ -21,6 +21,7 @@ import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 
 import { generateTestNumber } from '@/lib/helpers';
+import { notifyTestAssignment } from '@/lib/notifications';
 import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import {
   getTestResultType,
@@ -251,6 +252,19 @@ export default function NewTestPage() {
         }
       }
       if (isSuccess) {
+        if (payload.assignedTo) {
+          const technician = employees.find((emp) => emp.$id === payload.assignedTo);
+          try {
+            await notifyTestAssignment({
+              testId: (payload.testNumber as string) || '',
+              testName: payload.testName as string,
+              technicianId: payload.assignedTo as string,
+              technicianName: technician?.name || '',
+            });
+          } catch (err: unknown) {
+            toast.warning('تم حفظ الفحص لكن فشل إرسال إشعار للفني: ' + (err instanceof Error ? err.message : String(err)));
+          }
+        }
         toast.success('تم إضافة الفحص بنجاح');
         router.push('/dashboard/tests');
       } else {

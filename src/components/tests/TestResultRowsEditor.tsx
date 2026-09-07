@@ -63,18 +63,18 @@ function AgePanel({
                 next[idx] = e.target.value;
                 onChange(next);
               }}
-              className="flex-1 border border-border p-2 rounded-xl bg-surface"
+              className="flex-1 border border-border p-3 min-h-12 rounded-xl bg-surface text-base"
               placeholder="0"
             />
             <span className="text-sm">{unit || '-'}</span>
             {values.length > 1 && (
-              <button type="button" onClick={() => onChange(values.filter((_, i) => i !== idx))} className="text-danger"><X size={16} /></button>
+              <button type="button" onClick={() => onChange(values.filter((_, i) => i !== idx))} className="text-danger p-2 shrink-0" aria-label={`حذف مكعب ${idx + 1}`}><X size={20} /></button>
             )}
           </div>
         ))}
       </div>
-      <button type="button" onClick={() => onChange([...values, ''])} className="mt-2 text-primary text-sm flex items-center gap-1">
-        <Plus size={14} /> إضافة مكعب
+      <button type="button" onClick={() => onChange([...values, ''])} className="mt-2 text-primary text-sm flex items-center gap-1 py-3">
+        <Plus size={16} /> إضافة مكعب
       </button>
       <div className="mt-2 font-bold text-success">المتوسط: {calcAvg(values)}</div>
     </div>
@@ -115,8 +115,8 @@ export default function TestResultRowsEditor({
         <div className="bg-primary-50 p-4 rounded-lg space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-primary">نتائج المكعبات</h3>
-            <button type="button" onClick={() => onCubeResultsChange([...cubeResults, ''])} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm flex items-center gap-1">
-              <Plus size={14} /> إضافة مكعب
+            <button type="button" onClick={() => onCubeResultsChange([...cubeResults, ''])} className="text-primary hover:text-primary-dark font-medium transition-colors text-sm flex items-center gap-1 py-3">
+              <Plus size={16} /> إضافة مكعب
             </button>
           </div>
           {cubeResults.map((val, idx) => (
@@ -131,12 +131,12 @@ export default function TestResultRowsEditor({
                   next[idx] = e.target.value;
                   onCubeResultsChange(next);
                 }}
-                className="flex-1 border border-border p-2 rounded-xl bg-surface"
+                className="flex-1 border border-border p-3 min-h-12 rounded-xl bg-surface text-base"
                 placeholder="0"
               />
               <span className="text-sm">{unit || '-'}</span>
               {cubeResults.length > 1 && (
-                <button type="button" onClick={() => onCubeResultsChange(cubeResults.filter((_, i) => i !== idx))} className="text-danger"><X size={16} /></button>
+                <button type="button" onClick={() => onCubeResultsChange(cubeResults.filter((_, i) => i !== idx))} className="text-danger p-2 shrink-0" aria-label={`حذف مكعب ${idx + 1}`}><X size={20} /></button>
               )}
             </div>
           ))}
@@ -158,7 +158,7 @@ export default function TestResultRowsEditor({
                   step="0.01"
                   value={resultFieldsValues[f.key] || ''}
                   onChange={(e) => onResultFieldsValuesChange({ ...resultFieldsValues, [f.key]: e.target.value })}
-                  className="flex-1 border border-border p-2 rounded-xl bg-surface"
+                  className="flex-1 border border-border p-3 min-h-12 rounded-xl bg-surface text-base"
                   placeholder="0"
                 />
                 <span className="text-sm">{f.unit || unit || '-'}</span>

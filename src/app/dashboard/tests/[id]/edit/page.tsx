@@ -24,6 +24,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 
 import { FileDown, X } from 'lucide-react';
+import { notifyTestAssignment } from '@/lib/notifications';
 import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import {
   getTestResultType,
@@ -74,6 +75,7 @@ export default function EditTestPage() {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
+  const prevAssignedToRef = useRef<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resultType: TestResultType = getTestResultType(formData.testName, formData.resultType);
@@ -97,6 +99,7 @@ export default function EditTestPage() {
         });
         setSamples(samplesRes.documents);
         setEmployees(employeesRes.documents);
+        prevAssignedToRef.current = test.assignedTo || '';
 
         // استعادة نتائج الأعمار
         if (test.result7Days) { try { setAge7Results(JSON.parse(test.result7Days).map(String)); } catch { setAge7Results(['', '', '']); } } else setAge7Results(['', '', '']);
@@ -232,6 +235,19 @@ export default function EditTestPage() {
       if (compliance) payload.complianceStatus = compliance;
 
       await updateTest(testId, payload);
+      if (formData.assignedTo && formData.assignedTo !== prevAssignedToRef.current) {
+        const technician = employees.find((emp) => emp.$id === formData.assignedTo);
+        try {
+          await notifyTestAssignment({
+            testId,
+            testName: formData.testName,
+            technicianId: formData.assignedTo,
+            technicianName: technician?.name || '',
+          });
+        } catch (err: unknown) {
+          toast.warning('تم تحديث الفحص لكن فشل إرسال إشعار للفني: ' + (err instanceof Error ? err.message : String(err)));
+        }
+      }
       toast.success('تم تحديث الفحص بنجاح');
       router.push('/dashboard/tests');
     } catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }

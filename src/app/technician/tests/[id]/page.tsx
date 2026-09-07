@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Test, Sample } from '@/types';
-import { getTest, updateTest, getSample, listEmployees, Query } from '@/lib/services';
+import { getTest, updateTest, getSample, getManagerRecipients } from '@/lib/services';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/useAuthStore';
-import { ArrowRight, Save } from 'lucide-react';
+import { ArrowRight, Save, CheckCircle2, Clock } from 'lucide-react';
 import { createNotification } from '@/lib/notifications';
+import { formatDateAr } from '@/lib/helpers';
 import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import Card from '@/components/Card';
 import TextField from '@/components/TextField';
@@ -16,6 +17,7 @@ import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import EmptyData from '@/components/EmptyData';
 import Badge from '@/components/Badge';
+import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import {
   getTestResultType,
   parseResultFields,
@@ -59,6 +61,9 @@ export default function TechnicianTestPage() {
   const [appliedStandard, setAppliedStandard] = useState<SpecificationProfile | null>(null);
 
   const [saving, setSaving] = useState(false);
+
+  // --- تأكيد بصري دائم بعد الحفظ (لا اعتماد على toast يعبر ويختفي) ---
+  const [saved, setSaved] = useState<{ status: 'مكتمل' | 'قيد الانتظار'; complianceStatus?: string } | null>(null);
 
   const resultType: TestResultType = getTestResultType(test?.testName, test?.resultType);
   const isDualAge = resultType === 'dual_age';
@@ -144,26 +149,36 @@ export default function TechnicianTestPage() {
   );
   const showLiveCompliance = !!liveCompliance && hasEnteredValue;
 
+  // --- حماية الملكية (منع IDOR): الفني يعدل فقط ما أُسند إليه ---
+  const isManager = employee?.role === 'مدير';
+  const canEdit = employee ? isManager || test?.assignedTo === employee.$id : false;
+
   // --- حفظ النتيجة ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!test) { toast.error('الفحص غير موجود'); setSaving(false); return; }
+    if (!canEdit) { toast.error('لا تملك صلاحية تعديل هذا الفحص'); setSaving(false); return; }
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
         unit,
         notes,
-        status: 'مكتمل',
         completedBy: employee?.$id,
-        completedAt: completedAt || new Date().toISOString(),
       };
 
       let compliance: 'مطابق' | 'غير مطابق' | undefined;
+      let nextStatus: 'مكتمل' | 'قيد الانتظار' = 'مكتمل';
 
       if (isDualAge) {
-        // فحص مقاومة الضغط (عمرين)
+        // فحص مقاومة الضغط (عمرين): يُحفظ كـ«قيد الانتظار» إذا أُدخِل عمر 7 أيام فقط،
+        // ويُغلق كـ«مكتمل» بعد إدخال نتيجة 28 يوم — حتى يبقى ظاهرًا في مهام الفني.
         const valid7 = age7Results.filter((r) => r.trim() !== '');
         const valid28 = age28Results.filter((r) => r.trim() !== '');
+        if (valid7.length === 0 && valid28.length === 0) {
+          toast.error('أدخل نتيجة عمر 7 أو 28 يوم على الأقل');
+          setSaving(false);
+          return;
+        }
         payload.result7Days = JSON.stringify(valid7.map(Number));
         payload.result28Days = JSON.stringify(valid28.map(Number));
         payload.average7Days = parseFloat(calcAvg(age7Results) || '0');
@@ -171,10 +186,16 @@ export default function TechnicianTestPage() {
         payload.test7Date = test7Date;
         payload.test28Date = test28Date;
         payload.result = '';
-        compliance = evaluateCompliance('dual_age', appliedStandard, {
-          average7Days: payload.average7Days as number,
-          average28Days: payload.average28Days as number,
-        });
+        if (valid28.length > 0) {
+          nextStatus = 'مكتمل';
+          compliance = evaluateCompliance('dual_age', appliedStandard, {
+            average7Days: payload.average7Days as number,
+            average28Days: payload.average28Days as number,
+          });
+        } else {
+          // نتيجة 7 أيام فقط: نُبقي الفحص مفتوحًا ولا نحتسب المطابقة قبل اكتمال العمرين.
+          nextStatus = 'قيد الانتظار';
+        }
       } else if (isMultiField) {
         // فحوصات متعددة الحقول
         const cleanValues: Record<string, string> = {};
@@ -208,12 +229,18 @@ export default function TechnicianTestPage() {
         compliance = evaluateCompliance('single', appliedStandard, { result });
       }
 
+      payload.status = nextStatus;
       if (compliance) payload.complianceStatus = compliance;
+      if (nextStatus === 'مكتمل') {
+        payload.completedAt = completedAt || new Date().toISOString();
+      } else {
+        payload.completedAt = '';
+      }
 
       await updateTest(testId, payload);
 
-      // تنبيه المديرين والإداريين
-      if (employee) {
+      // تنبيه المديرين والإداريين عند الاكتمال فقط
+      if (nextStatus === 'مكتمل' && employee) {
         const sampleNumber = sample?.sampleNumber || test.sampleId;
         const resultText = isDualAge
           ? `7 أيام: ${calcAvg(age7Results)} / 28 يوم: ${calcAvg(age28Results)}`
@@ -224,13 +251,7 @@ export default function TechnicianTestPage() {
           : result;
 
         try {
-          const managersRes = await listEmployees([
-            Query.equal('status', 'يعمل'),
-            Query.limit(200),
-          ]);
-          const recipients = managersRes.documents.filter(
-            (e) => e.role === 'مدير' || e.role === 'إداري'
-          );
+          const recipients = await getManagerRecipients();
           if (recipients.length === 0) {
             console.warn('فشل إرسال تنبيه للمدير: لا يوجد موظفون بدور مدير أو إداري');
           }
@@ -250,8 +271,8 @@ export default function TechnicianTestPage() {
         }
       }
 
-      toast.success('تم حفظ النتيجة بنجاح');
-      router.push('/technician/dashboard');
+      setSaved({ status: nextStatus, complianceStatus: compliance });
+      toast.success(nextStatus === 'مكتمل' ? 'تم حفظ النتيجة بنجاح' : 'تم حفظ نتيجة 7 أيام، سيُفتح الفحص حتى إدخال نتيجة 28 يوم');
     } catch (err: unknown) {
       toast.error('خطأ في الحفظ: ' + (err instanceof Error ? err.message : String(err)));
       setSaving(false);
@@ -260,6 +281,70 @@ export default function TechnicianTestPage() {
 
   if (loading) return <div className="p-4"><TableSkeleton rows={6} cols={2} /></div>;
   if (!test) return <div className="p-4"><EmptyData title="الفحص غير موجود" /></div>;
+
+  // حماية الملكية: عرض بدون نموذج تعديل لمن لا يملك الفحص (نفس عائلة IDOR).
+  if (!canEdit) {
+    return (
+      <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+        <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
+          <button onClick={() => router.back()} className="text-white"><ArrowRight size={24} /></button>
+          <h1 className="text-lg font-bold">{test.testName}</h1>
+        </header>
+        <main className="p-4">
+          <EmptyData title="هذا الفحص غير مسند إليك" />
+          <div className="mt-4 text-center">
+            <button onClick={() => router.push('/technician/dashboard')} className="bg-primary text-white px-6 py-3 rounded-xl font-bold">
+              العودة إلى مهامي
+            </button>
+          </div>
+        </main>
+        <TechnicianBottomNav />
+      </div>
+    );
+  }
+
+  // تأكيد بصري واضح بعد الحفظ (لا يعتمد على toast عابر).
+  if (saved) {
+    return (
+      <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
+        <header className="bg-primary text-white p-4 flex items-center gap-3 shadow">
+          <h1 className="text-lg font-bold">حفظ النتيجة</h1>
+        </header>
+        <main className="p-4">
+          <Card className="text-center py-8 space-y-4">
+            <CheckCircle2 size={64} className="mx-auto text-success" />
+            <h2 className="text-2xl font-bold text-text-primary">
+              {saved.status === 'مكتمل' ? 'تم حفظ النتيجة بنجاح' : 'تم حفظ نتيجة 7 أيام'}
+            </h2>
+            <p className="text-text-secondary">
+              {saved.status === 'مكتمل'
+                ? `تم إغلاق فحص "${test.testName}" للعينة ${sample?.sampleNumber || test.sampleId}.`
+                : 'سيبقى الفحص ظاهرًا في مهامك لإدخال نتيجة 28 يوم لاحقًا.'}
+            </p>
+            {saved.complianceStatus && (
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-sm font-bold">حالة المطابقة:</span>
+                <Badge status={saved.complianceStatus} />
+              </div>
+            )}
+            {saved.status === 'قيد الانتظار' && (
+              <div className="flex items-center justify-center gap-2 text-warning text-sm">
+                <Clock size={16} />
+                نتيجة 28 يوم: {formatDateAr(test28Date)}
+              </div>
+            )}
+            <button
+              onClick={() => router.push('/technician/dashboard')}
+              className="mx-auto bg-primary text-white px-8 py-3 rounded-xl font-bold hover:from-primary-dark hover:to-primary"
+            >
+              العودة إلى مهامي
+            </button>
+          </Card>
+        </main>
+        <TechnicianBottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface-dim pb-20" dir="rtl">
@@ -354,6 +439,8 @@ export default function TechnicianTestPage() {
           </SubmitButton>
         </form>
       </main>
+
+      <TechnicianBottomNav />
     </div>
   );
 }

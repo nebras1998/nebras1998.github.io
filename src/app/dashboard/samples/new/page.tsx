@@ -12,6 +12,7 @@ import { Query } from '@/lib/services';
 import type { Project, Employee } from '@/types';
 import type { SampleType, StandardTest } from '@/lib/services';
 import { generateTestNumber } from '@/lib/helpers';
+import { notifyTestAssignment } from '@/lib/notifications';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -218,6 +219,22 @@ export default function NewSamplePage() {
                   testNumberStr = `TST-${currentYear}-${selectedTypeCode}-${String(lastNum + 1).padStart(5, '0')}`;
                 } else {
                   throw err;
+                }
+              }
+            }
+            if (testCreated) {
+              const assignedTo = formData.samplerId || formData.preparerId || '';
+              if (assignedTo) {
+                const technician = technicians.find((emp) => emp.$id === assignedTo);
+                try {
+                  await notifyTestAssignment({
+                    testId: testNumberStr,
+                    testName: stdTest.name,
+                    technicianId: assignedTo,
+                    technicianName: technician?.name || '',
+                  });
+                } catch (err: unknown) {
+                  toast.warning('تم إضافة الفحص لكن فشل إرسال إشعار للفني: ' + (err instanceof Error ? err.message : String(err)));
                 }
               }
             }
