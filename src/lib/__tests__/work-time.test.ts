@@ -17,8 +17,12 @@ describe('computeWorkHours', () => {
     expect(computeWorkHours('08:15', '17:30')).toBe(9.25);
   });
 
-  it('returns 0 when the end time is not after the start time', () => {
-    expect(computeWorkHours('17:00', '08:00')).toBe(0);
+  it('computes overnight shifts crossing midnight', () => {
+    expect(computeWorkHours('17:00', '08:00')).toBe(15);
+    expect(computeWorkHours('22:00', '06:00')).toBe(8);
+  });
+
+  it('returns 0 when the end time equals the start time', () => {
     expect(computeWorkHours('17:00', '17:00')).toBe(0);
   });
 });

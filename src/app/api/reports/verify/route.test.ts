@@ -33,9 +33,9 @@ function req(url: string, ip: string): NextRequest {
 }
 
 function setListDocuments(result: { documents: unknown[] }): void {
-  DB_MOCK.mockImplementation(() => ({
-    listDocuments: vi.fn().mockResolvedValue(result),
-  }));
+  DB_MOCK.mockImplementation(() => {
+    return { listDocuments: vi.fn().mockResolvedValue(result) } as unknown as Databases;
+  });
 }
 
 const VALID_HASH = 'a'.repeat(64);

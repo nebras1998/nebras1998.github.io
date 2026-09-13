@@ -8,8 +8,9 @@ export function computeWorkHours(start?: string, end?: string): number {
   const [eh, em] = end.split(':').map(Number);
   const startMin = sh * 60 + sm;
   const endMin = eh * 60 + em;
-  if (endMin <= startMin) return 0;
-  return parseFloat(((endMin - startMin) / 60).toFixed(2));
+  if (endMin === startMin) return 0;
+  const diff = endMin < startMin ? endMin + 24 * 60 - startMin : endMin - startMin;
+  return parseFloat((diff / 60).toFixed(2));
 }
 
 export function formatWorkHours(hours: number): string {

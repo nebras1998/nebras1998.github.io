@@ -22,7 +22,7 @@ function isEmployeeActive(employee: Employee | null): boolean {
   return !!employee && employee.status !== 'مستقيل';
 }
 
-// دالة مساعدة لمسح كوكيز جلسات Appwrite فقط
+// دالة مساعدة لمسح كوكيز جلسات Appwrite وذاكرة localStorage الخاصة بـ SDK
 const clearAppwriteCookies = () => {
   if (typeof document === 'undefined') return;
   document.cookie.split(';').forEach(c => {
@@ -36,21 +36,37 @@ const clearAppwriteCookies = () => {
   }
 };
 
-// نسخ جلسات Appwrite من localStorage إلى cookies حقيقية
-// لأن middleware يحتاج cookies في طلبات HTTP لتأكيد الجلسة
-const syncAppwriteCookies = () => {
+// مزامنة جلسات Appwrite عبر خادمنا مع ترويسة HttpOnly بدلًا من النسخ في
+// document.cookie القابل للقراءة بالـ JS (كان XSS يحوّل إلى سرقة جلسة كاملة).
+const persistSessionCookies = async () => {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
     const fallback = window.localStorage.getItem('cookieFallback');
     if (!fallback) return;
-    const cookies = JSON.parse(fallback);
-    for (const [name, value] of Object.entries(cookies)) {
-      if (typeof name === 'string' && name.startsWith('a_session_')) {
-        document.cookie = `${name}=${value}; path=/; SameSite=Strict; ${location.protocol === 'https:' ? 'Secure;' : ''}`;
-      }
-    }
+    const cookies = JSON.parse(fallback) as Record<string, string>;
+    const sessionCookies = Object.entries(cookies)
+      .filter(
+        ([name, value]) =>
+          name.startsWith('a_session_') && typeof value === 'string' && value.length > 0
+      )
+      .map(([name, value]) => ({ name, value }));
+    if (sessionCookies.length === 0) return;
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookies: sessionCookies }),
+    });
   } catch (e) {
-    console.error('[AUTH] فشل نسخ الكوكيز:', e);
+    console.error('[AUTH] فشل مزامنة كوكي الجلسة:', e);
+  }
+};
+
+const clearServerSessionCookies = async () => {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch('/api/auth/session', { method: 'DELETE' });
+  } catch {
+    // التنظيف المحلي أدناه يبقى يعمل حتى لو فشل الطلب
   }
 };
 
@@ -93,11 +109,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       try {
         await account.deleteSession('current');
-      } catch (e) {
+      } catch {
       }
       const session = await account.createEmailPasswordSession(email, password);
       applySessionToClient(session?.secret);
-      syncAppwriteCookies();
+      await persistSessionCookies();
       const user = await account.get();
       
       let employee = null;
@@ -142,7 +158,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       try { await account.deleteSession('current'); } catch {}
       const session = await account.createEmailPasswordSession(email, password);
       applySessionToClient(session?.secret);
-      syncAppwriteCookies();
+      await persistSessionCookies();
       const user = await account.get();
 
       const empRes = await databases.listDocuments(DATABASE_ID, EMPLOYEES_COLLECTION_ID, [
@@ -175,6 +191,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await account.deleteSession('current');
     } catch {}
+    await clearServerSessionCookies();
     clearAppwriteCookies();
     client.setSession('');
     set({ user: null, employee: null, role: null, loading: false });
@@ -184,6 +201,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       applySessionToClient();
       const user = await account.get();
+      await persistSessionCookies();
       let employee = null;
       let role = null;
       try {
@@ -202,6 +220,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // قطع الجلسة فوراً إذا كان الموظف مستقيلاً/غير نشط
       if (employee && !isEmployeeActive(employee)) {
         try { await account.deleteSession('current'); } catch {}
+        await clearServerSessionCookies();
         clearAppwriteCookies();
         client.setSession('');
         set({ user: null, employee: null, role: null, loading: false });
@@ -211,6 +230,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, employee, role, loading: false });
     } catch {
       try { await account.deleteSession('current'); } catch {}
+      await clearServerSessionCookies();
       clearAppwriteCookies();
       set({ user: null, employee: null, role: null, loading: false });
     }

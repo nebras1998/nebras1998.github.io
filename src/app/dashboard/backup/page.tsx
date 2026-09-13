@@ -1,30 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { databases, storage } from '@/lib/appwrite';
-import {
-  DATABASE_ID,
-  REPORTS_BUCKET_ID,
-  CLIENTS_COLLECTION_ID,
-  PROJECTS_COLLECTION_ID,
-  SAMPLES_COLLECTION_ID,
-  TESTS_COLLECTION_ID,
-  INVOICES_COLLECTION_ID,
-  PAYMENTS_COLLECTION_ID,
-  SERVICES_COLLECTION_ID,
-  EMPLOYEES_COLLECTION_ID,
-  ATTENDANCE_COLLECTION_ID,
-  LEAVE_REQUESTS_COLLECTION_ID,
-  OVERTIME_COLLECTION_ID,
-  VEHICLES_COLLECTION_ID,
-  VEHICLE_TRIPS_COLLECTION_ID,
-  EXPENSES_COLLECTION_ID,
-  EQUIPMENT_COLLECTION_ID,
-  BOOKINGS_COLLECTION_ID,
-  SAMPLE_TYPES_COLLECTION_ID,
-  STANDARD_TESTS_COLLECTION_ID,
-  NOTIFICATIONS_COLLECTION_ID,
-} from '@/lib/constants';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import AuthGuard from '@/components/AuthGuard';
@@ -41,33 +17,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ID, Query } from 'appwrite';
-
-const ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!;
-const PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!;
-
-// قائمة شاملة بجميع المجموعات الموجودة في النظام حالياً
-const ALL_COLLECTIONS = [
-  { id: CLIENTS_COLLECTION_ID, name: 'العملاء' },
-  { id: PROJECTS_COLLECTION_ID, name: 'المشاريع' },
-  { id: SAMPLES_COLLECTION_ID, name: 'العينات' },
-  { id: TESTS_COLLECTION_ID, name: 'الفحوصات' },
-  { id: INVOICES_COLLECTION_ID, name: 'الفواتير' },
-  { id: PAYMENTS_COLLECTION_ID, name: 'المدفوعات' },
-  { id: SERVICES_COLLECTION_ID, name: 'الخدمات' },
-  { id: EMPLOYEES_COLLECTION_ID, name: 'الموظفون' },
-  { id: ATTENDANCE_COLLECTION_ID, name: 'الحضور' },
-  { id: LEAVE_REQUESTS_COLLECTION_ID, name: 'طلبات الإجازة' },
-  { id: OVERTIME_COLLECTION_ID, name: 'العمل الإضافي' },
-  { id: VEHICLES_COLLECTION_ID, name: 'المركبات' },
-  { id: VEHICLE_TRIPS_COLLECTION_ID, name: 'رحلات المركبات' },
-  { id: EXPENSES_COLLECTION_ID, name: 'المصروفات' },
-  { id: EQUIPMENT_COLLECTION_ID, name: 'الأجهزة' },
-  { id: BOOKINGS_COLLECTION_ID, name: 'الحجوزات' },
-  { id: SAMPLE_TYPES_COLLECTION_ID, name: 'أنواع العينات' },
-  { id: STANDARD_TESTS_COLLECTION_ID, name: 'الفحوصات القياسية' },
-  { id: NOTIFICATIONS_COLLECTION_ID, name: 'التنبيهات' },
-];
+import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
 
 // =============== دوال التشفير ===============
 const deriveKey = async (password: string, salt: Uint8Array): Promise<CryptoKey> => {
@@ -101,58 +51,32 @@ const decryptBlob = async (blob: Blob, password: string): Promise<Blob> => {
   return new Blob([plaintext]);
 };
 
-// =============== دوال مساعدة ===============
-const deleteAllDocumentsWithSDK = async (collectionId: string) => {
-  try {
-    let hasMore = true;
-    while (hasMore) {
-      const res = await databases.listDocuments(DATABASE_ID, collectionId, [Query.limit(100)]);
-      if (res.documents.length === 0) {
-        hasMore = false;
-      } else {
-        for (const doc of res.documents) {
-          try {
-            await databases.deleteDocument(DATABASE_ID, collectionId, doc.$id);
-            // تأخير بسيط لتجنب تجاوز حد المعدل
-            await new Promise(resolve => setTimeout(resolve, 200));
-          } catch (e) {
-            console.warn('فشل حذف مستند:', e);
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.warn(`تعذر حذف مستندات المجموعة ${collectionId}:`, err);
-    throw err;
-  }
-};
-
-const deleteAllFiles = async () => {
-  try {
-    const filesRes = await storage.listFiles(REPORTS_BUCKET_ID);
-    for (const file of filesRes.files) {
-      await storage.deleteFile(REPORTS_BUCKET_ID, file.$id);
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-  } catch (err) {
-    console.warn('تعذر حذف ملفات التخزين:', err);
-    throw err;
-  }
-};
-
 // =============== مكون إعادة تعيين النظام ===============
+// الحذف الفعلي يتم الآن عبر مسار خادمي بمفتاح API (api/admin/backup/reset)
+// وليس من المتصفح مباشرة.
+const RESET_PHRASE = 'حذف كل البيانات';
+
 function ResetSystemButton() {
   const [step, setStep] = useState<'hidden' | 'confirm' | 'input'>('hidden');
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleReset = async () => {
-    if (inputText !== 'حذف كل البيانات') { toast.error('العبارة المدخلة غير صحيحة'); return; }
+    if (inputText !== RESET_PHRASE) { toast.error('العبارة المدخلة غير صحيحة'); return; }
     setLoading(true);
     try {
-      for (const col of ALL_COLLECTIONS) await deleteAllDocumentsWithSDK(col.id);
-      await deleteAllFiles();
-      toast.success('تم حذف جميع البيانات بنجاح');
+      const res = await fetch('/api/admin/backup/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phrase: inputText }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+        deletedDocuments?: number;
+        deletedFiles?: number;
+      } | null;
+      if (!res.ok) throw new Error(data?.error || 'فشل في حذف البيانات');
+      toast.success(`تم حذف جميع البيانات (${data?.deletedDocuments ?? 0} مستند و ${data?.deletedFiles ?? 0} ملف)`);
       setStep('hidden'); setInputText('');
     } catch (err: unknown) { toast.error('فشل في حذف البيانات: ' + (err instanceof Error ? err.message : String(err))); }
     finally { setLoading(false); }
@@ -171,10 +95,10 @@ function ResetSystemButton() {
 
   return (
     <div className="space-y-3">
-      <p className="text-danger font-bold">اكتب <span className="bg-border px-1 rounded">حذف كل البيانات</span> للتأكيد:</p>
-      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48 text-center" placeholder="حذف كل البيانات" dir="rtl" />
+      <p className="text-danger font-bold">اكتب <span className="bg-border px-1 rounded">{RESET_PHRASE}</span> للتأكيد:</p>
+      <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48 text-center" placeholder={RESET_PHRASE} dir="rtl" />
       <br />
-      <button onClick={handleReset} disabled={loading || inputText !== 'حذف كل البيانات'} className="bg-danger-solid text-white px-6 py-2 rounded hover:bg-danger-dark disabled:opacity-50">{loading ? 'جارٍ الحذف...' : 'تأكيد الحذف النهائي'}</button>
+      <button onClick={handleReset} disabled={loading || inputText !== RESET_PHRASE} className="bg-danger-solid text-white px-6 py-2 rounded hover:bg-danger-dark disabled:opacity-50">{loading ? 'جارٍ الحذف...' : 'تأكيد الحذف النهائي'}</button>
       <button onClick={() => { setStep('hidden'); setInputText(''); }} className="bg-border text-text-primary px-4 py-2 rounded hover:bg-surface-muted mr-2">إلغاء</button>
     </div>
   );
@@ -201,40 +125,16 @@ export default function BackupPage() {
   const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
   // =============== النسخ الاحتياطي ===============
+  // التصدير يتم على الخادم (api/admin/backup/export) بمفتاح API ثم يُشَفَّر محليًا عند الطلب.
   const handleBackup = async () => {
-    setBackupLoading(true); setBackupPercent(0); setBackupProgress('جارٍ التحضير...');
-    const zip = new JSZip();
+    setBackupLoading(true); setBackupPercent(0); setBackupProgress('جارٍ إنشاء النسخة الاحتياطية على الخادم...');
     try {
-      const total = ALL_COLLECTIONS.length;
-      for (let i = 0; i < total; i++) {
-        const col = ALL_COLLECTIONS[i];
-        setBackupPercent(Math.round(((i + 1) / total) * 80));
-        setBackupProgress(`تصدير: ${col.name}...`);
-        const folder = zip.folder(`database/${col.name}`);
-        if (!folder) continue;
-        try {
-          const docsRes = await fetch(`${ENDPOINT}/databases/${DATABASE_ID}/collections/${col.id}/documents?limit=5000`, { headers: { 'X-Appwrite-Project': PROJECT_ID } });
-          if (docsRes.ok) {
-            const data = await docsRes.json();
-            if (data.documents?.length > 0) folder.file('documents.json', JSON.stringify(data.documents, null, 2));
-          }
-        } catch { console.warn(`تعذر تصدير ${col.name}`); }
-      }
+      const res = await fetch('/api/admin/backup/export', { cache: 'no-store' });
+      const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(errorData?.error || 'فشل إنشاء النسخة الاحتياطية');
 
-      setBackupProgress('جلب الملفات من التخزين...'); setBackupPercent(85);
-      try {
-        const filesRes = await storage.listFiles(REPORTS_BUCKET_ID);
-        if (filesRes.files.length > 0) {
-          const sf = zip.folder('storage/reports');
-          if (sf) for (const file of filesRes.files) {
-            const blob = await (await fetch(storage.getFileDownload(REPORTS_BUCKET_ID, file.$id).toString())).blob();
-            sf.file(file.name, blob);
-          }
-        }
-      } catch { console.warn('تعذر جلب ملفات التخزين'); }
-
-      setBackupProgress('جارٍ ضغط الملفات...'); setBackupPercent(95);
-      let content: Blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 9 } });
+      setBackupProgress('جارٍ تجهيز الملف...'); setBackupPercent(95);
+      let content: Blob = await res.blob();
       if (backupEncrypt && backupPassword) content = await encryptBlob(content, backupPassword);
       saveAs(content, `backup-${new Date().toISOString().replace(/[:.]/g, '-')}.${backupEncrypt ? 'zip.enc' : 'zip'}`);
       toast.success('تم إنشاء النسخة الاحتياطية بنجاح');
@@ -252,7 +152,6 @@ export default function BackupPage() {
       const zip = await JSZip.loadAsync(blob);
       const summary: { name: string; count: number }[] = []; let filesCount = 0;
       for (const col of ALL_COLLECTIONS) {
-        if (col.name === 'النسخ الاحتياطي') continue;
         const folder = zip.folder(`database/${col.name}`);
         if (folder) {
           const jsonFile = folder.file('documents.json');
@@ -278,51 +177,32 @@ export default function BackupPage() {
   };
 
   // =============== استعادة انتقائية ===============
+  // الاستعادة (الحذف + الإدراج) تتم على الخادم (api/admin/backup/restore) بمفتاح API؛
+  // كلمة المرور لفك التشفير تبقى في المتصفح فقط ويُرفع الملف مفكوك التشفير.
   const handleRestoreSelected = async () => {
     if (!selectedFile || selectedCollections.size === 0) return;
     setRestoreLoading(true); setRestorePercent(0); setRestoreProgress('جارٍ التحضير...');
     try {
       let blob: Blob = selectedFile;
       if (selectedFile.name.endsWith('.enc') && restorePassword) blob = await decryptBlob(selectedFile, restorePassword);
-      const zip = await JSZip.loadAsync(blob);
 
-      if (restoreFiles) { setRestoreProgress('حذف الملفات القديمة...'); await deleteAllFiles(); }
+      setRestoreProgress('جارٍ الاستعادة على الخادم...'); setRestorePercent(30);
+      const form = new FormData();
+      form.append('file', new File([blob], 'restore.zip'));
+      form.append('collections', JSON.stringify(Array.from(selectedCollections)));
+      form.append('restoreFiles', restoreFiles ? 'true' : 'false');
 
-      const arr = Array.from(selectedCollections);
-      const total = arr.length + (restoreFiles ? 1 : 0);
-      let step = 0;
-      for (const colName of arr) {
-        if (colName === 'النسخ الاحتياطي') continue;
-        const col = ALL_COLLECTIONS.find(c => c.name === colName);
-        if (!col) continue;
-        step++; setRestorePercent(Math.round((step / total) * 100));
-        setRestoreProgress(`استعادة: ${col.name}...`);
-        const folder = zip.folder(`database/${col.name}`);
-        if (!folder) continue;
-        const jsonFile = folder.file('documents.json');
-        if (!jsonFile) continue;
-        const documents = JSON.parse(await jsonFile.async('text'));
-        await deleteAllDocumentsWithSDK(col.id);
-        for (const doc of documents) {
-          const { $id, $createdAt, $updatedAt, $permissions, $databaseId, $collectionId, ...clean } = doc;
-          try {
-            await databases.createDocument(DATABASE_ID, col.id, ID.unique(), clean);
-            await new Promise(resolve => setTimeout(resolve, 50));
-          } catch { console.warn(`فشل إدراج مستند في ${col.name}`); }
-        }
-      }
+      const res = await fetch('/api/admin/backup/restore', { method: 'POST', body: form });
+      const data = (await res.json().catch(() => null)) as {
+        error?: string;
+        message?: string;
+        errors?: string[];
+      } | null;
+      if (!res.ok) throw new Error(data?.error || 'فشل الاستعادة');
 
-      if (restoreFiles) {
-        step++; setRestorePercent(Math.round((step / total) * 100));
-        setRestoreProgress('استعادة الملفات...');
-        const sf = zip.folder('storage/reports');
-        if (sf) for (const file of sf.file(/.*/)) {
-          const blob = await file.async('blob');
-          await storage.createFile(REPORTS_BUCKET_ID, ID.unique(), new File([blob], file.name));
-        }
-      }
       setRestorePercent(100);
-      toast.success('تم استعادة البيانات المحددة بنجاح');
+      toast.success(data?.message || 'تم استعادة البيانات المحددة بنجاح');
+      if (data?.errors && data.errors.length > 0) toast.warning(`${data.errors.length} ملاحظات أثناء الاستعادة`);
     } catch (err: unknown) { toast.error('فشل الاستعادة: ' + (err instanceof Error ? err.message : String(err))); }
     finally { setRestoreLoading(false); setRestoreProgress(''); setRestorePercent(0); setRestoreConfirmOpen(false); }
   };

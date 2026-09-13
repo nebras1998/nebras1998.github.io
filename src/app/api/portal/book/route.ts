@@ -6,46 +6,18 @@ import {
   STANDARD_TESTS_COLLECTION_ID,
   BOOKINGS_COLLECTION_ID,
 } from '@/lib/constants';
+import { rateLimitKey, checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Abuse protection: in-memory per-IP rate limit (5 attempts / 10 minutes).
-// A module-level Map is enough for this self-hosted setup; entries are
-// lazily cleaned up on each request (keeps expiry/registry in one place).
-//
-// NOTE on limitations: the limiter is in-memory (resets if the process
-// restarts) and keyed off request headers (`x-forwarded-for` / `x-real-ip`)
-// because Next 16's route handlers don't expose the raw connection IP. Those
-// headers can be spoofed by a direct caller, so treat this as a best-effort
-// anti-abuse control, not a hard security boundary. If this ever runs behind
-// a non-trusted public edge or across multiple instances, move the counter to
-// a shared store (e.g. Appwrite/Redis) and key off the trusted proxy's real IP.
+// Abuse protection: in-memory per-IP rate limit (5 attempts / 10 minutes). انظر
+// src/lib/rate-limit.ts لتفاصيل التحليل الصارم للعناوين وحدود التنفيذ المعروفة
+// (تتعامل النقطة العامة غير المُوثَّقة، فأفضل عنصر رادع هو IP صالح الشكل
+// وأيضاً تدوير الصلاحيات خلف proxy يُوثِّق الهيدرات). المسارات الحساسة
+// (مثل اعتماد التقارير) تَستعمل مفتاح جلسة بدل IP.
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const rateLimitMap = new Map<string, { count: number; expiresAt: number }>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  if (rateLimitMap.size >= 500) {
-    for (const [key, entry] of rateLimitMap) {
-      if (entry.expiresAt <= now) rateLimitMap.delete(key);
-    }
-  }
-  const entry = rateLimitMap.get(ip);
-  if (!entry || entry.expiresAt <= now) {
-    rateLimitMap.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
-}
-
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return request.headers.get('x-real-ip') ?? 'unknown';
-}
 
 const PHONE_RE = /^\+?[0-9]{9,15}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -118,8 +90,7 @@ async function generateBookingNumber(databases: Databases): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
-  if (isRateLimited(ip)) {
+  if (checkRateLimit(rateLimitKey(request, 'book'), { limit: RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS }).limited) {
     return NextResponse.json(
       { error: 'محاولات كثيرة جداً. يرجى الانتظار 10 دقائق قبل إعادة المحاولة.' },
       { status: 429 }

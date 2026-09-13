@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { listSampleTypes, listStandardTests } from '@/lib/services';
-import type { SampleType, StandardTest } from '@/lib/services';
-import { Query } from '@/lib/services';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import FormCard from '@/components/FormCard';
@@ -13,11 +10,26 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 
+interface CatalogSampleType {
+  $id: string;
+  name: string;
+}
+
+interface CatalogTest {
+  $id: string;
+  sampleTypeId: string;
+  name: string;
+}
+
+interface CatalogResponse {
+  sampleTypes: CatalogSampleType[];
+  tests: CatalogTest[];
+}
+
 export default function BookSamplePage() {
   const router = useRouter();
   const [step, setStep] = useState(1); // خطوة 1: اختيار الخدمة، خطوة 2: البيانات الشخصية
-  const [sampleTypes, setSampleTypes] = useState<SampleType[]>([]);
-  const [standardTests, setStandardTests] = useState<StandardTest[]>([]);
+  const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [selectedTests, setSelectedTests] = useState<string[]>([]);
   const [form, setForm] = useState({
     clientName: '',
@@ -32,14 +44,15 @@ export default function BookSamplePage() {
   const [success, setSuccess] = useState(false);
   const [bookingNumber, setBookingNumber] = useState('');
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [testsError, setTestsError] = useState(false);
 
-  // جلب أنواع العينات (مع معالجة أخطاء وحالة إعادة المحاولة)
-  const loadSampleTypes = async () => {
+  // جلب الكتالوج من الخادم (لا قراءة مباشرة لقاعدة البيانات من المتصفح)
+  const loadCatalog = async () => {
     setLoadError(null);
     try {
-      const res = await listSampleTypes([Query.limit(100), Query.select(['name'])]);
-      setSampleTypes(res.documents);
+      const res = await fetch('/api/portal/catalog', { cache: 'no-store' });
+      if (!res.ok) throw new Error('تعذر تحميل الكتالوج');
+      const data = (await res.json()) as CatalogResponse;
+      setCatalog(data);
     } catch {
       setLoadError('تعذر تحميل أنواع العينات. يرجى إعادة المحاولة.');
     }
@@ -47,46 +60,24 @@ export default function BookSamplePage() {
 
   useEffect(() => {
     let cancelled = false;
-    listSampleTypes([Query.limit(100), Query.select(['name'])])
-      .then((res) => {
-        if (!cancelled) setSampleTypes(res.documents);
-      })
-      .catch(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/portal/catalog', { cache: 'no-store' });
+        if (!res.ok) throw new Error('تعذر تحميل الكتالوج');
+        const data = (await res.json()) as CatalogResponse;
+        if (!cancelled) setCatalog(data);
+      } catch {
         if (!cancelled) setLoadError('تعذر تحميل أنواع العينات. يرجى إعادة المحاولة.');
-      });
-    return () => {
-      cancelled = true;
-    };
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  // عند تغيير النوع، نجلب الفحوصات ونعيد تعيين الاختيارات
-  useEffect(() => {
-    if (form.sampleType) {
-      const type = sampleTypes.find((t: SampleType) => t.name === form.sampleType);
-      if (type) {
-        (async () => {
-          setTestsError(false);
-          setStandardTests([]);
-          try {
-            const res = await listStandardTests([
-              Query.equal('sampleTypeId', type.$id),
-              Query.limit(50),
-              Query.select(['name']),
-            ]);
-            setStandardTests(res.documents);
-          } catch {
-            setTestsError(true);
-          }
-        })();
-      }
-    }
-  }, [form.sampleType, sampleTypes]);
-
-  // إعادة تعيين الاختيارات كدالة منفصلة تستدعى فقط من حدث
-  const handleSampleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setForm({ ...form, sampleType: e.target.value });
-    setSelectedTests([]);
-  };
+  // الفحوصات المعروضة تتبع نوع العينة المختار من الكتالوج
+  const currentType = catalog?.sampleTypes.find((t: CatalogSampleType) => t.name === form.sampleType) ?? null;
+  const standardTests = currentType
+    ? catalog?.tests.filter((t: CatalogTest) => t.sampleTypeId === currentType.$id) ?? []
+    : [];
 
   const toggleTest = (testName: string) => {
     setSelectedTests(prev =>
@@ -96,6 +87,11 @@ export default function BookSamplePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSampleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm({ ...form, sampleType: e.target.value });
+    setSelectedTests([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,7 +146,7 @@ export default function BookSamplePage() {
             <AlertTriangle size={28} />
             <p>{loadError}</p>
             <button
-              onClick={loadSampleTypes}
+              onClick={loadCatalog}
               className="bg-primary text-white px-4 py-2 rounded-xl font-bold hover:from-primary-dark hover:to-primary"
             >
               إعادة المحاولة
@@ -177,19 +173,13 @@ export default function BookSamplePage() {
                   required
                 >
                   <option value="">اختر النوع</option>
-                  {sampleTypes.map((t: SampleType) => <option key={t.$id} value={t.name}>{t.name}</option>)}
+                  {catalog?.sampleTypes.map((t: CatalogSampleType) => <option key={t.$id} value={t.name}>{t.name}</option>)}
                 </SelectField>
-                {testsError && (
-                  <div className="bg-danger-bg border border-danger/30 text-danger p-4 rounded-xl flex items-center gap-2">
-                    <AlertTriangle size={18} />
-                    <p className="text-sm">تعذر تحميل الفحوصات. يرجى إعادة اختيار نوع العينة.</p>
-                  </div>
-                )}
                 {standardTests.length > 0 && (
                   <div className="bg-surface-dim p-4 rounded-xl">
                     <p className="font-bold mb-2">الفحوصات المطلوبة:</p>
                     <div className="space-y-2">
-                      {standardTests.map((test: StandardTest) => (
+                      {standardTests.map((test: CatalogTest) => (
                         <label key={test.$id} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"

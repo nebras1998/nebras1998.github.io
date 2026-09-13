@@ -14,41 +14,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client, Databases, Query } from 'node-appwrite';
 import { DATABASE_ID, REPORTS_COLLECTION_ID } from '@/lib/constants';
+import { rateLimitKey, checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const rateLimitMap = new Map<string, { count: number; expiresAt: number }>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  if (rateLimitMap.size >= 500) {
-    for (const [key, entry] of rateLimitMap) {
-      if (entry.expiresAt <= now) rateLimitMap.delete(key);
-    }
-  }
-  const entry = rateLimitMap.get(ip);
-  if (!entry || entry.expiresAt <= now) {
-    rateLimitMap.set(ip, { count: 1, expiresAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
-}
-
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return request.headers.get('x-real-ip') ?? 'unknown';
-}
 
 const HASH_RE = /^[0-9a-fA-F]{64}$/;
 
 export async function GET(request: NextRequest) {
-  const ip = getClientIp(request);
-  if (isRateLimited(ip)) {
+  if (checkRateLimit(rateLimitKey(request, 'verify'), { limit: RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS }).limited) {
     return NextResponse.json({ error: 'طلبات كثيرة. حاول لاحقًا.' }, { status: 429 });
   }
 
