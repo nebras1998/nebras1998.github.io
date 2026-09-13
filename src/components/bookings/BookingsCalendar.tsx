@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import type { Booking } from '@/types';
 
@@ -14,20 +14,20 @@ export default function BookingsCalendar({
   bookings: Booking[];
   onSelectDay: (dateStr: string) => void;
 }) {
-  const [viewDate, setViewDate] = useState(moment());
-  const startOfMonth = viewDate.clone().startOf('month');
-  const endOfMonth = viewDate.clone().endOf('month');
+  const [viewDate, setViewDate] = useState(() => dayjs());
+  const startOfMonth = viewDate.startOf('month');
+  const endOfMonth = viewDate.endOf('month');
   const startDay = startOfMonth.day();
 
   const daysInMonth = endOfMonth.date();
 
-  const goToPreviousMonth = () => setViewDate(viewDate.clone().subtract(1, 'month'));
-  const goToNextMonth = () => setViewDate(viewDate.clone().add(1, 'month'));
-  const goToToday = () => setViewDate(moment());
+  const goToPreviousMonth = () => setViewDate(viewDate.subtract(1, 'month'));
+  const goToNextMonth = () => setViewDate(viewDate.add(1, 'month'));
+  const goToToday = () => setViewDate(dayjs());
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMonth = parseInt(e.target.value, 10);
-    setViewDate(viewDate.clone().month(newMonth));
+    setViewDate(viewDate.month(newMonth));
   };
 
   const bookingsByDate: Record<string, Booking[]> = {};
@@ -45,10 +45,10 @@ export default function BookingsCalendar({
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateObj = startOfMonth.clone().date(day);
+    const dateObj = startOfMonth.date(day);
     const dateStr = dateObj.format('YYYY-MM-DD');
     const dayBookings = bookingsByDate[dateStr] || [];
-    const isToday = dateObj.isSame(moment(), 'day');
+    const isToday = dateObj.isSame(dayjs(), 'day');
     const isWeekend = dateObj.day() === 5 || dateObj.day() === 6;
 
     days.push(
