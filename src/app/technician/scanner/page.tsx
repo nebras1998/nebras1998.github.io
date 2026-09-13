@@ -43,7 +43,7 @@ export default function ScannerPage() {
             sampleId = decodedText.split('/technician/samples/').pop() || '';
           }
           if (sampleId) {
-            window.location.href = `/technician/samples/${sampleId}`;
+            router.push(`/technician/samples/${sampleId}`);
           } else {
             setError('الباركود غير صالح. حاول مرة أخرى.');
             if (isMounted.current) setScanKey(k => k + 1);

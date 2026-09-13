@@ -46,7 +46,7 @@ export default function ClientsPage() {
         setClients(response.documents);
         setTotalDocuments(response.total);
         setTotalPages(Math.ceil(response.total / PAGE_SIZE));
-      } catch (err: unknown) {
+      } catch {
         toast.error('فشل تحميل العملاء');
       } finally {
         setLoading(false);

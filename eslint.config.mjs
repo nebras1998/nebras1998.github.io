@@ -5,6 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // k6 script files require `export default function () {...}` as their entrypoint.
+    files: ['k6-tests/**/*.js'],
+    rules: {
+      'import/no-anonymous-default-export': 'off',
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

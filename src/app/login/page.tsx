@@ -39,7 +39,7 @@ export default function LoginPage() {
         try {
           await useAuthStore.getState().checkSession();
           router.push('/dashboard');
-        } catch (e) {
+        } catch {
           setError('فشل استعادة الجلسة. أعد المحاولة.');
         }
       } else {

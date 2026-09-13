@@ -15,7 +15,7 @@ import { Plus, Trash2, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
 import TableSkeleton from '@/components/TableSkeleton';
-import type { Invoice, Client } from '@/types';
+import type { Invoice } from '@/types';
 import Badge from '@/components/Badge';
 
 const PAGE_SIZE = 20;

@@ -1,6 +1,5 @@
-import { NOTIFICATIONS_COLLECTION_ID, DATABASE_ID } from '@/lib/constants';
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument, Query } from './base';
-import { storage } from '@/lib/appwrite';
+import { NOTIFICATIONS_COLLECTION_ID } from '@/lib/constants';
+import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './base';
 import type { Notification, PaginatedResult } from '@/types';
 
 const COL = NOTIFICATIONS_COLLECTION_ID;

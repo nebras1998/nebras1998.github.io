@@ -51,7 +51,7 @@ export default function EmployeeDetailPage() {
               })
             );
             setDocuments(docs.filter(Boolean));
-          } catch (parseErr) {
+          } catch {
             console.warn('فشل تحليل documentIds');
           }
         }

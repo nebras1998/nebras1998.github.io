@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LogOut, Clock } from 'lucide-react';
 
@@ -17,7 +17,6 @@ export default function SessionManager({
   logoutRedirect = '/login',
 }: SessionManagerProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { logout } = useAuthStore();
 
   const [showWarning, setShowWarning] = useState(false);
@@ -27,14 +26,14 @@ export default function SessionManager({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
     if (intervalRef.current) clearInterval(intervalRef.current);
     setShowWarning(false);
     await logout();
     router.push(logoutRedirect);
-  };
+  }, [logout, logoutRedirect, router]);
 
   const setupTimers = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -60,7 +59,7 @@ export default function SessionManager({
         return prev - 1;
       });
     }, 1000);
-  }, [timeoutMinutes, warningMinutes]);
+  }, [timeoutMinutes, warningMinutes, handleLogout]);
 
   const resetTimer = useCallback(() => {
     setShowWarning(false);

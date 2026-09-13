@@ -64,7 +64,7 @@ export default function ProjectsPage() {
         setLoading(false);
       }
     })();
-  }, [currentPage, filterStatus, filterClient, searchTerm]);
+  }, [currentPage, filterStatus, filterClient, searchTerm, clientsMap]);
 
   const openDeleteModal = (id: string, name: string) => { setDeleteTarget({ id, name }); setModalOpen(true); };
   const handleDeleteConfirm = async () => {

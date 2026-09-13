@@ -10,7 +10,6 @@ import SelectField from '@/components/SelectField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
-import { getVehicle } from '@/lib/services/vehicles';
 import { createVehicleTrip } from '@/lib/services/vehicle-trips';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
@@ -20,7 +19,6 @@ export default function NewTripPage() {
   const params = useParams();
   const vehicleId = params.id as string;
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [vehiclePlate, setVehiclePlate] = useState('');
   const [form, setForm] = useState({
     vehicleId: vehicleId,
     driverId: '',
@@ -36,13 +34,9 @@ export default function NewTripPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [empRes, vehicleDoc] = await Promise.all([
-          listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]),
-          getVehicle(vehicleId),
-        ]);
+        const empRes = await listEmployees([Query.equal('status', 'يعمل'), Query.limit(200)]);
         setEmployees(empRes.documents);
-        setVehiclePlate(vehicleDoc.plateNumber);
-      } catch (err) { toast.error('فشل تحميل البيانات'); }
+      } catch { toast.error('فشل تحميل البيانات'); }
     };
     fetchData();
   }, [vehicleId]);

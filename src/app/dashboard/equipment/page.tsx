@@ -44,7 +44,7 @@ export default function EquipmentPage() {
       try {
         const res = await listEquipment([Query.orderAsc('name')]);
         setEquipment(res.documents);
-      } catch (err: unknown) {
+      } catch {
         toast.error('فشل تحميل الأجهزة');
       } finally {
         setLoading(false);

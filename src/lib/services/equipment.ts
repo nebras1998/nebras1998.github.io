@@ -1,5 +1,5 @@
 import { EQUIPMENT_COLLECTION_ID } from '@/lib/constants';
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument, Query } from './base';
+import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './base';
 import type { Equipment, PaginatedResult } from '@/types';
 
 const COL = EQUIPMENT_COLLECTION_ID;

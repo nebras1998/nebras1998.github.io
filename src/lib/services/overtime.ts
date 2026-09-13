@@ -1,5 +1,5 @@
 import { OVERTIME_COLLECTION_ID } from '@/lib/constants';
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument, Query } from './base';
+import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './base';
 import type { OvertimeRecord, PaginatedResult } from '@/types';
 
 const COL = OVERTIME_COLLECTION_ID;

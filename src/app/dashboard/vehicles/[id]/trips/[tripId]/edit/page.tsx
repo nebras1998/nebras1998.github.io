@@ -45,7 +45,7 @@ export default function EditTripPage() {
           status: trip.status,
           notes: trip.notes || '',
         });
-      } catch (err) {
+      } catch {
         toast.error('فشل تحميل الرحلة');
       } finally {
         setLoading(false);

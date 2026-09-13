@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Sample, Project, Client } from '@/types';
+import type { Sample } from '@/types';
 import { listSamples, deleteSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listClients } from '@/lib/services/clients';
@@ -38,7 +38,6 @@ export default function SamplesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; number: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [lookupReady, setLookupReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -53,7 +52,7 @@ export default function SamplesPage() {
         for (const c of clientRes.documents) clientMap[c.$id] = c.name;
         setProjects(projMap);
         setClients(clientMap);
-      } catch {} finally { setLookupReady(true); }
+      } catch {}
     })();
   }, []);
 

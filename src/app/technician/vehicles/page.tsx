@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { VehicleTrip, Vehicle } from '@/lib/services';
 import { listVehicleTrips } from '@/lib/services/vehicle-trips';
@@ -17,7 +16,6 @@ import TableSkeleton from '@/components/TableSkeleton';
 
 export default function TechnicianVehiclesPage() {
   const { employee } = useAuthStore();
-  const router = useRouter();
   const [activeTrips, setActiveTrips] = useState<VehicleTrip[]>([]);
   const [pastTrips, setPastTrips] = useState<VehicleTrip[]>([]);
   const [vehiclesMap, setVehiclesMap] = useState<Record<string, string>>({});

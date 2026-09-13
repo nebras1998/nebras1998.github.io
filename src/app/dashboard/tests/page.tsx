@@ -78,13 +78,13 @@ export default function TestsPage() {
           clientsRes.documents.forEach((c) => (cMap[c.$id] = c.name));
           setClientsMap(cMap);
         }
-      } catch (err) {
+      } catch {
         toast.error('فشل تحميل الفحوصات');
       } finally {
         setLoading(false);
       }
     })();
-  }, [currentPage, filterStatus, filterEmployee, filterClient, searchTerm]);
+  }, [currentPage, filterStatus, filterEmployee, filterClient, searchTerm, samplesMap]);
 
   const openDeleteModal = (id: string, name: string) => { setDeleteTarget({ id, name }); setModalOpen(true); };
   const handleDeleteConfirm = async () => {

@@ -40,7 +40,7 @@ export default function FilesPage() {
       try {
         const result = await listFiles();
         setFiles(result.files);
-      } catch (err: unknown) {
+      } catch {
         toast.error('فشل تحميل الملفات');
       } finally {
         setLoading(false);

@@ -6,7 +6,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 export default function Providers({ children }: { children: React.ReactNode }) {
   const checkSession = useAuthStore((state) => state.checkSession);
   const loading = useAuthStore((state) => state.loading);
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     checkSession();

@@ -1,5 +1,5 @@
 import { EXPENSES_COLLECTION_ID } from '@/lib/constants';
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument, Query } from './base';
+import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './base';
 import type { Expense, PaginatedResult } from '@/types';
 
 const COL = EXPENSES_COLLECTION_ID;

@@ -30,7 +30,6 @@ export default function NewExpensePage() {
     notes: '',
   });
   const [loading, setLoading] = useState(false);
-  const [generatingNumber, setGeneratingNumber] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -59,7 +58,6 @@ export default function NewExpensePage() {
         } catch { isUnique = true; }
       }
       setForm(prev => ({ ...prev, expenseNumber: newNumber }));
-      setGeneratingNumber(false);
     })();
   }, []);
 

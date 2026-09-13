@@ -55,7 +55,7 @@ export default function EditExpensePage() {
           notes: exp.notes || '',
         });
         setVehicles(vehRes.documents);
-      } catch (err) { toast.error('فشل تحميل البيانات'); } finally { setLoading(false); }
+      } catch { toast.error('فشل تحميل البيانات'); } finally { setLoading(false); }
     };
     fetchData();
   }, [expenseId]);
