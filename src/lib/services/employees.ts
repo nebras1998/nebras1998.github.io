@@ -1,5 +1,5 @@
 import { EMPLOYEES_COLLECTION_ID } from '@/lib/constants';
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument, Query } from './base';
+import { listDocuments, getDocument, Query } from './base';
 import type { Employee, PaginatedResult } from '@/types';
 
 const COL = EMPLOYEES_COLLECTION_ID;
@@ -12,16 +12,57 @@ export async function getEmployee(id: string): Promise<Employee> {
   return getDocument<Employee>(COL, id);
 }
 
+// Mutations are routed through the server API (node-appwrite + API key) so that
+// the public Appwrite collection permissions (read-only for users) can never be
+// bypassed from the browser to escalate privileges or forge data.
+
+function errorFromResponse(res: Response, data: { error?: string }): Error {
+  const err = Object.assign(new Error(data?.error ?? `فشل الطلب (${res.status})`), {
+    code: res.status,
+    status: res.status,
+  });
+  return err;
+}
+
 export async function createEmployee(id: string, data: Record<string, unknown>): Promise<Employee> {
-  return createDocument<Employee>(COL, id, data);
+  const res = await fetch('/api/employees', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documentId: id, ...data }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw errorFromResponse(res, body);
+  return body as Employee;
 }
 
 export async function updateEmployee(id: string, data: Record<string, unknown>): Promise<Employee> {
-  return updateDocument<Employee>(COL, id, data);
+  const res = await fetch(`/api/employees/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const body = await res.json();
+  if (!res.ok) throw errorFromResponse(res, body);
+  return body as Employee;
+}
+
+export async function updateMyEmployee(data: Record<string, unknown>): Promise<Employee> {
+  const res = await fetch('/api/employees/me', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const body = await res.json();
+  if (!res.ok) throw errorFromResponse(res, body);
+  return body as Employee;
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
-  return deleteDocument(COL, id);
+  const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw errorFromResponse(res, body);
+  }
 }
 
 export async function findEmployeeByEmail(email: string): Promise<Employee | null> {

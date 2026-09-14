@@ -9,7 +9,7 @@ import { Client, Databases, Storage, Query } from 'node-appwrite';
 import JSZip from 'jszip';
 
 import { DATABASE_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdmin, isTrustedOrigin } from '@/lib/admin-auth';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
 import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
 
@@ -22,6 +22,13 @@ const EXPORT_LIMIT = 5;
 export async function GET(request: NextRequest) {
   const guard = await requireAdmin(request);
   if (!guard.ok) return guard.response;
+
+  // CSRF defense: cross-origin requests (which send an Origin header) must come
+  // from a trusted origin. Same-origin GET requests carry no Origin header in
+  // browsers, so the check is only enforced when an Origin is actually present.
+  if (request.headers.get('origin') && !isTrustedOrigin(request)) {
+    return NextResponse.json({ error: 'طلب غير موثوق' }, { status: 403 });
+  }
 
   const rateKey = sessionRateLimitKey(guard.session.email, 'backup-export');
   const rate = checkRateLimit(rateKey, { limit: EXPORT_LIMIT, windowMs: EXPORT_WINDOW_MS });

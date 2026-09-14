@@ -6,6 +6,11 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { Toaster } from 'sonner';
 
+// CSP غير متوافق مع الصفحات المولّدة إحصائيًا: يطبّق Next.js قيمة الـ nonce من
+// request headers أثناء العرض فقط. فرض العرض الديناميكي للكل ليبقى الـ nonce
+// (المولّد في src/proxy.ts) قابلاً للحقن في سكربتات "__next_f" المضمّنة.
+export const dynamic = 'force-dynamic';
+
 // خطوط IBM Plex مستضافة محليًا (لا استدعاء شبكي لـ fonts.googleapis وقت البناء).
 // next/font/local لا يدعم unicode-range لكل ملف، لذا نُسجّل نفس العائلة مرتين:
 // مكوّن عربي (unicode-range عربي) + مكوّن لاتيني (unicode-range لاتيني) —

@@ -30,6 +30,7 @@ import { buildReportHtml } from '@/lib/report-pdf';
 import { parseReportSnapshot } from '@/lib/report-snapshot';
 import { getSessionRole } from '@/lib/server-auth';
 import { sessionRateLimitKey, checkRateLimit } from '@/lib/rate-limit';
+import { isTrustedOrigin } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -129,6 +130,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const sessionCookie = buildSessionCookie(request);
   if (!sessionCookie) {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+  }
+
+  // CSRF defense: approval is a destructive, irreversible action. Reject any
+  // request whose Origin header is not from this host / the configured public
+  // URL. Same-origin POSTs (application/json) always carry an Origin header in
+  // browsers, so a missing Origin here implies a non-browser caller.
+  if (request.headers.get('origin') && !isTrustedOrigin(request)) {
+    return NextResponse.json({ error: 'طلب غير موثوق' }, { status: 403 });
   }
 
   const { id: reportId } = await context.params;

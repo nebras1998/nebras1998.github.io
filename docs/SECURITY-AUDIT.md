@@ -216,3 +216,111 @@ k6: 01 (180 طلب 0% فشل)، 03 (الحد 20 يعمل بدقة)، 04 (247/247
 > ملاحظة: `rate-limit.ts` في هذه المرحلة مفتاح في الذاكرة لكل عملية أدى؛ إذا كان
 > التشغيل متعدد العمليات/المثيلات مستقبلًا، انقل التخزين إلى مخزن مشترك (Redis/DB)
 > قبل الاعتماد على الحدود عبر المثيلات.
+
+---
+
+# تاريخ: 2026-09-14 — إغلاق تصعيد الصلاحيات/تزوير التقارير + CSRF + CSP بـ nonce
+
+## قرار منتج (Task 4): عرض اسم المعتمِد في التحقق العام **مقصود**
+
+- `GET /api/reports/verify` يستمر في إعادة `reviewedBy` (اسم المعتمِد) مع
+  `verified: true`. هذا تصرف منتج **متعمّد**: صفحة التحقق العامة
+  (`src/app/reports/verify/page.tsx`) تعرض للمستلم اسم من اعتمد التقرير
+  («اعتمده: …») كجزء من تجربة التحقق من المستند، والاختبار الحالي
+  (`verify/route.test.ts`) يثبّت هذا السلوك. قيّدته، ولم يبقَّ منه سوى اسم شخص
+  واحد مع رقم تقرير؛ لا يُعاد منه البريد أو أي بيانات حساسة أخرى.
+  البند السابق (رقم 9 في «المتوسطة») يُعتبر **مقبولًا كمخاطرة منتج** بعد هذا القرار.
+
+## Task 1 — منع تصعيد الصلاحيات وإحكام مجموعات التقارير/المالية
+
+- **مسارات خادم جديدة (node-appwrite + `APPWRITE_API_KEY` + فحص دور + rate-limit):**
+  - `POST /api/employees` — إنشاء موظف (مدير/إداري). يجرّد مفاتيح `$*` و`documentId`.
+  - `PATCH/DELETE /api/employees/[id]` — تحديث/حذف (مدير/إداري). **يمنع تغيير
+    دور/حالة/بريد الذات** (403) ويمنع حذف الذات، ويُنشئ سجلّ تدقيق في `notifications`
+    (type `تغيير_دور`) عند تغيير دور موظف آخر. تغييرات الدور لا تقل عن دور الطالب.
+  - `PATCH /api/employees/me` — تحديث ذاتي، قائمة بيضاء صريحة فقط
+    (`name, phone, qualification, certifications, notes`).
+  - `POST /api/reports` — إنشاء **مسودة فقط** (`status: 'مسودة'`)؛ لا يُكتب
+    `status/reportHash/pdfFileId/reviewedBy` من هذا المسار إطلاقًا.
+  - `PATCH /api/reports/[id]` — تعديل حقول مسودة محددة فقط
+    (`additionalNotes, snapshotData`)؛ رفض أي حقل آخر (403)، ورفض تعديل تقرير
+    معتمد (409). **مسار `reports/[id]/pdf` يبقى الوحيد** القادر على الوصول
+    بحالة `معتمد` + `reportHash` + `pdfFileId`.
+  - `POST` + `PATCH/DELETE` على `/api/finance/{invoices,payments,expenses}` —
+    كلها بفحص دور (مدير/إداري) وrate-limit.
+- **طبقة الخدمات** (`src/lib/services/*`) أُعيدت كتابتها: أي كتابة (employees,
+  reports, invoices, payments, expenses) تمر عبر `fetch('/api/...')` بدل Web SDK؛
+  القراءات بقيت عبر Web SDK (read("users")). بهذا لا يمكن لأي متصفح تجاوز
+  صلاحيات المجموعة العامة للكتابة.
+- **سكربتات قفل Appwrite** (`scripts/lock-down-employees-permissions.cjs` و
+  `scripts/lock-down-reports-permissions.cjs`): يضبطان
+  `employees` → `read("users")` فقط + `documentSecurity: true`، و
+  `reports/invoices/payments/expenses` → `read("users")` فقط.
+  القيم المستهدفة موثقة في `docs/PERMISSIONS.md` (قسم 2026-09-14). التشغيل
+  **يدوي ضد Console** لأنه يتطلب كلمة سر API بصلاحية `databases.collections.write`
+  (خارج المستودع). لا تُعدَّل المجموعات التشغيلية (samples/tests/equipment/…
+  إلخ) إطلاقًا.
+
+## Task 2 — CSP صارم بلا `unsafe-inline` (عبر nonce)
+
+- **السبب الفني**: App Router يدرج سكربتات inline إلزامية `self.__next_f`
+  (Flight payload) في HTML، فلا يمكن ببساطة حذف `'unsafe-inline'`؛ حلّ Next.js
+  الرسمي هو nonce لكل طلب مع عرض **ديناميكي لكل الصفحات**.
+- **التنفيذ**:
+  - `src/proxy.ts` يولّد nonce عشوائيًا لكل طلب (`crypto.randomUUID` بدون شرطات)،
+    ويضعه في `x-nonce` + `Content-Security-Policy` على **request headers** (ليستهلكه
+    Next.js أثناء SSR) وعلى **response**. نطاقات الحماية + منطق الأدوار الموجودة
+    (dashboard/technician) بقيت كما هي ولم تتأثر، والصفحات العامة تمر بدون redirect.
+  - `src/app/layout.tsx` حصل على `export const dynamic = 'force-dynamic'` (مطلوب
+    ليحقن Next قيمة nonce في سكربتاته).
+  - `next.config.ts`: أُزيل منه `Content-Security-Policy` (كي لا يتجاوز nonce
+    الـ proxy) وبقيت بقية الترويسات (nosniff / XFO: DENY / Referrer-Policy /
+    Permissions-Policy / HSTS في الإنتاج) + `poweredByHeader: false`.
+  - التوجيهات: `default-src 'self'; script-src 'self' 'nonce-…' 'strict-dynamic'`
+    (مع `'unsafe-eval'` في التطوير فقط لـ React devtools)؛
+    `style-src 'self' 'unsafe-inline'` (مطلوب لخصائص `style={{}}`)؛
+    `img/font/connect-src` تشمل أصل Appwrite وخطوط Google المحلية.
+- **تحقق فعلي (خادم إنتاج محلي)**: ترويسة CSP تُعرض في كل استجابة، وبُني 14 عنصر
+  `<script>` بسمة `nonce` مطابقة؛ لا `'unsafe-inline'` ضمن `script-src`.
+
+## Task 3 — CSRF على المسارات غير المكتملة
+
+- `GET /api/admin/backup/export`: يفحص `Origin` — إن وُجد ولم يكن موثوقًا
+  (`isTrustedOrigin`) → 403 «طلب غير موثوق». (قرار: فحص **مشروط بحضور** `Origin`
+  لأن GET من نفس الأصل في المتصفح لا يحمل Origin، وفحصه بلا شرط كان سيكسر التنزيل.)
+- `POST /api/reports/[id]/pdf`: فحص `isTrustedOrigin` **بعد** فحص الجلسة و**قبل**
+  منطق الأدوار/الاعتماد → 403 «طلب غير موثوق». POST من المتصفح يحمل Origin دائمًا.
+- `isTrustedOrigin` نفسها لم تتغيّر (تُقرأ من متغيرات البيئة الموثوقة).
+
+## Task 5 — توثيق + اختبارات + تحقق نهائي
+
+- **اختبارات Vitest جديدة** بمرافقة مسارات الخادم الجديدة (نفس نمط
+  `verify/route.test.ts`):
+  - `src/app/api/employees/route.test.ts` (6): 401 بلا جلسة، 403 لفني، 201 لمدير
+    مع إثبات أنّ `documentId`/مفاتيح `$` لا تُخزَّن، 400 لدور غير صالح ولرقم مفقود.
+  - `src/app/api/employees/[id]/route.test.ts` (8): 401/403، **منع تغيير دور
+    الذات** و**منع حذف الذات** (403)، تحديث موظف آخر، تدقيق `تغيير_دور` في
+    notifications، و404.
+  - `src/app/api/reports/route.test.ts` (4): 401/403، إنشاء مسودة `مسودة` بلا
+    حقول اعتماد، 503 بلا مفتاح.
+  - `src/app/api/reports/[id]/route.test.ts` (6): 401/403، تعديل حقول المسودة،
+    **رفض حقول اعتماد/status** (403)، **رفض تعديل معتمد** (409)، 404.
+- **نتائج التحقق (هذه الجلسة):**
+  - `tsc --noEmit` ✅ (بلا أخطاء)
+  - `npx eslint .` ✅ (0 أخطاء)
+  - `npm test` ✅ **67/67** (42 سابقة + 24 جديدة)
+  - `npm run build` ✅ (كل المسارات أصبحت `ƒ Dynamic` كما يلزم CSP)
+  - فحص وقت التشغيل: CSP+nonce تُطبَّق فعليًا، والتحويلات `/dashboard`→`/login`
+    و`/technician/dashboard`→`/technician/login` سليمة، و`/api/reports/verify`
+    البقية من غير حظر.
+
+## ما بقي خارج المستودع (يحتاج يد فريق الإنتاج)
+
+1. تشغيل سكربتي القفل (`scripts/lock-down-*.cjs`) في بيئة Appwrite الفعلية بمفتاح
+   API مخصّص، ثم **التحقق** في Console من القيم في `docs/PERMISSIONS.md`،
+   ثم التحقق اليدوي: محاولة فني تحديث `employees.role` من Console/المتصفح → يجب
+   أن تفشل.
+2. لا تزال تحذيرات الإنتاج الواردة في القسم السابق (reverse proxy موثوق +
+   `APP_PUBLIC_URL` + تدوير المفتاح) سارية.
+3. `sessionStorage`/`localStorage` للجلسات خارجة عن نطاق هذه الجولة (بند سابق
+   «كوكي HttpOnly» منفَّذ لمسار الجلسة؛ لم يُستكمل نقل كامل الطبقات).

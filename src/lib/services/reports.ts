@@ -12,6 +12,13 @@ import type { Report, ReportTemplate, PaginatedResult } from '@/types';
 const REPORT_COL = REPORTS_COLLECTION_ID;
 const TEMPLATE_COL = REPORT_TEMPLATES_COLLECTION_ID;
 
+function errorFromResponse(res: Response, data: { error?: string }): Error {
+  return Object.assign(new Error(data?.error ?? `فشل الطلب (${res.status})`), {
+    code: res.status,
+    status: res.status,
+  });
+}
+
 // ===== Report Template (singleton-style: only one active template row expected) =====
 
 export async function getActiveReportTemplate(): Promise<ReportTemplate | null> {
@@ -42,31 +49,31 @@ export async function getReportByTestId(testId: string): Promise<Report | null> 
   return res.documents[0] ?? null;
 }
 
-export async function createReportDraft(id: string, data: Record<string, unknown>): Promise<Report> {
-  return createDocument<Report>(REPORT_COL, id, data);
+// Draft mutations are routed through the server API (node-appwrite + API key).
+// The reports collection is locked down to read("users"), so writes from the
+// browser Web SDK are refused server-side.
+
+export async function createReportDraft(_id: string, data: Record<string, unknown>): Promise<Report> {
+  const res = await fetch('/api/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const body = (await res.json()) as unknown;
+  if (!res.ok) throw errorFromResponse(res, body as { error?: string });
+  return body as Report;
 }
 
 // Core constraint: an approved (locked) report must never be edited through any path.
 export async function updateReportDraft(id: string, data: Record<string, unknown>): Promise<Report> {
-  const existing = await getDocument<Report>(REPORT_COL, id);
-  if (existing.status === 'معتمد') {
-    throw new Error('لا يمكن تعديل تقرير مُعتمد ومُقفل. التقرير محفوظ كسجل نهائي.');
-  }
-  return updateDocument<Report>(REPORT_COL, id, data);
-}
-
-export async function approveReport(id: string, reviewedBy: string, pdfFileId: string, reportHash: string): Promise<Report> {
-  const existing = await getDocument<Report>(REPORT_COL, id);
-  if (existing.status === 'معتمد') {
-    throw new Error('التقرير مُعتمد ومُقفل بالفعل.');
-  }
-  return updateDocument<Report>(REPORT_COL, id, {
-    status: 'معتمد',
-    reviewedBy,
-    reviewedAt: new Date().toISOString(),
-    pdfFileId,
-    reportHash,
+  const res = await fetch(`/api/reports/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
   });
+  const body = (await res.json()) as unknown;
+  if (!res.ok) throw errorFromResponse(res, body as { error?: string });
+  return body as Report;
 }
 
 export async function listReports(queries: string[] = []): Promise<PaginatedResult<Report>> {

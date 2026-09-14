@@ -56,6 +56,31 @@ testId/reportNumber/status/$createdAt + fulltext على reportNumber).
 | reports | users كاملة | لا | التحقق العام **من الخادم فقط** عبر `/api/reports/verify` بمفتاح API مع `Query.select` لحقول جزئية. |
 | REPORTS_BUCKET_ID (storage) | users كاملة | لا | ملفات PDF؛ قراءة تدفق PDF من الخادم بجلسة المستخدم في pdf route. |
 
+## الوضع بعد تشديد إضافي (2026-09-14) — مجموعات حساسة: لا كتابة من المتصفح إطلاقًا
+
+بعد جولة الإصلاحات (سد تصعيد الصلاحيات/تزوير التقارير)، المجموعات التالية أصبحت
+**قراءة فقط من المتصفح** (`read("users")` فقط، وبدون `create/update/delete`)،
+وجميع كتاباتها تمرّ حصريًا عبر مسارات خادم بمفتاح `APPWRITE_API_KEY` + فحص دور
+`مدير/إداري`:
+
+| Collection | $permissions الهدف | documentSecurity | الكتابة الوحيدة المسموحة |
+| --- | --- | --- | --- |
+| employees | `read("users")` فقط | **true** | `/api/employees` (إنشاء) و`/api/employees/[id]` (تحديث/حذف) و`/api/employees/me` (تحديث ذاتي للحقول الشخصية) |
+| reports | `read("users")` فقط | false | `/api/reports` (إنشاء **مسودة** فقط) و`/api/reports/[id]` (تعديل حقول المسودة فقط) — الـ approval حصري في `reports/[id]/pdf` |
+| invoices | `read("users")` فقط | false | `/api/finance/invoices` + `/api/finance/invoices/[id]` |
+| payments | `read("users")` فقط | false | `/api/finance/payments` + `/api/finance/payments/[id]` |
+| expenses | `read("users")` فقط | false | `/api/finance/expenses` + `/api/finance/expenses/[id]` |
+
+`documentSecurity: true` على `employees` فقط: يمنع أي تعديل/حذف على مستوى مستند
+حتى لو تسرّبت صلاحية كتابة، بينما محدودية القيمة الخاصة بمنع المهاجم من تغيير
+`role` خاصة به تظل مضمونة برمجيًا في مسار التحديث.
+
+> **تنبيـه تشغيل**: هذا الوضع يُطبَّق عبر سكربتي
+> `scripts/lock-down-employees-permissions.cjs` و`scripts/lock-down-reports-permissions.cjs`
+> (يستخدمان `APPWRITE_API_KEY` بصلاحية `databases.collections.write`). الجدول أعلاه
+> هو **الهدف**؛ يجب التحقق منه في Appwrite Console بعد تشغيل السكربتين (➜ «متغيّرات
+> خارج المستودع»).
+
 ## مدخلات الوصول العامة المتبقية (خادم فقط، بمفتاح API)
 
 تعمل بمفتاح `APPWRITE_API_KEY` على الخادم (لا يمكن لأي زائر استخدامه) وبنطاق ضيق:
