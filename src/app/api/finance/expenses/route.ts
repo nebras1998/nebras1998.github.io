@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client, Databases } from 'node-appwrite';
 import { DATABASE_ID, EXPENSES_COLLECTION_ID } from '@/lib/constants';
 import { extractSessionCookie, getSessionAccount, getSessionRole } from '@/lib/server-auth';
+import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -50,15 +51,16 @@ export async function POST(request: NextRequest) {
     if (!key.startsWith('$') && key !== 'documentId') cleanData[key] = value;
   }
 
-  const apiKey = process.env.APPWRITE_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'خادم غير مكوّن' }, { status: 503 });
+const { env, missing } = getAppwriteServerEnv();
+  if (missing.length > 0) {
+    return NextResponse.json(missingEnvError(missing), { status: 503 });
   }
+  const { endpoint, project, apiKey } = env!;
 
   try {
     const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
+      .setEndpoint(endpoint)
+      .setProject(project)
       .setKey(apiKey);
     const databases = new Databases(client);
     const doc = await databases.createDocument(DATABASE_ID, EXPENSES_COLLECTION_ID, documentId, cleanData);

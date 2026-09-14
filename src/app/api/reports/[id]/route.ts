@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client, Databases } from 'node-appwrite';
 import { DATABASE_ID, REPORTS_COLLECTION_ID } from '@/lib/constants';
 import { extractSessionCookie, getSessionAccount, getSessionRole } from '@/lib/server-auth';
+import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
 import type { Report } from '@/types';
 
@@ -61,15 +62,16 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     );
   }
 
-  const apiKey = process.env.APPWRITE_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'خادم غير مكوّن' }, { status: 503 });
+  const { env, missing } = getAppwriteServerEnv();
+  if (missing.length > 0) {
+    return NextResponse.json(missingEnvError(missing), { status: 503 });
   }
+  const { endpoint, project, apiKey } = env!;
 
   try {
     const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
+      .setEndpoint(endpoint)
+      .setProject(project)
       .setKey(apiKey);
     const databases = new Databases(client);
 

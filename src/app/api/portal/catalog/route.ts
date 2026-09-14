@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client, Databases, Query } from 'node-appwrite';
 
 import { DATABASE_ID, SAMPLE_TYPES_COLLECTION_ID, STANDARD_TESTS_COLLECTION_ID } from '@/lib/constants';
+import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -29,12 +30,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-  const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
-  const apiKey = process.env.APPWRITE_API_KEY;
-  if (!endpoint || !project || !apiKey) {
-    return NextResponse.json({ error: 'خادم غير مكوّن' }, { status: 503 });
+  const { env, missing } = getAppwriteServerEnv();
+  if (missing.length > 0) {
+    return NextResponse.json(missingEnvError(missing), { status: 503 });
   }
+  const { endpoint, project, apiKey } = env!;
 
   try {
     const client = new Client()

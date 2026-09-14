@@ -121,6 +121,6 @@ describe('POST /api/reports', () => {
     delete process.env.APPWRITE_API_KEY;
     const res = await POST(createReq());
     expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ error: 'خادم غير مكوّن' });
+    expect(await res.json()).toEqual({ error: 'خادم غير مكوّن: مفقود APPWRITE_API_KEY' });
   });
 });

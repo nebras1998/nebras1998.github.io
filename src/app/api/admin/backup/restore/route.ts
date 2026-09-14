@@ -11,6 +11,7 @@ import JSZip from 'jszip';
 
 import { DATABASE_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
 import { requireAdmin, isTrustedOrigin } from '@/lib/admin-auth';
+import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
 import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
 
@@ -100,12 +101,11 @@ export async function POST(request: NextRequest) {
 
   const restoreFiles = formData.get('restoreFiles') === 'true';
 
-  const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-  const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
-  const apiKey = process.env.APPWRITE_API_KEY;
-  if (!endpoint || !project || !apiKey) {
-    return NextResponse.json({ error: 'خادم غير مكوّن' }, { status: 503 });
+  const { env, missing } = getAppwriteServerEnv();
+  if (missing.length > 0) {
+    return NextResponse.json(missingEnvError(missing), { status: 503 });
   }
+  const { endpoint, project, apiKey } = env!;
 
   let zip: JSZip;
   try {

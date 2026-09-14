@@ -7,6 +7,7 @@ import {
   BOOKINGS_COLLECTION_ID,
 } from '@/lib/constants';
 import { rateLimitKey, checkRateLimit } from '@/lib/rate-limit';
+import { getAppwriteServerEnv } from '@/lib/appwrite-env';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,14 +33,15 @@ function badRequest(message: string): NextResponse {
 }
 
 function createServerDatabases(): Databases | null {
-  const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
-  const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID;
-  const apiKey = process.env.APPWRITE_API_KEY;
-  if (!endpoint || !project || !apiKey) return null;
+  const { env, missing } = getAppwriteServerEnv();
+  if (missing.length > 0) {
+    console.error(`[booking] Appwrite env missing: ${missing.join(', ')}`);
+    return null;
+  }
   const client = new Client()
-    .setEndpoint(endpoint)
-    .setProject(project)
-    .setKey(apiKey);
+    .setEndpoint(env!.endpoint)
+    .setProject(env!.project)
+    .setKey(env!.apiKey);
   return new Databases(client);
 }
 
@@ -99,10 +101,10 @@ export async function POST(request: NextRequest) {
 
   const databases = createServerDatabases();
   if (!databases) {
-    console.error('[booking] APPWRITE_API_KEY is not configured on the server.');
+    console.error('[booking] APPWRITE server env is not configured on the server.');
     return NextResponse.json(
       { error: 'خدمة الحجز غير متوفرة حالياً. يرجى المحاولة لاحقاً.' },
-      { status: 500 }
+      { status: 503 }
     );
   }
 
