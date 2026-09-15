@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs/config";
 
 // هيدرات الحماية تُعالَج على كل الاستجابات. تُفصَّل لبيئة التطوير لأن Next dev
 // يحتاج ws: للـ HMR، و stable نشر الإنتاج يضيف HSTS فقط (أصل HTTPS).
@@ -32,24 +31,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  // تُضبط من متغيرات بيئة Netlify: SENTRY_ORG و SENTRY_PROJECT
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // يُمرَّر سرّيًا من لوحة Netlify لرفع Sourcemaps
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-
-  // يُوجّه أحداث المتصفح عبر نفق أول-المصدر (same-origin) داخل الخادم حتى لا
-  // تحجبها CSP الصارمة في src/proxy.ts (connect-src 'self') ولا مانعات
-  // الإعلانات. الخادم يستقبلها ويرسلها إلى Sentry ingestion.
-  tunnelRoute: "/sentry-tunnel",
-
-  // فقط سجل عمليات الرفع أثناء البناء في CI/Netlify
-  silent: !process.env.CI,
-
-  // sourcemaps تُحذف بعد رفعها تلقائيًا (الافتراضي) لتقليل حجم البناء
-  sourcemaps: {
-    deleteSourcemapsAfterUpload: true,
-  },
-});
+export default nextConfig;
