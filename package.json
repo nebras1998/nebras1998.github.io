@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.74.0",
     "appwrite": "^25.2.0",
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
