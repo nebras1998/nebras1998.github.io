@@ -130,8 +130,10 @@ export default function BackupPage() {
     setBackupLoading(true); setBackupPercent(0); setBackupProgress('جارٍ إنشاء النسخة الاحتياطية على الخادم...');
     try {
       const res = await fetch('/api/admin/backup/export', { cache: 'no-store' });
-      const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) throw new Error(errorData?.error || 'فشل إنشاء النسخة الاحتياطية');
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errorData?.error || 'فشل إنشاء النسخة الاحتياطية');
+      }
 
       setBackupProgress('جارٍ تجهيز الملف...'); setBackupPercent(95);
       let content: Blob = await res.blob();
