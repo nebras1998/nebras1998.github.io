@@ -62,7 +62,15 @@ export default function TestsPage() {
         setTests(testsRes.documents);
         setTotalDocuments(testsRes.total);
         setTotalPages(Math.ceil(testsRes.total / PAGE_SIZE));
-        if (Object.keys(samplesMap).length === 0) {
+      } catch (err: unknown) {
+        toast.error('فشل تحميل الفحوصات: ' + (err instanceof Error ? err.message : String(err)));
+        setTests([]);
+        setTotalDocuments(0);
+        setTotalPages(1);
+      }
+
+      if (Object.keys(samplesMap).length === 0) {
+        try {
           const [samplesRes, employeesRes, clientsRes] = await Promise.all([
             listSamples([Query.limit(500)]),
             listEmployees([Query.limit(200)]),
@@ -77,12 +85,12 @@ export default function TestsPage() {
           const cMap: Record<string, string> = {};
           clientsRes.documents.forEach((c) => (cMap[c.$id] = c.name));
           setClientsMap(cMap);
+        } catch (err: unknown) {
+          console.warn('فشل تحميل بيانات إضافية (عينات/موظفين/عملاء):', err);
         }
-      } catch {
-        toast.error('فشل تحميل الفحوصات');
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     })();
   }, [currentPage, filterStatus, filterEmployee, filterClient, searchTerm, samplesMap]);
 

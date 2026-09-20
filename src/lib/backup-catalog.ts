@@ -22,6 +22,8 @@ import {
   SAMPLE_TYPES_COLLECTION_ID,
   STANDARD_TESTS_COLLECTION_ID,
   NOTIFICATIONS_COLLECTION_ID,
+  REPORT_TEMPLATES_COLLECTION_ID,
+  REPORTS_COLLECTION_ID,
 } from '@/lib/constants';
 
 export interface BackupCollection {
@@ -49,6 +51,8 @@ export const ALL_COLLECTIONS: BackupCollection[] = [
   { id: SAMPLE_TYPES_COLLECTION_ID, name: 'أنواع العينات' },
   { id: STANDARD_TESTS_COLLECTION_ID, name: 'الفحوصات القياسية' },
   { id: NOTIFICATIONS_COLLECTION_ID, name: 'التنبيهات' },
+  { id: REPORT_TEMPLATES_COLLECTION_ID, name: 'قوالب التقارير' },
+  { id: REPORTS_COLLECTION_ID, name: 'التقارير' },
 ];
 
 export const ALL_COLLECTION_IDS: string[] = ALL_COLLECTIONS.map((c) => c.id);
@@ -61,3 +65,11 @@ export const RESET_PRESERVED_COLLECTION_IDS: string[] = [
   STANDARD_TESTS_COLLECTION_ID,
   EMPLOYEES_COLLECTION_ID,
 ];
+
+// المجموعات المشمولة في النسخة الاحتياطية/الاستعادة: كل أقسام النظام ما عدا
+// المحفوظة عند إعادة التعيين (أنواع العينات، الفحوصات القياسية، الموظفون).
+export const BACKUP_COLLECTIONS: BackupCollection[] = ALL_COLLECTIONS.filter(
+  (c) => !RESET_PRESERVED_COLLECTION_IDS.includes(c.id)
+);
+
+export const BACKUP_COLLECTION_IDS: string[] = BACKUP_COLLECTIONS.map((c) => c.id);

@@ -17,7 +17,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
+import { BACKUP_COLLECTIONS } from '@/lib/backup-catalog';
 
 // =============== دوال التشفير ===============
 const deriveKey = async (password: string, salt: Uint8Array): Promise<CryptoKey> => {
@@ -153,7 +153,7 @@ export default function BackupPage() {
       if (selectedFile.name.endsWith('.enc') && restorePassword) blob = await decryptBlob(selectedFile, restorePassword);
       const zip = await JSZip.loadAsync(blob);
       const summary: { name: string; count: number }[] = []; let filesCount = 0;
-      for (const col of ALL_COLLECTIONS) {
+      for (const col of BACKUP_COLLECTIONS) {
         const folder = zip.folder(`database/${col.name}`);
         if (folder) {
           const jsonFile = folder.file('documents.json');
@@ -164,7 +164,12 @@ export default function BackupPage() {
         }
       }
       const sf = zip.folder('storage/reports');
-      if (sf) filesCount = Object.keys(sf.files).length;
+      if (sf) {
+        const keys = Object.keys(sf.files);
+        filesCount = keys.some((k) => k.split('/').pop() === '_manifest.json')
+          ? keys.length - 1
+          : keys.length;
+      }
       setPreviewData({ collections: summary, filesCount });
       setSelectedCollections(new Set(summary.map(c => c.name)));
       setRestoreFiles(filesCount > 0);
@@ -216,7 +221,7 @@ export default function BackupPage() {
         <Card className="text-center">
           <HardDrive size={48} className="mx-auto text-primary mb-4" />
           <h1 className="text-2xl font-bold mb-2">النسخ الاحتياطي</h1>
-          <p className="text-text-muted mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.</p>
+          <p className="text-text-muted mb-4">قم بتنزيل نسخة كاملة من جميع بيانات النظام على جهازك.<br /><span className="text-sm">كل أقسام النظام مشمولة عدا: قوالب الفحوصات القياسية وأنواع العينات وحسابات الموظفين (محفوظة منفصلة).</span></p>
           <div className="mb-4 flex flex-col items-center gap-2">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={backupEncrypt} onChange={e => setBackupEncrypt(e.target.checked)} /> تشفير الملف بكلمة مرور</label>
             {backupEncrypt && <input type="password" placeholder="كلمة المرور" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} className="border border-border p-2 rounded-xl bg-surface w-48" />}

@@ -12,7 +12,7 @@ import { DATABASE_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
 import { requireAdmin, isTrustedOrigin } from '@/lib/admin-auth';
 import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
-import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
+import { BACKUP_COLLECTIONS } from '@/lib/backup-catalog';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const zip = new JSZip();
     const dbFolder = zip.folder('database');
 
-    for (const collection of ALL_COLLECTIONS) {
+    for (const collection of BACKUP_COLLECTIONS) {
       const documents: unknown[] = [];
       let offset = 0;
       let hasMore = true;
@@ -82,9 +82,16 @@ export async function GET(request: NextRequest) {
       const filesRes = await storage.listFiles(REPORTS_BUCKET_ID);
       if (filesRes.files.length > 0) {
         const storageFolder = zip.folder('storage/reports');
-        for (const file of filesRes.files) {
-          const content: ArrayBuffer = await storage.getFileDownload(REPORTS_BUCKET_ID, file.$id);
-          storageFolder?.file(file.name || file.$id, Buffer.from(content));
+        if (storageFolder) {
+          const manifest: { id: string; name: string }[] = [];
+          for (const file of filesRes.files) {
+            const content: ArrayBuffer = await storage.getFileDownload(REPORTS_BUCKET_ID, file.$id);
+            storageFolder.file(file.$id, Buffer.from(content));
+            manifest.push({ id: file.$id, name: file.name || file.$id });
+          }
+          // Manifest يخزّن اسم كل ملف بمعرّفه، ليعيد الاستعادة الملفات بأرقامها
+          // التعريفية نفسها فتبقى مراجع pdfFileId/logoFileId/ملفات الفحوصات صالحة.
+          storageFolder.file('_manifest.json', JSON.stringify(manifest));
         }
       }
     } catch (err) {

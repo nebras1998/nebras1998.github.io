@@ -13,7 +13,7 @@ import { DATABASE_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
 import { requireAdmin, isTrustedOrigin } from '@/lib/admin-auth';
 import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
-import { ALL_COLLECTIONS } from '@/lib/backup-catalog';
+import { BACKUP_COLLECTIONS } from '@/lib/backup-catalog';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 
   try {
     for (const name of collectionNames) {
-      const col = ALL_COLLECTIONS.find((c) => c.name === name);
+      const col = BACKUP_COLLECTIONS.find((c) => c.name === name);
       if (!col) continue;
 
       const folder = zip.folder(`database/${name}`);
@@ -171,7 +171,26 @@ export async function POST(request: NextRequest) {
     if (restoreFiles) {
       const sf = zip.folder('storage/reports');
       if (sf) {
-        const filesList = sf.file(/.*/);
+        // النسخ الجديدة تخزّن كل ملف بمعرّفه $id + ملف _manifest.json يحمل
+        // الاسم الأصلي؛ تعيد الاستعادة الملفات بمعرّفاتها نفسها كي تبقى كل
+        // المراجع (pdfFileId، logoFileId، ملفات الفحوصات) صالحة بعد الاستعادة.
+        let nameById: Record<string, string> = {};
+        const manifestEntry = sf.file(/.*/).find((e) => (e.name.split('/').pop() ?? '') === '_manifest.json');
+        if (manifestEntry) {
+          try {
+            const manifest = JSON.parse(
+              await manifestEntry.async('text')
+            ) as { id: string; name: string }[];
+            nameById = Object.fromEntries(manifest.map((m) => [m.id, m.name]));
+          } catch (err) {
+            console.warn('تعذر قراءة قائمة ملفات النسخة:', err);
+            result.errors.push('تعذر قراءة قائمة ملفات النسخة');
+          }
+        }
+
+        const filesList = sf.file(/.*/).filter(
+          (e) => (e.name.split('/').pop() ?? '') !== '_manifest.json'
+        );
         if (filesList.length > 0) {
           try {
             const existing = await storage.listFiles(REPORTS_BUCKET_ID);
@@ -187,10 +206,12 @@ export async function POST(request: NextRequest) {
           for (const entry of filesList) {
             try {
               const blob = await entry.async('blob');
+              const base = entry.name.split('/').pop() ?? entry.name;
+              const hasId = nameById[base] !== undefined;
               await storage.createFile(
                 REPORTS_BUCKET_ID,
-                ID.unique(),
-                new File([blob], entry.name)
+                hasId ? base : ID.unique(),
+                new File([blob], nameById[base] ?? base)
               );
               result.filesRestored += 1;
             } catch (err) {
