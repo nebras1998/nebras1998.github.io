@@ -16,7 +16,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { existsSync } from 'fs';
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite';
-import { createHash } from 'node:crypto';
 import QRCode from 'qrcode';
 import {
   DATABASE_ID,
@@ -28,6 +27,7 @@ import {
 import type { Report, ReportTemplate, ReportSnapshot } from '@/types';
 import { buildReportHtml } from '@/lib/report-pdf';
 import { parseReportSnapshot } from '@/lib/report-snapshot';
+import { computeReportHash } from '@/lib/report-hash';
 import { getSessionRole } from '@/lib/server-auth';
 import { sessionRateLimitKey, checkRateLimit } from '@/lib/rate-limit';
 import { isTrustedOrigin } from '@/lib/admin-auth';
@@ -202,13 +202,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
     const logoDataUrl = template?.logoFileId ? await fetchLogoDataUrl(storage, template.logoFileId, sessionCookie) : null;
 
-    // Compute the lock hash first so the same value is both stored and embedded
-    // in the verification QR (the QR must encode the final, locked hash).
+    // Compute the lock hash FIRST with the shared helper so the same value is
+    // both embedded in the HTML footer/QR and stored on the document. Using
+    // computeReportHash (which serializes the parsed snapshot via
+    // parseReportSnapshot) keeps a single source of truth for hash computation
+    // across pdf/verify — see §4.3 of the audit.
     const reviewedAt = new Date().toISOString();
     const snapshotObj = snapshot as ReportSnapshot;
-    const reportHash = createHash('sha256')
-      .update(JSON.stringify(snapshotObj) + report.reportNumber + reviewedAt)
-      .digest('hex');
+    const reportHash = computeReportHash(snapshotObj, report.reportNumber, reviewedAt);
 
     // QR verification payload (deterministic, no server state needed at scan time).
     let qrDataUrl: string | null = null;
@@ -230,6 +231,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       logoDataUrl,
       reviewedBy,
       reviewedAt,
+      reportHash,
       qrDataUrl,
       showQr: Boolean(template?.showQrCode),
     });

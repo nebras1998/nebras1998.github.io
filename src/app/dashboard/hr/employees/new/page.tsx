@@ -11,7 +11,6 @@ import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import { listEmployees, createEmployee } from '@/lib/services/employees';
-import { createFile } from '@/lib/services/files';
 import { Query } from '@/lib/services';
 import { Upload, X } from 'lucide-react';
 
@@ -92,8 +91,14 @@ export default function NewEmployeePage() {
     const uploadedIds: string[] = [];
     try {
       for (const file of selectedFiles) {
-        const result = await createFile(file);
-        uploadedIds.push(result.$id);
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/files', { method: 'POST', body: formData });
+        const body = (await res.json()) as unknown;
+        if (!res.ok) {
+          throw new Error((body as { error?: string })?.error || `فشل الطلب (${res.status})`);
+        }
+        uploadedIds.push((body as { $id: string }).$id);
       }
       toast.success('تم رفع المستندات بنجاح');
       return uploadedIds;

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/services/clients';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -33,7 +33,7 @@ export default function NewClientPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createClient('unique()', formData);
+      await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...formData }) });
       toast.success('تم إضافة العميل بنجاح');
       router.push('/dashboard/clients');
     } catch (err: unknown) {

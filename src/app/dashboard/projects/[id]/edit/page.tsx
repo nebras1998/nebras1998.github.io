@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Client } from '@/types';
-import { getProject, listClients, updateProject } from '@/lib/services';
+import { getProject, listClients } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -74,7 +75,7 @@ export default function EditProjectPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateProject(projectId, formData);
+      await apiFetch('/api/projects/' + projectId, { method: 'PATCH', body: JSON.stringify(formData) });
       toast.success('تم تحديث المشروع بنجاح');
       router.push('/dashboard/projects');
     } catch (err: unknown) {

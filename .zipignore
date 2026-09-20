@@ -1,0 +1,7 @@
+# حماية السرّ عند أرشفة المشروع: استخدم 7-Zip أو zip مع هذه الاستثناءات.
+# zip نفسك:
+#   zip -r project.zip . -x ".env" -x "node_modules/*" -x ".next/*" -x ".git/*"
+.env
+node_modules/*
+.next/*
+.git/*

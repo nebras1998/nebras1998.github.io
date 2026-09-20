@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Project } from '@/types';
 import type { Employee } from '@/types';
-import { getSample, updateSample } from '@/lib/services/samples';
+import { getSample } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -81,7 +82,7 @@ export default function EditSamplePage() {
 
   const handleSubmit = async (e: React.FormEvent) => { e.preventDefault(); setSaving(true);
     try {
-      await updateSample(sampleId, formData);
+      await apiFetch('/api/samples/' + sampleId, { method: 'PATCH', body: JSON.stringify(formData) });
       toast.success('تم تحديث العينة بنجاح'); router.push('/dashboard/samples');
     }
     catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }

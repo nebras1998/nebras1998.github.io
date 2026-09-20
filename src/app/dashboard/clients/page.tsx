@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import type { Client } from '@/types';
-import { listClients, deleteClient } from '@/lib/services/clients';
+import { listClients } from '@/lib/services/clients';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
@@ -63,7 +64,7 @@ export default function ClientsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteClient(deleteTarget.id);
+      await apiFetch('/api/clients/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف العميل بنجاح');
       setClients(prev => prev.filter(c => c.$id !== deleteTarget.id));
     } catch (err: unknown) {

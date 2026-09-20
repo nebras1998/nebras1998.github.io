@@ -10,8 +10,9 @@ import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import Breadcrumb from '@/components/Breadcrumb';
-import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
+import { getVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-client';
 
 export default function EditTripPage() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function EditTripPage() {
         notes: form.notes,
         status: form.returnTime ? 'مكتملة' : 'قيد الرحلة',
       };
-      await updateVehicleTrip(tripId, updateData);
+      await apiFetch('/api/vehicle-trips/' + tripId, { method: 'PATCH', body: JSON.stringify(updateData) });
       toast.success('تم تحديث الرحلة');
       router.push(`/dashboard/vehicles/${vehicleId}`); // العودة إلى تفاصيل المركبة
     } catch (err: unknown) {

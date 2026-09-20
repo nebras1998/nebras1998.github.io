@@ -12,6 +12,10 @@ export async function getBooking(id: string): Promise<Booking> {
   return getDocument<Booking>(COL, id);
 }
 
+// NOTE: these browser-SDK write functions are no longer used by the pages
+// (writes go through /api/bookings server routes). Kept for backward
+// compat/tests until eslint confirms them dead.
+
 export async function createBooking(id: string, data: Record<string, unknown>): Promise<Booking> {
   return createDocument<Booking>(COL, id, data);
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import type { Notification } from '@/types';
-import { listNotifications, updateNotification } from '@/lib/services/notifications';
+import { listNotifications } from '@/lib/services/notifications';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -34,7 +35,7 @@ export default function NotificationsPage() {
   const markAllRead = async () => {
     for (const n of notifs) {
       if (!n.isRead) {
-        await updateNotification(n.$id, { isRead: true });
+        await apiFetch('/api/notifications/' + n.$id, { method: 'PATCH', body: JSON.stringify({ isRead: true }) });
       }
     }
     setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -42,7 +43,7 @@ export default function NotificationsPage() {
   };
 
   const toggleRead = async (id: string, current: boolean) => {
-    await updateNotification(id, { isRead: !current });
+    await apiFetch('/api/notifications/' + id, { method: 'PATCH', body: JSON.stringify({ isRead: !current }) });
     setNotifs(prev => prev.map(n => n.$id === id ? { ...n, isRead: !current } : n));
   };
 

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import type { Project, Client } from '@/types';
-import { listProjects, listClients, deleteProject } from '@/lib/services';
+import { listProjects, listClients } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
@@ -71,7 +72,7 @@ export default function ProjectsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteProject(deleteTarget.id);
+      await apiFetch('/api/projects/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف المشروع بنجاح');
       setCurrentPage(1);
     } catch (err: unknown) { toast.error('خطأ في الحذف: ' + (err instanceof Error ? err.message : String(err))); }

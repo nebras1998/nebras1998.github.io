@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import type { Equipment } from '@/types';
-import { listEquipment, deleteEquipment } from '@/lib/services/equipment';
+import { listEquipment } from '@/lib/services/equipment';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -57,7 +58,7 @@ export default function EquipmentPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteEquipment(deleteTarget.id);
+      await apiFetch('/api/equipment/' + deleteTarget.id, { method: 'DELETE' });
       setEquipment(prev => prev.filter(e => e.$id !== deleteTarget.id));
       toast.success('تم حذف الجهاز بنجاح');
     } catch (err: unknown) { toast.error('خطأ في الحذف: ' + (err instanceof Error ? err.message : String(err))); }

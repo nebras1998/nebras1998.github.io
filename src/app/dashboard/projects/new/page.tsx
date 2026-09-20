@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Client } from '@/types';
-import { listClients, createProject } from '@/lib/services';
+import { listClients } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -74,11 +75,11 @@ export default function NewProjectPage() {
       let attempts = 0;
       while (!isSuccess && attempts < 10) {
         try {
-          await createProject(nextNumberStr, { ...formData, projectNumber: nextNumberStr });
+          await apiFetch('/api/projects', { method: 'POST', body: JSON.stringify({ documentId: nextNumberStr, ...formData, projectNumber: nextNumberStr }) });
           isSuccess = true;
         } catch (err: unknown) {
-          const appwriteErr = err as { code?: number };
-          if (appwriteErr.code === 409) {
+          const isConflict = err instanceof Error && err.message.includes('رقم المشروع موجود بالفعل');
+          if (isConflict) {
             attempts++;
             const currentYear = new Date().getFullYear();
             const prefix = `PRJ-${currentYear}-`;

@@ -12,6 +12,9 @@ export async function getClient(id: string): Promise<Client> {
   return getDocument<Client>(COL, id);
 }
 
+// NOTE: browser-SDK write functions are no longer used by pages (writes go
+// through /api/clients server routes). Kept for backward compat/tests.
+
 export async function createClient(id: string, data: Record<string, unknown>): Promise<Client> {
   return createDocument<Client>(COL, id, data);
 }

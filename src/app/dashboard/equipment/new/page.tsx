@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createEquipment } from '@/lib/services/equipment';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -35,7 +35,7 @@ export default function NewEquipmentPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createEquipment('unique()', formData);
+      await apiFetch('/api/equipment', { method: 'POST', body: { documentId: 'unique()', ...formData } });
       toast.success('تم إضافة الجهاز بنجاح');
       router.push('/dashboard/equipment');
     } catch (err: unknown) {

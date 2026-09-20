@@ -12,6 +12,9 @@ export async function getProject(id: string): Promise<Project> {
   return getDocument<Project>(COL, id);
 }
 
+// NOTE: browser-SDK write functions are no longer used by pages (writes go
+// through /api/projects server routes). Kept for backward compat/tests.
+
 export async function createProject(id: string, data: Record<string, unknown>): Promise<Project> {
   return createDocument<Project>(COL, id, data);
 }

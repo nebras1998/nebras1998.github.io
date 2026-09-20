@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ID } from 'appwrite';
 import FormCard from '@/components/FormCard';
 import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
@@ -9,7 +8,8 @@ import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import ResultFieldsEditor from '@/components/catalog/ResultFieldsEditor';
 import SpecificationProfilesEditor from '@/components/catalog/SpecificationProfilesEditor';
-import { listSampleTypes, createStandardTest, updateStandardTest } from '@/lib/services/sample-types';
+import { listSampleTypes } from '@/lib/services/sample-types';
+import { apiFetch } from '@/lib/api-client';
 import type { SampleType, StandardTest } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import {
@@ -163,9 +163,9 @@ export default function StandardTestEditor({
       if (form.price !== '') payload.price = Number(form.price);
 
       if (mode === 'edit' && initial) {
-        await updateStandardTest(initial.$id, payload);
+        await apiFetch('/api/standard-tests/' + initial.$id, { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
-        await createStandardTest(ID.unique(), payload);
+        await apiFetch('/api/standard-tests', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...payload }) });
       }
 
       toast.success(mode === 'edit' ? 'تم تحديث الفحص القياسي' : 'تمت إضافة الفحص القياسي');

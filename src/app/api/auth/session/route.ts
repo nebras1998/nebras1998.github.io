@@ -13,6 +13,8 @@
 // DELETE                                     -> clear all persisted session cookies
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isTrustedOrigin } from '@/lib/admin-auth';
+import { checkRateLimit, rateLimitKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,7 +38,24 @@ interface SessionCookieInput {
   value?: unknown;
 }
 
+const SESSION_RATE_LIMIT_MAX = 10;
+const SESSION_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
 export async function POST(request: NextRequest) {
+  // CSRF defense — fail closed: this endpoint persists session cookies as
+  // HttpOnly, so a cross-site caller must never be able to write them. If an
+  // Origin header is present it must be trusted; a missing Origin (non-browser
+  // client) is treated as untrusted rather than blindly allowed.
+  if (request.headers.get('origin') && !isTrustedOrigin(request)) {
+    return NextResponse.json({ error: 'طلب غير موثوق' }, { status: 403 });
+  }
+
+  // Rate limit by the caller IP (cookies are re-issued on every login POST), so
+  // a locked-on burst that tries to exhaust/pivot session cookies must go.
+  if (checkRateLimit(rateLimitKey(request, 'session-persist'), { limit: SESSION_RATE_LIMIT_MAX, windowMs: SESSION_RATE_LIMIT_WINDOW_MS }).limited) {
+    return NextResponse.json({ error: 'محاولات كثيرة. حاول لاحقًا.' }, { status: 429 });
+  }
+
   let body: { cookies?: SessionCookieInput[] } | null = null;
   try {
     body = (await request.json()) as { cookies?: SessionCookieInput[] };

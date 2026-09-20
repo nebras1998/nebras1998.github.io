@@ -12,8 +12,8 @@ import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
-import { createOvertime } from '@/lib/services/overtime';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { computeWorkHours } from '@/lib/work-time';
 
 export default function NewOvertimePage() {
@@ -64,7 +64,7 @@ export default function NewOvertimePage() {
     if (form.hours <= 0) { toast.error('يجب أن تكون الساعات أكبر من صفر'); return; }
     setLoading(true);
     try {
-      await createOvertime('unique()', form);
+      await apiFetch('/api/overtime', { method: 'POST', body: { documentId: 'unique()', ...form } });
       toast.success('تم تقديم طلب العمل الإضافي');
       router.push('/dashboard/hr/overtime');
     } catch (err: unknown) {

@@ -10,9 +10,9 @@ import SelectField from '@/components/SelectField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
-import { createVehicleTrip } from '@/lib/services/vehicle-trips';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -50,10 +50,7 @@ export default function NewTripPage() {
     if (!form.driverId) { toast.error('اختر السائق'); return; }
     setLoading(true);
     try {
-      await createVehicleTrip('unique()', {
-        ...form,
-        startMileage: parseInt(form.startMileage) || 0,
-      });
+      await apiFetch('/api/vehicle-trips', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...form, startMileage: parseInt(form.startMileage) || 0 }) });
       toast.success('تم بدء الرحلة');
       router.push(`/dashboard/vehicles/${vehicleId}`);
     } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); setLoading(false); }

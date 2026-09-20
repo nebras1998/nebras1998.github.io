@@ -12,8 +12,8 @@ import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
 import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
-import { createLeaveRequest } from '@/lib/services/leaves';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 
 export default function NewLeavePage() {
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function NewLeavePage() {
     if (!form.employeeId) { toast.error('اختر الموظف'); return; }
     setLoading(true);
     try {
-      await createLeaveRequest('unique()', form);
+      await apiFetch('/api/leaves', { method: 'POST', body: { documentId: 'unique()', ...form } });
       toast.success('تم تقديم طلب الإجازة');
       router.push('/dashboard/hr/leaves');
     } catch (err: unknown) {

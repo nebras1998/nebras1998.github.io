@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Vehicle } from '@/lib/services';
 import { listVehicles } from '@/lib/services/vehicles';
-import { createVehicleTrip } from '@/lib/services/vehicle-trips';
 import { useAuthStore } from '@/store/useAuthStore';
+import { apiFetch } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { ArrowRight } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
@@ -52,11 +52,7 @@ export default function NewTripPage() {
     if (!form.vehicleId) { toast.error('اختر المركبة'); return; }
     setLoading(true);
     try {
-      await createVehicleTrip('unique()', {
-        ...form,
-        startMileage: parseInt(form.startMileage) || 0,
-        returnTime: '',
-      });
+      await apiFetch('/api/vehicle-trips', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...form, startMileage: parseInt(form.startMileage) || 0, returnTime: '' }) });
 
       if (employee) {
         const vehicle = vehicles.find(v => v.$id === form.vehicleId);

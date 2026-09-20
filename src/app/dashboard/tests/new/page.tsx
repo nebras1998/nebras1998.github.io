@@ -7,9 +7,9 @@ import type { StandardTest } from '@/lib/services';
 import type { Employee } from '@/types';
 import { listSamples } from '@/lib/services/samples';
 import { listEmployees } from '@/lib/services/employees';
-import { createTest } from '@/lib/services/tests';
 import { listSampleTypes, listStandardTests, type SampleType } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -228,10 +228,10 @@ export default function NewTestPage() {
       while (!isSuccess && attempts < 10) {
         try {
           payload.testNumber = nextNumberStr;
-          await createTest(nextNumberStr, payload);
+          await apiFetch('/api/tests', { method: 'POST', body: JSON.stringify({ documentId: nextNumberStr, ...payload }) });
           isSuccess = true;
         } catch (err: unknown) {
-          if (err && typeof err === 'object' && 'code' in err && (err as Record<string, unknown>).code === 409) {
+          if (err instanceof Error && err.message === 'رقم الفحص موجود بالفعل') {
             attempts++;
             if (selectedSample) {
               const res = await listSampleTypes([Query.equal('name', selectedSample.type), Query.limit(1)]);

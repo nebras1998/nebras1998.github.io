@@ -13,9 +13,10 @@ import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
 import TableSkeleton from '@/components/TableSkeleton';
 import type { LeaveRequest, Employee } from '@/types';
-import { listLeaveRequests, updateLeaveRequest, deleteLeaveRequest } from '@/lib/services/leaves';
+import { listLeaveRequests } from '@/lib/services/leaves';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { computeLeaveDays } from '@/lib/work-time';
 
 const PAGE_SIZE = 20;
@@ -94,7 +95,7 @@ export default function LeavesPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      await updateLeaveRequest(id, { status: newStatus });
+      await apiFetch('/api/leaves/' + id, { method: 'PATCH', body: { status: newStatus } });
       toast.success(`تم ${newStatus === 'مقبول' ? 'قبول' : 'رفض'} الطلب`);
       fetchData();
     } catch (err: unknown) {
@@ -113,7 +114,7 @@ export default function LeavesPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteLeaveRequest(deleteTarget.id);
+      await apiFetch('/api/leaves/' + deleteTarget.id, { method: 'DELETE' });
       setLeaves((prev) => prev.filter((l) => l.$id !== deleteTarget.id));
       toast.success('تم حذف الطلب بنجاح');
     } catch (err: unknown) {

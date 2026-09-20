@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getSampleType, listStandardTests, deleteSampleType, deleteStandardTest, updateStandardTest } from '@/lib/services/sample-types';
+import { getSampleType, listStandardTests } from '@/lib/services/sample-types';
+import { apiFetch } from '@/lib/api-client';
 import type { SampleType, StandardTest } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import { RESULT_TYPE_LABELS } from '@/lib/test-config';
@@ -60,12 +61,12 @@ export default function SampleTypeDetailPage() {
     setDeleting(true);
     try {
       if (deleteTarget.kind === 'type') {
-        await deleteSampleType(deleteTarget.id);
+        await apiFetch('/api/sample-types/' + deleteTarget.id, { method: 'DELETE' });
         toast.success('تم حذف نوع العينة');
         router.push('/dashboard/catalog');
         return;
       }
-      await deleteStandardTest(deleteTarget.id, deleteTarget.label);
+      await apiFetch('/api/standard-tests/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف الفحص القياسي');
       setTests((prev) => prev.filter((t) => t.$id !== deleteTarget.id));
     } catch (err: unknown) {
@@ -81,7 +82,7 @@ export default function SampleTypeDetailPage() {
     if (!editingPrice || editingPrice.testId !== testId) return;
     try {
       const newPrice = parseFloat(editingPrice.price) || 0;
-      await updateStandardTest(testId, { price: newPrice });
+      await apiFetch('/api/standard-tests/' + testId, { method: 'PATCH', body: JSON.stringify({ price: newPrice }) });
       toast.success('تم تحديث السعر');
       setTests(prev => prev.map(t => (t.$id === testId ? { ...t, price: newPrice } : t)));
       setEditingPrice(null);

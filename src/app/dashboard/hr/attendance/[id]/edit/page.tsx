@@ -12,7 +12,8 @@ import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
-import { getAttendance, updateAttendance } from '@/lib/services/attendance';
+import { getAttendance } from '@/lib/services/attendance';
+import { apiFetch } from '@/lib/api-client';
 
 export default function EditAttendancePage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function EditAttendancePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateAttendance(recordId, form);
+      await apiFetch('/api/attendance/' + recordId, { method: 'PATCH', body: form });
       toast.success('تم تحديث السجل');
       router.push('/dashboard/hr/attendance');
     } catch (err: unknown) {

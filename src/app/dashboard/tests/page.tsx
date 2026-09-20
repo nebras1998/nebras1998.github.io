@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { listTests, getTest, deleteTest } from '@/lib/services/tests';
+import { listTests, getTest } from '@/lib/services/tests';
 import { listSamples } from '@/lib/services/samples';
 import { listEmployees } from '@/lib/services/employees';
 import { listClients } from '@/lib/services/clients';
 import type { Test } from '@/types';
-import { deleteFile } from '@/lib/services/files';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -93,9 +93,9 @@ export default function TestsPage() {
     try {
       const testDoc = await getTest(deleteTarget.id);
       if (testDoc.reportFileId) {
-        try { await deleteFile(testDoc.reportFileId); } catch {}
+        try { await apiFetch('/api/files/' + testDoc.reportFileId, { method: 'DELETE' }); } catch {}
       }
-      await deleteTest(deleteTarget.id);
+      await apiFetch('/api/tests/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف الفحص بنجاح');
       setCurrentPage(1);
     } catch (err: unknown) { toast.error('خطأ في حذف الفحص: ' + (err instanceof Error ? err.message : String(err))); }

@@ -8,7 +8,8 @@ import EmptyData from '@/components/EmptyData';
 import Card from '@/components/Card';
 import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import type { Vehicle } from '@/lib/services';
-import { listVehicles, deleteVehicle } from '@/lib/services/vehicles';
+import { listVehicles } from '@/lib/services/vehicles';
+import { apiFetch } from '@/lib/api-client';
 import { Query } from '@/lib/services';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -48,7 +49,7 @@ export default function VehiclesPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteVehicle(deleteTarget.id);
+      await apiFetch('/api/vehicles/' + deleteTarget.id, { method: 'DELETE' });
       setVehicles(prev => prev.filter(v => v.$id !== deleteTarget.id));
       toast.success('تم حذف المركبة بنجاح');
     } catch (err: unknown) { toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err))); }

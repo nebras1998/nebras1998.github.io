@@ -11,8 +11,8 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { Employee } from '@/types';
 import { listEmployees } from '@/lib/services/employees';
-import { createAttendance } from '@/lib/services/attendance';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 
 export default function CheckInPage() {
   const router = useRouter();
@@ -57,11 +57,14 @@ export default function CheckInPage() {
     setSaving(true);
     try {
       const promises = Object.entries(attendanceList).map(([empId, data]) =>
-        createAttendance('unique()', {
-          employeeId: empId,
-          date,
-          ...data,
-        } as Record<string, unknown>)
+        apiFetch('/api/attendance', {
+          method: 'POST',
+          body: {
+            employeeId: empId,
+            date,
+            ...data,
+          },
+        })
       );
       await Promise.all(promises);
       toast.success('تم تسجيل الحضور بنجاح');

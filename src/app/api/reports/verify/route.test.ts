@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { Databases } from 'node-appwrite';
+import type { ReportSnapshot } from '@/types';
+import { parseReportSnapshot } from '@/lib/report-snapshot';
+import { computeReportHash } from '@/lib/report-hash';
 
 vi.mock('node-appwrite', () => {
   const Client = vi.fn().mockImplementation(() => {
@@ -38,7 +41,21 @@ function setListDocuments(result: { documents: unknown[] }): void {
   });
 }
 
-const VALID_HASH = 'a'.repeat(64);
+const SN_SNAPSHOT: ReportSnapshot = {
+  testName: 'فحص مقاومة الضغط',
+  testNumber: 'TST-2026-0001',
+  standardRef: 'ASTM C39',
+  resultType: 'single',
+  resultRows: [{ label: 'النتيجة', value: '31.5', unit: 'MPa' }],
+  complianceStatus: 'مطابق',
+} as ReportSnapshot;
+
+const SNAPSHOT_DATA = JSON.stringify(SN_SNAPSHOT);
+
+// The lock hash is derived from the *same* snapshot payload the route recomputes
+// from (single source of truth — §2.1/2.4). It must equal what the verify route
+// derives via computeReportHash so the "hashes match" case is self-consistent.
+const VALID_HASH = computeReportHash(parseReportSnapshot(SNAPSHOT_DATA)!, 'RPT-2026-0001', '2026-01-01T00:00:00.000Z');
 
 beforeEach(() => {
   process.env.APPWRITE_API_KEY = 'test-key-123';
@@ -90,6 +107,7 @@ describe('GET /api/reports/verify', () => {
         {
           reportNumber: 'RPT-2026-0001',
           reportHash: VALID_HASH,
+          snapshotData: SNAPSHOT_DATA,
           status: 'معتمد',
           reviewedAt: '2026-01-01T00:00:00.000Z',
           reviewedBy: 'م. أحمد',

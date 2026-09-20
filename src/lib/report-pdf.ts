@@ -58,6 +58,7 @@ export function buildReportHtml(params: {
   report: Report;
   snapshot: ReportSnapshot;
   template: ReportTemplate | null;
+  reportHash: string;
   logoDataUrl?: string | null;
   reviewedBy?: string;
   reviewedAt?: string;
@@ -248,7 +249,7 @@ export function buildReportHtml(params: {
 
   <div class="footer">
     ${template?.footerText ? escapeHtml(template.footerText) : ''}
-    <div class="hash">${report.reportHash ? `SHA-256: ${report.reportHash}` : ''}</div>
+    <div class="hash">${params.reportHash ? `SHA-256: ${params.reportHash}` : ''}</div>
   </div>
 </body>
 </html>`;

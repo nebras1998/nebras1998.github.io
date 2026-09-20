@@ -9,8 +9,8 @@ import TextField from '@/components/TextField';
 import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
-import { createVehicle } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-client';
 
 export default function NewVehiclePage() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function NewVehiclePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createVehicle('unique()', form);
+      await apiFetch('/api/vehicles', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...form }) });
       toast.success('تم إضافة المركبة');
       router.push('/dashboard/vehicles');
     } catch (err: unknown) {

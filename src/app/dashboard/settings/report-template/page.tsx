@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ID } from 'appwrite';
-import { getActiveReportTemplate, createReportTemplate, updateReportTemplate } from '@/lib/services/reports';
-import { createFile, deleteFile, getFileViewUrl } from '@/lib/services/files';
+import { getActiveReportTemplate } from '@/lib/services/reports';
+import { getFileViewUrl } from '@/lib/services/files';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -105,10 +105,12 @@ export default function ReportTemplateSettingsPage() {
 
       let newLogoFileId = logoFileId;
       if (selectedLogo) {
-        const uploaded = await createFile(selectedLogo);
+        const fd = new FormData();
+        fd.append('logo', selectedLogo);
+        const uploaded = await apiFetch<{ $id: string }>('/api/settings/report-template/logo', { method: 'POST', body: fd });
         newLogoFileId = uploaded.$id;
         if (logoFileId) {
-          try { await deleteFile(logoFileId); } catch {}
+          try { await apiFetch('/api/settings/report-template/logo?id=' + encodeURIComponent(logoFileId), { method: 'DELETE' }); } catch {}
         }
         setLogoFileId(newLogoFileId);
       }
@@ -129,9 +131,9 @@ export default function ReportTemplateSettingsPage() {
       };
 
       if (templateId) {
-        await updateReportTemplate(templateId, payload);
+        await apiFetch('/api/report-templates/' + templateId, { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
-        const doc = await createReportTemplate(ID.unique(), payload);
+        const doc = await apiFetch<{ $id: string }>('/api/report-templates', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...payload }) });
         setTemplateId(doc.$id);
       }
       toast.success('تم حفظ إعدادات قالب التقرير');

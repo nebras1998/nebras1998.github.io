@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getClient, updateClient } from '@/lib/services';
+import { getClient } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -62,7 +63,7 @@ export default function EditClientPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateClient(clientId, formData);
+      await apiFetch('/api/clients/' + clientId, { method: 'PATCH', body: JSON.stringify(formData) });
       toast.success('تم تحديث بيانات العميل بنجاح');
       router.push('/dashboard/clients');
     } catch (err: unknown) {

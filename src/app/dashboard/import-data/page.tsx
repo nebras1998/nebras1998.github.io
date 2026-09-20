@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createSampleType, createStandardTest } from '@/lib/services';
-import { ID } from 'appwrite';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -28,10 +27,10 @@ export default function ImportDataPage() {
       if (data.sampleTypes && Array.isArray(data.sampleTypes)) {
         for (const type of data.sampleTypes) {
           setResult(`إنشاء نوع عينة: ${type.name}...`);
-          const doc = await createSampleType(
-            ID.unique(),
-            { name: type.name, code: type.code || '', description: type.description || '' }
-          );
+          const doc = await apiFetch<{ $id: string }>('/api/sample-types', {
+            method: 'POST',
+            body: { documentId: 'unique()', name: type.name, code: type.code || '', description: type.description || '' },
+          });
           typeIds[type.name] = doc.$id;
         }
       }
@@ -45,15 +44,16 @@ export default function ImportDataPage() {
             continue;
           }
           setResult(`إنشاء فحص: ${test.name}...`);
-          await createStandardTest(
-            ID.unique(),
-            {
+          await apiFetch('/api/standard-tests', {
+            method: 'POST',
+            body: {
+              documentId: 'unique()',
               name: test.name,
               sampleTypeId: sampleTypeId,
               specification: test.specification || '',
               unit: test.unit || '',
-            }
-          );
+            },
+          });
         }
       }
 

@@ -13,9 +13,10 @@ import TableSkeleton from '@/components/TableSkeleton';
 import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
 import type { OvertimeRecord, Employee } from '@/types';
-import { listOvertime, updateOvertime, deleteOvertime } from '@/lib/services/overtime';
+import { listOvertime } from '@/lib/services/overtime';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 
 const PAGE_SIZE = 25;
 
@@ -98,7 +99,7 @@ export default function OvertimePage() {
 
   const updateStatus = async (id: string, approved: boolean) => {
     try {
-      await updateOvertime(id, { approved });
+      await apiFetch('/api/overtime/' + id, { method: 'PATCH', body: { approved } });
       toast.success(approved ? 'تم اعتماد العمل الإضافي' : 'تم رفض طلب العمل الإضافي');
       fetchData();
     } catch (err: unknown) {
@@ -117,7 +118,7 @@ export default function OvertimePage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteOvertime(deleteTarget.id);
+      await apiFetch('/api/overtime/' + deleteTarget.id, { method: 'DELETE' });
       setOvertimes((prev) => prev.filter((o) => o.$id !== deleteTarget.id));
       toast.success('تم حذف الطلب بنجاح');
     } catch (err: unknown) {

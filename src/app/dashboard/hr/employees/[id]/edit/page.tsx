@@ -14,7 +14,7 @@ import Breadcrumb from '@/components/Breadcrumb';
 import { toast } from 'sonner';
 import { Upload, X, FileDown } from 'lucide-react';
 import { getEmployee, updateEmployee } from '@/lib/services/employees';
-import { createFile, deleteFile, getFile, getFileViewUrl } from '@/lib/services/files';
+import { getFile, getFileViewUrl } from '@/lib/services/files';
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -104,7 +104,11 @@ export default function EditEmployeePage() {
 
   const handleDeleteExistingDoc = async (fileId: string) => {
     try {
-      await deleteFile(fileId);
+      const res = await fetch(`/api/files/${fileId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = (await res.json()) as unknown;
+        throw new Error((body as { error?: string })?.error || `فشل الطلب (${res.status})`);
+      }
       setExistingDocs((prev) => prev.filter((doc) => doc.$id !== fileId));
       toast.success('تم حذف المستند بنجاح');
     } catch (err: unknown) {
@@ -118,8 +122,14 @@ export default function EditEmployeePage() {
     const uploadedIds: string[] = [];
     try {
       for (const file of selectedFiles) {
-        const result = await createFile(file);
-        uploadedIds.push(result.$id);
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/files', { method: 'POST', body: formData });
+        const body = (await res.json()) as unknown;
+        if (!res.ok) {
+          throw new Error((body as { error?: string })?.error || `فشل الطلب (${res.status})`);
+        }
+        uploadedIds.push((body as { $id: string }).$id);
       }
       toast.success('تم رفع المستندات الجديدة');
       return uploadedIds;

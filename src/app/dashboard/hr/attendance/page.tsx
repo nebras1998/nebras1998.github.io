@@ -13,9 +13,10 @@ import ConfirmModal from '@/components/ConfirmModal';
 import Badge from '@/components/Badge';
 import TableSkeleton from '@/components/TableSkeleton';
 import type { AttendanceRecord, Employee } from '@/types';
-import { listAttendance, updateAttendance, deleteAttendance } from '@/lib/services/attendance';
+import { listAttendance } from '@/lib/services/attendance';
 import { listEmployees } from '@/lib/services/employees';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import { computeWorkHours } from '@/lib/work-time';
 
 const PAGE_SIZE = 25;
@@ -104,7 +105,7 @@ export default function AttendancePage() {
 
   const toggleApproval = async (id: string, current: boolean) => {
     try {
-      await updateAttendance(id, { approved: !current });
+      await apiFetch(`/api/attendance/${id}`, { method: 'PATCH', body: { approved: !current } });
       fetchData();
       toast.success(current ? 'تم إلغاء الاعتماد' : 'تم اعتماد السجل');
     } catch (err: unknown) {
@@ -121,7 +122,7 @@ export default function AttendancePage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteAttendance(deleteTarget);
+      await apiFetch(`/api/attendance/${deleteTarget}`, { method: 'DELETE' });
       setRecords(prev => prev.filter(r => r.$id !== deleteTarget));
       toast.success('تم حذف السجل');
     } catch (err: unknown) {

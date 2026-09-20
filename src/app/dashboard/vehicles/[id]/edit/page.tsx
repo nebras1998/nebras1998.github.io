@@ -11,8 +11,9 @@ import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import TableSkeleton from '@/components/TableSkeleton';
 import Breadcrumb from '@/components/Breadcrumb';
-import { getVehicle, updateVehicle } from '@/lib/services/vehicles';
+import { getVehicle } from '@/lib/services/vehicles';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-client';
 
 export default function EditVehiclePage() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function EditVehiclePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateVehicle(vehicleId, form);
+      await apiFetch('/api/vehicles/' + vehicleId, { method: 'PATCH', body: JSON.stringify(form) });
       toast.success('تم تحديث المركبة');
       router.push('/dashboard/vehicles');
     } catch (err: unknown) {

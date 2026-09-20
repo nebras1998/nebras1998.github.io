@@ -30,6 +30,9 @@ export async function getReportTemplate(id: string): Promise<ReportTemplate> {
   return getDocument<ReportTemplate>(TEMPLATE_COL, id);
 }
 
+// NOTE: browser-SDK write functions are no longer used by pages (writes go
+// through /api/report-templates server routes). Kept for backward compat/tests.
+
 export async function createReportTemplate(id: string, data: Record<string, unknown>): Promise<ReportTemplate> {
   return createDocument<ReportTemplate>(TEMPLATE_COL, id, data);
 }

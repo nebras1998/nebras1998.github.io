@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { listBookings, updateBooking, deleteBooking, createBooking, listSampleTypes, listClients, createClient, listProjects, createProject } from '@/lib/services';
+import { listBookings, listSampleTypes, listClients, listProjects } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import type { Booking } from '@/types';
 import type { SampleType } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
@@ -16,7 +17,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ID } from 'appwrite';
 import { generateUniqueProjectNumber, formatDateAr } from '@/lib/helpers';
 import ConfirmModal from '@/components/ConfirmModal';
 import Card from '@/components/Card';
@@ -89,7 +89,7 @@ export default function BookingsPage() {
 
   const changeStatus = async (id: string, newStatus: string) => {
     try {
-      await updateBooking(id, { status: newStatus });
+      await apiFetch('/api/bookings/' + id, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
       toast.success(`تم تغيير الحالة إلى ${newStatus}`);
       setBookings(prev => prev.map(b => b.$id === id ? { ...b, status: newStatus as Booking['status'] } : b));
     } catch (err: unknown) {
@@ -103,11 +103,7 @@ export default function BookingsPage() {
       Query.limit(1),
     ]);
     if (existing.documents.length > 0) return existing.documents[0].$id;
-    const client = await createClient(ID.unique(), {
-      name,
-      phone,
-      type: 'فرد',
-    });
+    const client = await apiFetch<{ $id: string }>('/api/clients', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', name, phone, type: 'فرد' }) });
     return client.$id;
   };
 
@@ -125,14 +121,9 @@ export default function BookingsPage() {
     let attempts = 0;
     while (!project && attempts < 10) {
       try {
-        project = await createProject(nextNumberStr, {
-          name: projectName,
-          clientId,
-          projectNumber: nextNumberStr,
-          status: 'نشط',
-        });
+        project = await apiFetch<{ $id: string }>('/api/projects', { method: 'POST', body: JSON.stringify({ documentId: nextNumberStr, name: projectName, clientId, projectNumber: nextNumberStr, status: 'نشط' }) });
       } catch (err: unknown) {
-        if ((err as Record<string, unknown>).code === 409) {
+        if (err instanceof Error && err.message === 'رقم المشروع موجود بالفعل') {
           attempts++;
           const currentYear = new Date().getFullYear();
           const lastNum = parseInt(nextNumberStr.split('-').pop() || '0', 10);
@@ -155,7 +146,7 @@ export default function BookingsPage() {
       if (booking.projectName) {
         projectId = await getOrCreateProject(booking.projectName, clientId);
       }
-      await updateBooking(booking.$id, { status: 'مقبول' });
+      await apiFetch('/api/bookings/' + booking.$id, { method: 'PATCH', body: JSON.stringify({ status: 'مقبول' }) });
       toast.success(
         <div>
           تم قبول الحجز وإنشاء العميل والمشروع بنجاح.{' '}
@@ -188,7 +179,7 @@ export default function BookingsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteBooking(deleteTarget.id);
+      await apiFetch('/api/bookings/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف الحجز بنجاح');
       setBookings(prev => prev.filter(b => b.$id !== deleteTarget.id));
     } catch (err: unknown) {
@@ -223,15 +214,9 @@ export default function BookingsPage() {
       let attempts = 0;
       while (!bookingCreated && attempts < 10) {
         try {
-          bookingCreated = await createBooking(nextBookingNum, {
-            ...form,
-            bookingNumber: nextBookingNum,
-            preferredDate: date,
-            status: 'معلق',
-            source: 'مباشر',
-          });
+          bookingCreated = await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify({ documentId: nextBookingNum, ...form, bookingNumber: nextBookingNum, preferredDate: date, status: 'معلق', source: 'مباشر' }) });
         } catch (err: unknown) {
-          if ((err as Record<string, unknown>).code === 409) {
+          if (err instanceof Error && err.message === 'رقم الحجز موجود بالفعل') {
             attempts++;
             const lastNum = parseInt(nextBookingNum.split('-').pop() || '0', 10);
             nextBookingNum = `BOOK-${year}-${String(lastNum + 1).padStart(4, '0')}`;

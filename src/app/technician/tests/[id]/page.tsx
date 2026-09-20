@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Test, Sample } from '@/types';
-import { getTest, updateTest, getSample, getManagerRecipients } from '@/lib/services';
+import { getTest, getSample, getManagerRecipients } from '@/lib/services';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ArrowRight, Save, CheckCircle2, Clock } from 'lucide-react';
 import { createNotification } from '@/lib/notifications';
+import { apiFetch } from '@/lib/api-client';
 import { formatDateAr } from '@/lib/helpers';
 import TestResultRowsEditor, { calcAvg } from '@/components/tests/TestResultRowsEditor';
 import Card from '@/components/Card';
@@ -237,7 +238,7 @@ export default function TechnicianTestPage() {
         payload.completedAt = '';
       }
 
-      await updateTest(testId, payload);
+      await apiFetch('/api/tests/' + testId, { method: 'PATCH', body: JSON.stringify(payload) });
 
       // تنبيه المديرين والإداريين عند الاكتمال فقط
       if (nextStatus === 'مكتمل' && employee) {

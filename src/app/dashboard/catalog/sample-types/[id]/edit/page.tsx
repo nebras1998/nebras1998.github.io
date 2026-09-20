@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getSampleType, updateSampleType } from '@/lib/services/sample-types';
+import { getSampleType } from '@/lib/services/sample-types';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import FormCard from '@/components/FormCard';
@@ -47,10 +48,13 @@ export default function EditSampleTypePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateSampleType(typeId, {
-        name: form.name.trim(),
-        code: form.code.trim() || undefined,
-        description: form.description.trim() || undefined,
+      await apiFetch('/api/sample-types/' + typeId, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: form.name.trim(),
+          code: form.code.trim() || undefined,
+          description: form.description.trim() || undefined,
+        }),
       });
       toast.success('تم تحديث نوع العينة');
       router.push(`/dashboard/catalog/sample-types/${typeId}`);

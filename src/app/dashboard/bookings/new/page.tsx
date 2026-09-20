@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { listSampleTypes, listStandardTests, listBookings, createBooking } from '@/lib/services';
+import { listSampleTypes, listStandardTests, listBookings } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import type { SampleType, StandardTest } from '@/lib/services/sample-types';
 import { Query } from '@/lib/services';
 import AuthGuard from '@/components/AuthGuard';
@@ -13,7 +14,6 @@ import SelectField from '@/components/SelectField';
 import TextAreaField from '@/components/TextAreaField';
 import SubmitButton from '@/components/SubmitButton';
 import { toast } from 'sonner';
-import { ID } from 'appwrite';
 
 export default function NewBookingPage() {
   const router = useRouter();
@@ -97,11 +97,7 @@ export default function NewBookingPage() {
     setLoading(true);
     try {
       const number = await generateBookingNumber();
-      await createBooking(ID.unique(), {
-        ...form,
-        bookingNumber: number,
-        requestedTests: JSON.stringify(selectedTests),
-      });
+      await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify({ documentId: 'unique()', ...form, bookingNumber: number, requestedTests: JSON.stringify(selectedTests) }) });
       toast.success('تم إضافة الحجز بنجاح');
       router.push('/dashboard/bookings');
     } catch (err: unknown) {

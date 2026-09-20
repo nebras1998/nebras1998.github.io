@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import type { Sample } from '@/types';
-import { listSamples, deleteSample } from '@/lib/services/samples';
+import { listSamples } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listClients } from '@/lib/services/clients';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import Link from 'next/link';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -122,7 +123,7 @@ export default function SamplesPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteSample(deleteTarget.id);
+      await apiFetch('/api/samples/' + deleteTarget.id, { method: 'DELETE' });
       toast.success('تم حذف العينة بنجاح');
       setCurrentPage(1);
     } catch (err: unknown) { toast.error('خطأ في الحذف: ' + (err instanceof Error ? err.message : String(err))); }

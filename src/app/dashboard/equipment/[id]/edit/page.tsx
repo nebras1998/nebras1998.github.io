@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getEquipment, updateEquipment } from '@/lib/services/equipment';
+import { getEquipment } from '@/lib/services/equipment';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -57,7 +58,7 @@ export default function EditEquipmentPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateEquipment(equipmentId, formData);
+      await apiFetch('/api/equipment/' + equipmentId, { method: 'PATCH', body: formData });
       toast.success('تم تحديث الجهاز بنجاح');
       router.push('/dashboard/equipment');
     } catch (err: unknown) { toast.error('خطأ في التحديث: ' + (err instanceof Error ? err.message : String(err))); setSaving(false); }

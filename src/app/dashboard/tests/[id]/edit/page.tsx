@@ -5,12 +5,13 @@ import { useRouter, useParams } from 'next/navigation';
 import type { Sample } from '@/types';
 import type { StandardTest } from '@/lib/services';
 import type { Employee } from '@/types';
-import { getTest, updateTest } from '@/lib/services/tests';
+import { getTest } from '@/lib/services/tests';
 import { listSamples } from '@/lib/services/samples';
 import { listEmployees } from '@/lib/services/employees';
 import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
-import { deleteFile, createFile, getFileViewUrl } from '@/lib/services/files';
+import { getFileViewUrl } from '@/lib/services/files';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import TableSkeleton from '@/components/TableSkeleton';
@@ -173,8 +174,10 @@ export default function EditTestPage() {
     if (!selectedFile) return formData.reportFileId;
     setUploading(true);
     try {
-      if (formData.reportFileId) { try { await deleteFile(formData.reportFileId); } catch {} }
-      const result = await createFile(selectedFile);
+      if (formData.reportFileId) { try { await apiFetch('/api/files/' + formData.reportFileId, { method: 'DELETE' }); } catch {} }
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+      const result = await apiFetch<{ $id: string }>('/api/files', { method: 'POST', body: fd });
       return result.$id;
       } catch (err: unknown) { toast.error('فشل رفع الملف: ' + (err instanceof Error ? err.message : String(err))); return null; } finally { setUploading(false); }
   };
@@ -234,7 +237,7 @@ export default function EditTestPage() {
 
       if (compliance) payload.complianceStatus = compliance;
 
-      await updateTest(testId, payload);
+      await apiFetch('/api/tests/' + testId, { method: 'PATCH', body: JSON.stringify(payload) });
       if (formData.assignedTo && formData.assignedTo !== prevAssignedToRef.current) {
         const technician = employees.find((emp) => emp.$id === formData.assignedTo);
         try {
@@ -361,7 +364,7 @@ export default function EditTestPage() {
               <div className="mb-2 flex items-center gap-2">
                 <a href={existingFileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-dark font-medium text-sm transition-colors px-2 py-1 rounded-lg hover:bg-primary-50 flex items-center gap-1"><FileDown size={16} /> التقرير الحالي</a>
                 <button type="button" onClick={async () => {
-                  if (formData.reportFileId) { try { await deleteFile(formData.reportFileId); toast.success('تم حذف الملف'); } catch (err: unknown) { toast.error('فشل حذف الملف: ' + (err instanceof Error ? err.message : String(err))); } }
+                  if (formData.reportFileId) { try { await apiFetch('/api/files/' + formData.reportFileId, { method: 'DELETE' }); toast.success('تم حذف الملف'); } catch (err: unknown) { toast.error('فشل حذف الملف: ' + (err instanceof Error ? err.message : String(err))); } }
                   setExistingFileUrl(null); setFormData({...formData, reportFileId: ''}); setSelectedFile(null);
                 }} className="text-danger"><X size={16} /></button>
               </div>

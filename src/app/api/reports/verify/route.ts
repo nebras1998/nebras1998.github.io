@@ -15,6 +15,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client, Databases, Query } from 'node-appwrite';
 import { DATABASE_ID, REPORTS_COLLECTION_ID } from '@/lib/constants';
 import { rateLimitKey, checkRateLimit } from '@/lib/rate-limit';
+import { parseReportSnapshot } from '@/lib/report-snapshot';
+import { computeReportHash } from '@/lib/report-hash';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -58,15 +60,39 @@ export async function GET(request: NextRequest) {
     const res = await databases.listDocuments(DATABASE_ID, REPORTS_COLLECTION_ID, [
       Query.equal('reportNumber', reportNumber),
       Query.limit(10),
-      Query.select(['reportNumber', 'status', 'reportHash', 'reviewedAt', 'reviewedBy', '$createdAt', 'testId']),
+      Query.select(['reportNumber', 'status', 'reportHash', 'snapshotData', 'reviewedAt', 'reviewedBy', 'testId', '$createdAt']),
     ]);
 
-    const match = res.documents.find(
-      (d) => (d as { reportHash?: string }).reportHash === hash
-    );
+    const match = res.documents.find((d) => (d as { reportHash?: string }).reportHash === hash);
 
     if (!match) {
       return NextResponse.json({ verified: false }, { status: 200 });
+    }
+
+    // Tamper check: recompute the lock hash from the report's *current* stored
+    // snapshot and review metadata (the same inputs the PDF/approve route used)
+    // using the shared computeReportHash helper — a single source of truth. If an
+    // attacker edited the snapshot after approval but left reportHash untouched,
+    // the recomputed value will no longer match, and verification must fail.
+    //
+    // (The field equality check above already gates on the raw stored hash; this
+    // recomputation also binds the QR-presented hash to the live snapshot payload,
+    // so a snapshot-only edit cannot produce a "verified" result.)
+    const snapshotData = (match as { snapshotData?: string }).snapshotData;
+    let recomputed: string | null = null;
+    if (snapshotData) {
+      const parsedSnap = parseReportSnapshot(snapshotData);
+      if (parsedSnap) {
+        recomputed = computeReportHash(
+          parsedSnap,
+          reportNumber,
+          (match as { reviewedAt?: string }).reviewedAt ?? ''
+        );
+      }
+    }
+
+    if (!recomputed || recomputed !== hash) {
+      return NextResponse.json({ verified: false, tampered: true }, { status: 200 });
     }
 
     return NextResponse.json({

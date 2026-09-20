@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { listAttendance, createAttendance, updateAttendance, Query } from '@/lib/services';
+import { listAttendance, Query } from '@/lib/services';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { ArrowRight, CalendarCheck, CheckCircle2, WifiOff } from 'lucide-react';
 
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { createNotification } from '@/lib/notifications';
+import { apiFetch } from '@/lib/api-client';
 import Card from '@/components/Card';
 import TextField from '@/components/TextField';
 import SubmitButton from '@/components/SubmitButton';
@@ -103,13 +104,16 @@ export default function TechnicianAttendance() {
         const updateData: Record<string, unknown> = {};
         if (mode === 'in') { updateData.checkIn = checkIn; updateData.status = 'حاضر'; }
         else { updateData.checkOut = checkOut; }
-        await updateAttendance(recordId, updateData);
+        await apiFetch(`/api/attendance/${recordId}`, { method: 'PATCH', body: updateData });
       } else {
-        await createAttendance('unique()', {
-          employeeId: employee.$id, date: today,
-          checkIn: mode === 'in' ? checkIn : '',
-          checkOut: mode === 'out' ? checkOut : '',
-          status: checkIn ? 'حاضر' : 'غائب',
+        await apiFetch('/api/attendance', {
+          method: 'POST',
+          body: {
+            employeeId: employee.$id, date: today,
+            checkIn: mode === 'in' ? checkIn : '',
+            checkOut: mode === 'out' ? checkOut : '',
+            status: checkIn ? 'حاضر' : 'غائب',
+          },
         });
       }
       await createNotification({

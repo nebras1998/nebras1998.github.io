@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { listSamples, createSample } from '@/lib/services/samples';
+import { listSamples } from '@/lib/services/samples';
 import { listProjects } from '@/lib/services/projects';
 import { listEmployees } from '@/lib/services/employees';
 import { listSampleTypes, listStandardTests } from '@/lib/services/sample-types';
-import { createTest } from '@/lib/services/tests';
 import { Query } from '@/lib/services';
+import { apiFetch } from '@/lib/api-client';
 import type { Project, Employee } from '@/types';
 import type { SampleType, StandardTest } from '@/lib/services';
 import { generateTestNumber } from '@/lib/helpers';
@@ -169,7 +169,7 @@ export default function NewSamplePage() {
       let sampleAttempts = 0;
       while (!sample && sampleAttempts < 10) {
         try {
-          sample = await createSample(sampleNumberStr, { ...formData, sampleNumber: sampleNumberStr });
+          sample = await apiFetch<{ $id: string }>('/api/samples', { method: 'POST', body: JSON.stringify({ documentId: sampleNumberStr, ...formData, sampleNumber: sampleNumberStr }) });
         } catch (err: unknown) {
           const appwriteErr = err as { code?: number };
           if (appwriteErr.code === 409) {
@@ -198,7 +198,7 @@ export default function NewSamplePage() {
             let testAttempts = 0;
             while (!testCreated && testAttempts < 10) {
               try {
-                testCreated = await createTest(testNumberStr, {
+                testCreated = await apiFetch<{ $id: string }>('/api/tests', { method: 'POST', body: JSON.stringify({ documentId: testNumberStr,
                   testNumber: testNumberStr,
                   testName: stdTest.name,
                   sampleId: sample.$id,
@@ -209,7 +209,7 @@ export default function NewSamplePage() {
                   specification: stdTest.specification || '',
                   assignedTo: formData.samplerId || formData.preparerId || '',
                   notes: '',
-                });
+                }) });
               } catch (err: unknown) {
                 const appwriteErr = err as { code?: number };
                 if (appwriteErr.code === 409) {

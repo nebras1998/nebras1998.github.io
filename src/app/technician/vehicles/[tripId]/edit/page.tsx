@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getVehicle } from '@/lib/services/vehicles';
-import { getVehicleTrip, updateVehicleTrip } from '@/lib/services/vehicle-trips';
+import { getVehicleTrip } from '@/lib/services/vehicle-trips';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api-client';
 import { ArrowRight, Save } from 'lucide-react';
 import TechnicianBottomNav from '@/components/TechnicianBottomNav';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -67,14 +68,14 @@ export default function EditTripPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateVehicleTrip(tripId, {
+      await apiFetch('/api/vehicle-trips/' + tripId, { method: 'PATCH', body: JSON.stringify({
         returnTime: form.returnTime,
         endMileage: parseInt(form.endMileage) || null,
         destination: form.destination,
         purpose: form.purpose,
         notes: form.notes,
         status: 'مكتملة',
-      });
+      }) });
 
       // --- إنشاء تنبيه ---
       if (employee) {

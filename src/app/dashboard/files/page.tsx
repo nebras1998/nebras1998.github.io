@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { listFiles, deleteFile } from '@/lib/services/files';
-import { listTests, updateTest } from '@/lib/services/tests';
+import { listFiles } from '@/lib/services/files';
+import { listTests } from '@/lib/services/tests';
+import { apiFetch } from '@/lib/api-client';
 import AuthGuard from '@/components/AuthGuard';
 import DashboardLayout from '@/components/DashboardLayout';
 import EmptyData from '@/components/EmptyData';
@@ -58,7 +59,7 @@ export default function FilesPage() {
     setDeleting(true);
     try {
       // 1. حذف الملف من التخزين
-      await deleteFile(deleteTarget.$id);
+      await apiFetch('/api/files/' + deleteTarget.$id, { method: 'DELETE' });
 
       // 2. البحث عن أي فحص يشير إلى هذا الملف وإزالة الإشارة
       try {
@@ -67,9 +68,7 @@ export default function FilesPage() {
         ]);
         for (const test of testsRes.documents) {
           if (test.reportFileId === deleteTarget.$id) {
-            await updateTest(test.$id, {
-              reportFileId: '',
-            });
+            await apiFetch('/api/tests/' + test.$id, { method: 'PATCH', body: JSON.stringify({ reportFileId: '' }) });
           }
         }
       } catch (updateErr) {
