@@ -54,8 +54,10 @@ export const ALL_COLLECTIONS: BackupCollection[] = [
 export const ALL_COLLECTION_IDS: string[] = ALL_COLLECTIONS.map((c) => c.id);
 
 // مجموعات تُحفَظ عند إعادة تعيين النظام (لا تُحذف ضمن «حذف جميع البيانات»):
-// قوالب الفحوصات القياسية وأنواع العينات تبقى كمصدر ثابت للمراجع.
+// قوالب الفحوصات القياسية وأنواع العينات تبقى كمصدر ثابت للمراجع، وسجلات
+// الموظفين تُحفَظ كي تبقى الحسابات والأدوار صالحة ويعود المستخدمون لتسجيل الدخول.
 export const RESET_PRESERVED_COLLECTION_IDS: string[] = [
   SAMPLE_TYPES_COLLECTION_ID,
   STANDARD_TESTS_COLLECTION_ID,
+  EMPLOYEES_COLLECTION_ID,
 ];
