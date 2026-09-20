@@ -41,10 +41,6 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const queries: string[] = [];
-  const search = searchParams.get('search');
-  if (search) {
-    queries.push(Query.search('name', search));
-  }
   const limit = searchParams.get('limit');
   if (limit) {
     queries.push(Query.limit(Number(limit)));
