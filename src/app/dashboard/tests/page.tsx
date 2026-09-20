@@ -29,6 +29,7 @@ export default function TestsPage() {
   const [samplesMap, setSamplesMap] = useState<Record<string, string>>({});
   const [employeesMap, setEmployeesMap] = useState<Record<string, string>>({});
   const [clientsMap, setClientsMap] = useState<Record<string, string>>({});
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,7 +70,7 @@ export default function TestsPage() {
         setTotalPages(1);
       }
 
-      if (Object.keys(samplesMap).length === 0) {
+      if (!mapsLoaded) {
         try {
           const [samplesRes, employeesRes, clientsRes] = await Promise.all([
             listSamples([Query.limit(500)]),
@@ -85,14 +86,16 @@ export default function TestsPage() {
           const cMap: Record<string, string> = {};
           clientsRes.documents.forEach((c) => (cMap[c.$id] = c.name));
           setClientsMap(cMap);
+          setMapsLoaded(true);
         } catch (err: unknown) {
           console.warn('فشل تحميل بيانات إضافية (عينات/موظفين/عملاء):', err);
+          setMapsLoaded(true);
         }
       }
 
       setLoading(false);
     })();
-  }, [currentPage, filterStatus, filterEmployee, filterClient, searchTerm, samplesMap]);
+  }, [currentPage, filterStatus, filterEmployee, filterClient, searchTerm, mapsLoaded]);
 
   const openDeleteModal = (id: string, name: string) => { setDeleteTarget({ id, name }); setModalOpen(true); };
   const handleDeleteConfirm = async () => {
