@@ -259,7 +259,7 @@ export default function BackupPage() {
         <Card className="border-2 border-danger-bg text-center">
           <AlertTriangle size={48} className="mx-auto text-danger mb-4" />
           <h2 className="text-2xl font-bold mb-2 text-danger">إعادة تعيين النظام</h2>
-          <p className="text-text-muted mb-4">سيؤدي هذا الإجراء إلى حذف جميع البيانات والملفات بشكل كامل ولا يمكن التراجع عنه.</p>
+          <p className="text-text-muted mb-4">سيؤدي هذا الإجراء إلى حذف جميع البيانات والملفات بشكل كامل ولا يمكن التراجع عنه.<br />ملاحظة: قوالب الفحوصات القياسية وأنواع العينات <span className="text-success font-bold">لن تُحذف</span> — تُحفَظ تلقائياً.</p>
           <ResetSystemButton />
         </Card>
       </div>

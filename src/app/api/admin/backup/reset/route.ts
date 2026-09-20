@@ -12,7 +12,7 @@ import { DATABASE_ID, REPORTS_BUCKET_ID } from '@/lib/constants';
 import { requireAdmin, isTrustedOrigin } from '@/lib/admin-auth';
 import { getAppwriteServerEnv, missingEnvError } from '@/lib/appwrite-env';
 import { checkRateLimit, sessionRateLimitKey } from '@/lib/rate-limit';
-import { ALL_COLLECTION_IDS } from '@/lib/backup-catalog';
+import { ALL_COLLECTION_IDS, RESET_PRESERVED_COLLECTION_IDS } from '@/lib/backup-catalog';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     const storage = new Storage(client);
 
     for (const collectionId of ALL_COLLECTION_IDS) {
+      if (RESET_PRESERVED_COLLECTION_IDS.includes(collectionId)) continue;
       let hasMore = true;
       while (hasMore) {
         const page = await databases.listDocuments(DATABASE_ID, collectionId, [
