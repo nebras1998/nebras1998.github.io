@@ -4,10 +4,12 @@ import type { Invoice, PaginatedResult } from '@/types';
 
 const COL = INVOICES_COLLECTION_ID;
 
-function errorFromResponse(res: Response, data: { error?: string }): Error {
-  return Object.assign(new Error(data?.error ?? `فشل الطلب (${res.status})`), {
+function errorFromResponse(res: Response, data: { error?: string; detail?: string }): Error {
+  const message = data?.detail ? `${data.error}` : (data?.error ?? `فشل الطلب (${res.status})`);
+  return Object.assign(new Error(message), {
     code: res.status,
     status: res.status,
+    detail: data?.detail ?? '',
   });
 }
 

@@ -178,7 +178,8 @@ export default function NewInvoicePage() {
         throw new Error('تعذر توليد رقم فاتورة فريد بعد عدة محاولات.');
       }
     } catch (err: unknown) {
-      toast.error('خطأ: ' + (err instanceof Error ? err.message : String(err)));
+      const e = err as { message?: string; detail?: string };
+      toast.error('خطأ: ' + (e.detail ? `${e.message} — ${e.detail}` : (e.message ?? String(err))));
       setLoading(false);
     }
   };

@@ -70,6 +70,9 @@ const { env, missing } = getAppwriteServerEnv();
     const code = (err as { code?: number } | null)?.code;
     if (code === 409) return NextResponse.json({ error: 'رقم الفاتورة موجود بالفعل' }, { status: 409 });
     console.error('خطأ في إنشاء الفاتورة:', err);
-    return NextResponse.json({ error: 'فشل إنشاء الفاتورة' }, { status: 500 });
+    const raw = err instanceof Error ? err.message : String(err ?? '');
+    const detail =
+      `code=${code ?? '?'} type=${(err as { type?: string } | null)?.type ?? '?'} ${raw}`.slice(0, 500);
+    return NextResponse.json({ error: 'فشل إنشاء الفاتورة', detail }, { status: 500 });
   }
 }
